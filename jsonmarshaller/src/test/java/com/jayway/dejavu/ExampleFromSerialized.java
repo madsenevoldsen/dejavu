@@ -44,7 +44,7 @@ public class ExampleFromSerialized {
     }
 
     @Test
-    public void hardBug() {
+    public void non_deterministic() {
         UseCaseSetup setup = new UseCaseSetup();
         try {
             while ( true ) {
@@ -55,8 +55,9 @@ public class ExampleFromSerialized {
 
             TestGenerator generator = new TestGenerator();
             Trace trace = setup.getTrace();
-            generator.generateTest("com.jayway.dejavu.Generated" + trace.getTime().getTime(), trace, System.out);
+            String test = generator.generateTest("com.jayway.dejavu.Generated" + trace.getTime().getTime(), trace);
             // generate test that reproduces the hard bug
+            System.out.println( test );
         }
     }
 

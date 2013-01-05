@@ -16,7 +16,12 @@ public class AlmostWorkingUseCase extends UseCase<VoidValue, Void>{
     @Override
     public Void run(VoidValue input) {
         Long value = timeStamp.request(null).getValue();
-        Long luckyNumber = 2304432 / ( value % 1001 );
+        Long luckyNumber = 0l;
+        if ( value % 1001 == 0 ) {
+            luckyNumber = 2304432 / ( value % 1001 );
+        } else {
+            luckyNumber = 42L;
+        }
         log.info( "My lucky number is: "+luckyNumber);
         return null;
     }

@@ -38,7 +38,13 @@ public class DejaVuUseCase<Input extends Value, Output> implements Tracer {
     public Output run() {
         useCase = instance( clazz );
         useCase.setTracer( this );
-        return useCase.run((Input) valueProvider.getNext());
+        try {
+            return useCase.run((Input) valueProvider.getNext());
+        } catch ( TraceEndedException e ) {
+            // the trace has ended so
+            // we can do nothing but return null
+            return null;
+        }
     }
 
     private <T> T instance(Class<T> clazz ) {

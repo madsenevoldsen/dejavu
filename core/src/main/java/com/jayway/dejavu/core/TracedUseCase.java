@@ -9,6 +9,7 @@ import com.jayway.dejavu.value.Value;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +33,15 @@ public class TracedUseCase<Input extends Value, Output> extends UseCase<Input, O
     }
 
     public Output run( Input input ) {
-        trace.add( new TracedElement(clazz, input));
+        for (Method method : clazz.getDeclaredMethods()) {
+            if ( method.getName().equals("run")) {
+                // it's not the interface
+                if ( method.getParameterTypes()[0] != Value.class  ) {
+                    trace.add( new TracedElement(method.getParameterTypes()[0], input));
+                }
+            }
+        }
+        if ( trace.size() == 0 ) throw new RuntimeException("Error in framework, input type for trace not found");
         return useCase.run(input);
     }
     public <I,O> O step( Class<? extends Step<I,O>> clazz, I input ) {

@@ -2,7 +2,6 @@ package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.DejaVuUseCase;
 import com.jayway.dejavu.core.TraceEndedException;
-import com.jayway.dejavu.value.StringValue;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -19,7 +18,7 @@ public class TracerTest {
             setup.run(ExampleUseCase.class, null);
             Assert.fail("use case is expected to fail");
         } catch (ArithmeticException e ) {
-            DejaVuUseCase<StringValue, Void> dejaVu = new DejaVuUseCase<StringValue, Void>(setup.getTrace());
+            DejaVuUseCase dejaVu = new DejaVuUseCase(setup.getTrace());
             log.info("==== Deja vu ====");
             try {
                 dejaVu.run();
@@ -37,7 +36,7 @@ public class TracerTest {
             setup.run(SickProviderUseCase.class, null);
             Assert.fail("Sick provider must throw npe");
         } catch (NullPointerException e ) {
-            DejaVuUseCase<StringValue, Void> dejaVu = new DejaVuUseCase<StringValue, Void>(setup.getTrace());
+            DejaVuUseCase dejaVu = new DejaVuUseCase(setup.getTrace());
             try {
                 dejaVu.run();
                 Assert.fail("must throw a trace ended exception since a sick provider was called");
@@ -53,7 +52,7 @@ public class TracerTest {
         try {
             setup.run(CircuitBreakerUseCase.class, null);
         } catch ( NullPointerException e ) {
-            DejaVuUseCase<StringValue, Long> useCase = new DejaVuUseCase<StringValue, Long>(setup.getTrace());
+            DejaVuUseCase useCase = new DejaVuUseCase(setup.getTrace());
             try {
                 useCase.run();
                 Assert.fail("runs as before so must throw npe");

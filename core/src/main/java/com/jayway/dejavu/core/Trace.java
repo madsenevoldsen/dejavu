@@ -12,6 +12,13 @@ public class Trace {
     private Class<? extends UseCase<?,?>> useCaseClass;
     private Boolean resolved;
 
+    public Trace(String id, Date time, Boolean resolved, Class<? extends UseCase<?,?>> useCaseClass, List<TracedElement> tracedElements ) {
+        this.id = id;
+        this.time = time;
+        this.resolved = resolved;
+        this.useCaseClass = useCaseClass;
+        this.tracedElements = tracedElements;
+    }
     public Trace(List<TracedElement> tracedElements, Class<? extends UseCase<?,?>> useCaseClass ) {
         id = UUID.randomUUID().toString();
         time = new Date();
@@ -22,7 +29,6 @@ public class Trace {
     public Date getTime() {
         return new Date( time.getTime() );
     }
-
     public List<TracedElement> getTracedElements() {
         return Collections.unmodifiableList(tracedElements);
     }
@@ -30,11 +36,9 @@ public class Trace {
     public Class<? extends UseCase<?, ?>> getUseCaseClass() {
         return useCaseClass;
     }
-
     public Boolean getResolved() {
         return resolved;
     }
-
     public void setResolved(Boolean resolved) {
         this.resolved = resolved;
     }

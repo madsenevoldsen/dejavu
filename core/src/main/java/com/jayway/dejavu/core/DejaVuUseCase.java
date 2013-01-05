@@ -6,16 +6,22 @@ import com.jayway.dejavu.value.Value;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.util.List;
 
 public class DejaVuUseCase<Input extends Value, Output> implements Tracer {
 
-    private Trace trace;
+    //private Trace trace;
     private ValueProvider valueProvider;
     private UseCase<Input,Output> useCase;
+    private Class<? extends UseCase<Input,Output>> clazz;
 
     public DejaVuUseCase( Trace trace ) {
-        this.trace = trace;
-        valueProvider = new ValueProvider( trace.getTracedElements() );
+        this.clazz = (Class<? extends UseCase<Input,Output>>) trace.getUseCaseClass();
+        valueProvider = new ValueProvider( trace );
+    }
+    public DejaVuUseCase( Class<? extends UseCase<Input,Output>> clazz, List<Value> values ) {
+        this.clazz = clazz;
+        valueProvider = new ValueProvider( values );
     }
 
     @Override
@@ -30,8 +36,7 @@ public class DejaVuUseCase<Input extends Value, Output> implements Tracer {
     }
 
     public Output run() {
-        Class<? extends UseCase<Input, Output>> aClass = (Class<? extends UseCase<Input, Output>>) trace.getUseCaseClass();
-        useCase = instance( aClass );
+        useCase = instance( clazz );
         useCase.setTracer( this );
         return useCase.run((Input) valueProvider.getNext());
     }
@@ -45,7 +50,6 @@ public class DejaVuUseCase<Input extends Value, Output> implements Tracer {
             for (Field field : clazz.getDeclaredFields()) {
                 for (Annotation annotation : field.getDeclaredAnnotations()) {
                     if ( Autowire.class.isAssignableFrom(annotation.getClass())) {
-                        Autowire wire = (Autowire) annotation;
                         Class<?> type = field.getType();
                         if ( Provider.class.isAssignableFrom( type ) ) {
                             field.setAccessible(true);

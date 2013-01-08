@@ -7,8 +7,8 @@ import com.jayway.dejavu.core.TracedElement;
 import com.jayway.dejavu.core.UseCase;
 import com.jayway.dejavu.dto.TraceDTO;
 import com.jayway.dejavu.dto.TracedElementDTO;
-import com.jayway.dejavu.value.Value;
-import com.jayway.dejavu.value.VoidValue;
+import com.jayway.dejavu.core.value.Value;
+import com.jayway.dejavu.core.value.VoidValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +49,7 @@ public class Marshaller {
             List<TracedElement> elements = new ArrayList<TracedElement>();
             for (TracedElementDTO element : dto.getTracedElements()) {
                 Class<? extends Value> valueClass = (Class<? extends Value>) Class.forName(element.getValueClass());
-                elements.add( new TracedElement(valueClass, unmarshal( valueClass, element.getJsonValue() ) ));
+                elements.add( new TracedElement(valueClass, unmarshal(valueClass, element.getJsonValue()) ));
             }
             return new Trace( dto.getId(), new Date(dto.getTime()), dto.getResolved(), aClass, elements);
         } catch (IOException e) {

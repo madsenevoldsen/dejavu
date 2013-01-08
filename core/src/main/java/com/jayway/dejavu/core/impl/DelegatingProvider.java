@@ -2,7 +2,7 @@ package com.jayway.dejavu.core.impl;
 
 import com.jayway.dejavu.core.Provider;
 import com.jayway.dejavu.core.Tracer;
-import com.jayway.dejavu.value.Value;
+import com.jayway.dejavu.core.value.Value;
 
 public class DelegatingProvider<I, O extends Value> implements Provider<I,O> {
     private final Tracer tracer;

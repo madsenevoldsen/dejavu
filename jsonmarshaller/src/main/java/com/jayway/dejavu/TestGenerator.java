@@ -26,7 +26,7 @@ public class TestGenerator {
         // imports
         sb.append("import com.jayway.dejavu.core.DejaVuUseCase;\n\n");
         sb.append("import ").append(trace.getUseCaseClass().getCanonicalName()).append(";\n");
-        sb.append("import com.jayway.dejavu.value.Value;\n");
+        sb.append("import com.jayway.dejavu.core.value.Value;\n");
         Set<String> valueImports = new HashSet<String>();
         for (TracedElement element : trace.getTracedElements()) {
             String name = element.getClazz().getCanonicalName();

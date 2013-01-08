@@ -1,7 +1,9 @@
 package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.DejaVuUseCase;
-import com.jayway.dejavu.core.TraceEndedException;
+import com.jayway.dejavu.impl.ExampleUseCase;
+import com.jayway.dejavu.impl.SickProviderUseCase;
+import com.jayway.dejavu.impl.UseCaseSetup;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -39,27 +41,12 @@ public class TracerTest {
             DejaVuUseCase dejaVu = new DejaVuUseCase(setup.getTrace());
             try {
                 dejaVu.run();
-                Assert.fail("must throw a trace ended exception since a sick provider was called");
-            } catch (TraceEndedException ee ) {
-
-            }
-        }
-    }
-
-    @Test
-    public void crash_behind_circuit_breaker() {
-        UseCaseSetup setup = new UseCaseSetup();
-        try {
-            setup.run(CircuitBreakerUseCase.class, null);
-        } catch ( NullPointerException e ) {
-            DejaVuUseCase useCase = new DejaVuUseCase(setup.getTrace());
-            try {
-                useCase.run();
-                Assert.fail("runs as before so must throw npe");
+                Assert.fail("Must throw the same exception as the provider did");
             } catch (NullPointerException ee ) {
 
             }
         }
-
     }
+
+
 }

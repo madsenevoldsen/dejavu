@@ -1,8 +1,8 @@
 package com.jayway.dejavu.core;
 
-import com.jayway.dejavu.annotation.Autowire;
+import com.jayway.dejavu.core.annotation.Autowire;
 import com.jayway.dejavu.core.impl.ValueProvider;
-import com.jayway.dejavu.value.Value;
+import com.jayway.dejavu.core.value.Value;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -26,6 +26,11 @@ public class DejaVuUseCase<Input extends Value, Output> implements Tracer {
 
     @Override
     public <I, O extends Value> O provide(Provider<I, O> provider, I input) {
+        throw new RuntimeException("Must not be called in a Deja vu use case!");
+    }
+
+    @Override
+    public void provided(Value value) {
         throw new RuntimeException("Must not be called in a Deja vu use case!");
     }
 

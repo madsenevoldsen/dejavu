@@ -2,10 +2,8 @@ package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.DejaVuUseCase;
 import com.jayway.dejavu.core.Trace;
-import com.jayway.dejavu.value.LongValue;
-import com.jayway.dejavu.value.StringValue;
-import com.jayway.dejavu.value.Value;
-import com.jayway.dejavu.value.VoidValue;
+import com.jayway.dejavu.core.value.*;
+import com.jayway.dejavu.impl.*;
 import junit.framework.Assert;
 import org.junit.Test;
 
@@ -24,7 +22,12 @@ public class ExampleFromSerialized {
         values.add( marshaller.unmarshal(StringValue.class, "{ \"string\": \"d09c2893-2835-4cbe-8c8e-4c790c268ed0\" }"));
 
         DejaVuUseCase dejaVu = new DejaVuUseCase(ExampleUseCase.class, values);
-        dejaVu.run();
+        try {
+            dejaVu.run();
+            Assert.fail();
+        } catch ( ArithmeticException e ) {
+
+        }
     }
 
 
@@ -60,5 +63,23 @@ public class ExampleFromSerialized {
             System.out.println( test );
         }
     }
+
+    @Test
+    public void test() {
+        Marshaller marshaller = new Marshaller();
+        List<Value> values = new ArrayList<Value>();
+        values.add(marshaller.unmarshal(VoidValue.class, "null"));
+        values.add(marshaller.unmarshal(LongValue.class, "{\"value\":395972346776495}"));
+        values.add(marshaller.unmarshal(ExceptionValue.class, "{\"value\":\"com.jayway.dejavu.impl.NotFound\"}"));
+
+        DejaVuUseCase dejaVu = new DejaVuUseCase(BadProviderUseCase.class, values);
+        try {
+            dejaVu.run();
+            Assert.fail( "Must throw NotFound" );
+        } catch (NotFound e ) {
+            // this is what we expect
+        }
+    }
+
 
 }

@@ -1,6 +1,6 @@
 package com.jayway.dejavu.core;
 
-import com.jayway.dejavu.value.Value;
+import com.jayway.dejavu.core.value.Value;
 
 public abstract class UseCase<Input extends Value,Output> {
 

@@ -11,6 +11,7 @@ public class Trace {
     private List<TracedElement> tracedElements;
     private Class<? extends UseCase<?,?>> useCaseClass;
     private Boolean resolved;
+    private Boolean isIntegrationTest;
 
     public Trace(String id, Date time, Boolean resolved, Class<? extends UseCase<?,?>> useCaseClass, List<TracedElement> tracedElements ) {
         this.id = id;
@@ -45,5 +46,13 @@ public class Trace {
 
     public String getId() {
         return id;
+    }
+
+    public Boolean isIntegrationTest() {
+        return isIntegrationTest;
+    }
+
+    public void setIsIntegrationTest(Boolean isIntegrationTest) {
+        this.isIntegrationTest = isIntegrationTest;
     }
 }

@@ -1,7 +1,7 @@
 package com.jayway.dejavu.circuitbreaker.impl;
 
 import com.jayway.dejavu.circuitbreaker.CircuitBreakerHandler;
-import com.jayway.dejavu.circuitbreaker.CircuitBrokenException;
+import com.jayway.dejavu.circuitbreaker.CircuitOpenException;
 import com.jayway.dejavu.core.Provider;
 import com.jayway.dejavu.core.Tracer;
 import com.jayway.dejavu.core.value.ExceptionValue;
@@ -21,8 +21,8 @@ public class CircuitBreakerProvider<I,O extends Value> implements Provider<I,O> 
     @Override
     public O request(I input) {
         if ( breaker.getState().equals( "Open" )) {
-            tracer.provided( new ExceptionValue( CircuitBrokenException.class.getCanonicalName() ));
-            throw new CircuitBrokenException();
+            tracer.provided( new ExceptionValue( CircuitOpenException.class.getCanonicalName() ));
+            throw new CircuitOpenException();
         }
         try {
             O result = provider.request( input );

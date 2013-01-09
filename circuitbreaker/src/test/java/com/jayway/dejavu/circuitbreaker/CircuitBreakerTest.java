@@ -11,7 +11,7 @@ public class CircuitBreakerTest {
 
     @Test
     public void repeat_crash_in_provider() {
-        CircuitBreakerHandler breaker = new CircuitBreakerHandler("ExampleCircuitBreaker", 500, 1);
+        CircuitBreakerHandler breaker = new CircuitBreakerHandler("ExampleHandler", 500, 1);
         UseCaseSetup setup = new UseCaseSetup( breaker );
         try {
             setup.run(CircuitBreakerUseCase.class, new IntegerValue(1));
@@ -26,30 +26,27 @@ public class CircuitBreakerTest {
     }
 
     @Test
-    public void repeat_crash_in_provider2() {
-        CircuitBreakerHandler breaker = new CircuitBreakerHandler("ExampleCircuitBreaker", 500, 1);
+    public void repeat_crash_in_provider_circuit_open() {
+        CircuitBreakerHandler breaker = new CircuitBreakerHandler("ExampleHandler", 500, 1);
         UseCaseSetup setup = new UseCaseSetup( breaker );
         try {
             setup.run(CircuitBreakerUseCase.class, new IntegerValue(1));
         } catch ( NullPointerException e ) {
             try {
                 setup.run(CircuitBreakerUseCase.class, new IntegerValue(1));
-            } catch (CircuitBrokenException ee ) {
-                DejaVuUseCase useCase = new DejaVuUseCase(setup.getTrace());
+            } catch (CircuitOpenException ee ) {
                 try {
-                    useCase.run();
-                    Assert.fail("runs as before so must throw CircuitBrokenException");
-                } catch (CircuitBrokenException eee ) {
+                    new DejaVuUseCase(setup.getTrace()).run();
+                    Assert.fail("runs as before so must throw CircuitOpenException");
+                } catch (CircuitOpenException eee ) {
                 }
             }
-
-
         }
     }
 
     @Test
     public void exceed_threshold() {
-        CircuitBreakerHandler breaker = new CircuitBreakerHandler( "ExampleCircuitBreaker", 500, 2 );
+        CircuitBreakerHandler breaker = new CircuitBreakerHandler( "ExampleHandler", 500, 2 );
         UseCaseSetup setup = new UseCaseSetup( breaker );
         try {
             Assert.assertEquals( "Closed", breaker.getState() );
@@ -64,8 +61,8 @@ public class CircuitBreakerTest {
                 Assert.assertEquals( "Open", breaker.getState() );
                 try {
                     setup.run(CircuitBreakerUseCase.class, new IntegerValue(1) );
-                    Assert.fail("third must be of type CircuitBrokenException");
-                } catch (CircuitBrokenException eee ) {
+                    Assert.fail("third must be of type CircuitOpenException");
+                } catch (CircuitOpenException eee ) {
                     Assert.assertEquals( "Open", breaker.getState() );
                     try {
                         Thread.sleep( 600 );
@@ -79,12 +76,7 @@ public class CircuitBreakerTest {
                     }
                 }
             }
-
         }
     }
-
-
-
-
 
 }

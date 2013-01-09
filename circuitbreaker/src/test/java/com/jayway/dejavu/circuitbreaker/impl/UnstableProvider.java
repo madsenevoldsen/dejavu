@@ -5,7 +5,7 @@ import com.jayway.dejavu.core.Provider;
 import com.jayway.dejavu.core.value.VoidValue;
 
 @CircuitBreaker("ExampleHandler")
-public class CircuitBrokenProvider implements Provider<Integer, VoidValue> {
+public class UnstableProvider implements Provider<Integer, VoidValue> {
 
     @Override
     public VoidValue request(Integer input) {

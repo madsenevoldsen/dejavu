@@ -3,7 +3,6 @@ package com.jayway.dejavu.impl;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.UseCase;
 import com.jayway.dejavu.core.UseCaseRunner;
-import com.jayway.dejavu.core.repository.UseCaseTestRepository;
 import com.jayway.dejavu.core.repository.TraceRepository;
 import com.jayway.dejavu.core.value.Value;
 
@@ -22,17 +21,12 @@ public class UseCaseSetup implements TraceRepository {
         runner.setTraceRepository(this);
     }
 
-    public UseCaseSetup( UseCaseTestRepository repo ) {
-        this();
-        runner.setUseCaseTestRepository(repo);
-    }
-
     public <I extends Value,O> O run( Class<? extends UseCase<I,O>> clazz, I input ) {
         return runner.run( clazz, input );
     }
 
     @Override
-    public void storeTrace(Trace trace) {
+    public void storeTrace( RuntimeException e, Trace trace) {
         this.trace = trace;
     }
 

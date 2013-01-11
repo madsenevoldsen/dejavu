@@ -3,6 +3,7 @@ package com.jayway.dejavu;
 import com.jayway.dejavu.core.DejaVuUseCase;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.value.*;
+import com.jayway.dejavu.dto.TraceDTO;
 import com.jayway.dejavu.impl.*;
 import junit.framework.Assert;
 import org.junit.Test;
@@ -39,10 +40,10 @@ public class ExampleFromSerialized {
         } catch (ArithmeticException e ) {
             Marshaller marshaller = new Marshaller();
             Trace original = setup.getTrace();
-            String marshal = marshaller.marshal(original);
+            TraceDTO marshal = marshaller.marshal(original);
 
             Trace trace = marshaller.unmarshal(marshal);
-            Assert.assertEquals( original.getId(), trace.getId() );
+            Assert.assertEquals( original.getTracedElements().size(), trace.getTracedElements().size() );
         }
     }
 
@@ -58,7 +59,7 @@ public class ExampleFromSerialized {
 
             TestGenerator generator = new TestGenerator();
             Trace trace = setup.getTrace();
-            String test = generator.generateTest("com.jayway.dejavu.Generated" + trace.getTime().getTime(), trace);
+            String test = generator.generateTest("com.jayway.dejavu.Generated", trace);
             // generate test that reproduces the hard bug
             System.out.println( test );
         }

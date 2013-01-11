@@ -26,7 +26,7 @@ public class UseCaseSetup implements TraceRepository {
     }
 
     @Override
-    public void storeTrace(Trace trace) {
+    public void storeTrace(RuntimeException e, Trace trace) {
         this.trace = trace;
     }
 

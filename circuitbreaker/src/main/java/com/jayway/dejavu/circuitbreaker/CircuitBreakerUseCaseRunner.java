@@ -3,6 +3,7 @@ package com.jayway.dejavu.circuitbreaker;
 import com.jayway.dejavu.core.*;
 import com.jayway.dejavu.core.value.Value;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,5 +29,9 @@ public class CircuitBreakerUseCaseRunner extends UseCaseRunner {
             throw new NotFoundException( "Could not find circuit breaker handler named: "+name);
         }
         return handler;
+    }
+
+    public Map<String,CircuitBreakerHandler> getCircuitBreakers() {
+        return Collections.unmodifiableMap(circuitBreakers);
     }
 }

@@ -4,5 +4,5 @@ import com.jayway.dejavu.core.Trace;
 
 public interface TraceRepository {
 
-    void storeTrace( Trace trace );
+    void storeTrace( RuntimeException cause, Trace trace );
 }

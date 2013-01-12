@@ -23,11 +23,13 @@ public class CircuitBreakerTracedUseCase<Input extends Value, Output> extends Tr
     protected Provider getFieldDecoration(Field field) throws IllegalAccessException, InstantiationException {
         Provider provider = super.getFieldDecoration(field);
 
-        for ( Annotation providerAnnotation : provider.getClass().getAnnotations() ) {
-            if (CircuitBreaker.class.isAssignableFrom( providerAnnotation.getClass())) {
-                CircuitBreaker cbAnnotation = (CircuitBreaker) providerAnnotation;
-                CircuitBreakerHandler breaker = cbRunner.getCircuitBreakerHandler(cbAnnotation.value());
-                return new CircuitBreakerProvider( provider, breaker, this );
+        if ( provider != null ) {
+            for ( Annotation providerAnnotation : provider.getClass().getAnnotations() ) {
+                if (CircuitBreaker.class.isAssignableFrom( providerAnnotation.getClass())) {
+                    CircuitBreaker cbAnnotation = (CircuitBreaker) providerAnnotation;
+                    CircuitBreakerHandler breaker = cbRunner.getCircuitBreakerHandler(cbAnnotation.value());
+                    return new CircuitBreakerProvider( provider, breaker, this );
+                }
             }
         }
         return provider;

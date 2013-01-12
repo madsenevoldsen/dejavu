@@ -4,15 +4,15 @@ package com.jayway.dejavu;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.TracedElement;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class TestGenerator {
 
-    private Logger log = LoggerFactory.getLogger( TestGenerator.class );
+    public String generateTest( Trace trace ) {
+        return generateTest( trace.getUseCaseClass() + "Test", trace );
+    }
 
     public String generateTest( String testClassName, Trace trace ) {
         StringBuilder sb = new StringBuilder();

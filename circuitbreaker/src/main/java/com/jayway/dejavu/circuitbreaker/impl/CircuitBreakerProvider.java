@@ -21,7 +21,7 @@ public class CircuitBreakerProvider<I,O extends Value> implements Provider<I,O> 
     @Override
     public O request(I input) {
         if ( breaker.getState().equals( "Open" )) {
-            tracer.provided( new ExceptionValue( CircuitOpenException.class.getCanonicalName() ));
+            tracer.provided( new ExceptionValue( CircuitOpenException.class.getCanonicalName(), "Circuit breaker '"+breaker.getName()+"' is open" ));
             throw new CircuitOpenException();
         }
         try {

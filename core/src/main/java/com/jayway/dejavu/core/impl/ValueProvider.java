@@ -6,6 +6,7 @@ import com.jayway.dejavu.core.TracedElement;
 import com.jayway.dejavu.core.value.ExceptionValue;
 import com.jayway.dejavu.core.value.Value;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,11 +31,21 @@ public class ValueProvider {
         checkIndex();
         Value value = values.get(index);
         if ( value instanceof ExceptionValue ) {
+            ExceptionValue val = (ExceptionValue) value;
             RuntimeException e;
+
             try {
-                e = (RuntimeException) Class.forName( ((ExceptionValue) value).getValue() ).newInstance();
+                // 1. try to construct with message
+                Constructor<?> constructor = Class.forName(val.getValue()).getConstructor(String.class);
+                e = (RuntimeException) constructor.newInstance( val.getMessage() );
             } catch (Exception exception ) {
-                throw new RuntimeException("Error instantiating exception value. Must have a default constructor");
+                try {
+                    // 2. try default constructor
+                    e = (RuntimeException) Class.forName( val.getValue() ).newInstance();
+                } catch (Exception ee ) {
+                    // 3. throw generic runtime exception
+                    throw new RuntimeException("Original Exception: "+val.getValue() + ". Message: "+val.getMessage());
+                }
             }
             throw e;
         }

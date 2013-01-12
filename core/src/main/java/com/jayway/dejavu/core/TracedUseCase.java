@@ -58,7 +58,7 @@ public class TracedUseCase<Input extends Value, Output> extends UseCase<Input, O
             return output;
         } catch (RuntimeException e ) {
             // provider threw runtime exception
-            trace.add( new TracedElement(ExceptionValue.class, new ExceptionValue( e.getClass().getCanonicalName() )));
+            trace.add( new TracedElement(ExceptionValue.class, new ExceptionValue( e.getClass().getCanonicalName(), e.getMessage() )));
             throw e;
         }
     }

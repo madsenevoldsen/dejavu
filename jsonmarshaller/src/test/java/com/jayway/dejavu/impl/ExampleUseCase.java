@@ -1,8 +1,8 @@
 package com.jayway.dejavu.impl;
 
-import com.jayway.dejavu.core.annotation.Autowire;
 import com.jayway.dejavu.core.Provider;
 import com.jayway.dejavu.core.UseCase;
+import com.jayway.dejavu.core.annotation.Autowire;
 import com.jayway.dejavu.core.value.LongValue;
 import com.jayway.dejavu.core.value.VoidValue;
 import org.slf4j.Logger;
@@ -21,6 +21,7 @@ public class ExampleUseCase extends UseCase<VoidValue, Void>{
         value = timeStamp.request(null).getValue();
         log.info( "Second nano time is: " + value );
 
-        return run( ExampleStep.class, "ignored");
+        wireDependencies(new ExampleStep()).run("ignored");
+        return null;
     }
 }

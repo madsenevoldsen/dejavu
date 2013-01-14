@@ -21,6 +21,10 @@ public class ExampleUseCase extends UseCase<VoidValue, Void>{
         value = timeStamp.request(null).getValue();
         log.info( "Second nano time is: " + value );
 
-        return run( ExampleStep.class, "ignored");
+        ExampleStep step = new ExampleStep();
+        getTracer().wireDependencies( step );
+        step.run( "ignored" );
+
+        return null;
     }
 }

@@ -1,6 +1,6 @@
 package com.jayway.dejavu;
 
-import com.jayway.dejavu.core.DejaVuUseCase;
+import com.jayway.dejavu.core.DejaVuTrace;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.value.*;
 import com.jayway.dejavu.dto.TraceDTO;
@@ -22,7 +22,7 @@ public class ExampleFromSerialized {
         values.add( marshaller.unmarshal(LongValue.class, "{ \"value\": 349013194166199 }"));
         values.add( marshaller.unmarshal(StringValue.class, "{ \"string\": \"d09c2893-2835-4cbe-8c8e-4c790c268ed0\" }"));
 
-        DejaVuUseCase dejaVu = new DejaVuUseCase(ExampleUseCase.class, values);
+        DejaVuTrace dejaVu = new DejaVuTrace(ExampleUseCase.class, values);
         try {
             dejaVu.run();
             Assert.fail();
@@ -43,7 +43,7 @@ public class ExampleFromSerialized {
             TraceDTO marshal = marshaller.marshal(original);
 
             Trace trace = marshaller.unmarshal(marshal);
-            Assert.assertEquals( original.getTracedElements().size(), trace.getTracedElements().size() );
+            Assert.assertEquals(original.getTracedElements().size(), trace.getTracedElements().size());
         }
     }
 
@@ -59,7 +59,7 @@ public class ExampleFromSerialized {
 
             TestGenerator generator = new TestGenerator();
             Trace trace = setup.getTrace();
-            String test = generator.generateTest("com.jayway.dejavu.Generated", trace);
+            String test = generator.generateTest( trace);
             // generate test that reproduces the hard bug
             System.out.println( test );
         }
@@ -73,7 +73,7 @@ public class ExampleFromSerialized {
         values.add(marshaller.unmarshal(LongValue.class, "{\"value\":395972346776495}"));
         values.add(marshaller.unmarshal(ExceptionValue.class, "{\"value\":\"com.jayway.dejavu.impl.NotFound\"}"));
 
-        DejaVuUseCase dejaVu = new DejaVuUseCase(BadProviderUseCase.class, values);
+        DejaVuTrace dejaVu = new DejaVuTrace(BadProviderUseCase.class, values);
         try {
             dejaVu.run();
             Assert.fail( "Must throw NotFound" );

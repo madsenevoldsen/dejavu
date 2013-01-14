@@ -15,8 +15,8 @@ public class CircuitBreakerUseCaseRunner extends UseCaseRunner {
     }
 
     @Override
-    protected <Input extends Value, Output> TracedUseCase<Input, Output> tracedUseCase(Class<? extends UseCase<Input, Output>> clazz) {
-        return new CircuitBreakerTracedUseCase<Input, Output>(clazz, this );
+    protected UseCaseTracer tracedUseCase(Class<? extends UseCase> clazz, Value value) {
+        return new CircuitBreakerUseCaseTracer( clazz, this, value );
     }
 
     public void addCircuitBreakerHandler( CircuitBreakerHandler handler ) {

@@ -11,7 +11,7 @@ import java.util.Set;
 public class TestGenerator {
 
     public String generateTest( Trace trace ) {
-        return generateTest( trace.getUseCaseClass() + "Test", trace );
+        return generateTest( trace.getUseCaseClass().getCanonicalName() + "Test", trace );
     }
 
     public String generateTest( String testClassName, Trace trace ) {
@@ -24,7 +24,8 @@ public class TestGenerator {
         String packageName = testClassName.substring(0, index);
         sb.append("package ").append(packageName).append(";\n\n");
         // imports
-        sb.append("import com.jayway.dejavu.core.DejaVuUseCase;\n\n");
+        sb.append("import com.jayway.dejavu.Marshaller;\n");
+        sb.append("import com.jayway.dejavu.core.DejaVuTrace;\n\n");
         sb.append("import ").append(trace.getUseCaseClass().getCanonicalName()).append(";\n");
         sb.append("import com.jayway.dejavu.core.value.Value;\n");
         Set<String> valueImports = new HashSet<String>();
@@ -54,7 +55,7 @@ public class TestGenerator {
         }
         sb.append("\n");
         String name = trace.getUseCaseClass().getSimpleName();
-        sb.append("        DejaVuUseCase dejaVu = new DejaVuUseCase(").append(name).append(".class, values);\n");
+        sb.append("        DejaVuTrace dejaVu = new DejaVuTrace(").append(name).append(".class, values);\n");
         sb.append("        dejaVu.run();\n");
         sb.append("    }\n");
         sb.append("}\n");

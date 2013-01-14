@@ -2,7 +2,7 @@ package com.jayway.dejavu.circuitbreaker;
 
 import com.jayway.dejavu.circuitbreaker.impl.CircuitBreakerUseCase;
 import com.jayway.dejavu.circuitbreaker.impl.UseCaseSetup;
-import com.jayway.dejavu.core.DejaVuUseCase;
+import com.jayway.dejavu.core.DejaVuTrace;
 import com.jayway.dejavu.core.value.IntegerValue;
 import junit.framework.Assert;
 import org.junit.Test;
@@ -16,7 +16,7 @@ public class CircuitBreakerTest {
         try {
             setup.run(CircuitBreakerUseCase.class, new IntegerValue(1));
         } catch ( NullPointerException e ) {
-            DejaVuUseCase useCase = new DejaVuUseCase(setup.getTrace());
+            DejaVuTrace useCase = new DejaVuTrace(setup.getTrace());
             try {
                 useCase.run();
                 Assert.fail("runs as before so must throw npe");
@@ -36,7 +36,7 @@ public class CircuitBreakerTest {
                 setup.run(CircuitBreakerUseCase.class, new IntegerValue(1));
             } catch (CircuitOpenException ee ) {
                 try {
-                    new DejaVuUseCase(setup.getTrace()).run();
+                    new DejaVuTrace(setup.getTrace()).run();
                     Assert.fail("runs as before so must throw CircuitOpenException");
                 } catch (CircuitOpenException eee ) {
                 }

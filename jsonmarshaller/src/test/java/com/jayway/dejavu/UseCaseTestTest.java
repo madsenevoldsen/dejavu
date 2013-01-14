@@ -23,7 +23,7 @@ public class UseCaseTestTest {
 
 
         TestGenerator generator = new TestGenerator();
-        String it = generator.generateTest("com.jayway.app.UseCaseTestForWorkingUseCase", trace);
+        String it = generator.generateTest( trace);
         System.out.println( it );
     }
 

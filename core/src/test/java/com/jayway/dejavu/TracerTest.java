@@ -1,6 +1,6 @@
 package com.jayway.dejavu;
 
-import com.jayway.dejavu.core.DejaVuUseCase;
+import com.jayway.dejavu.core.DejaVuTrace;
 import com.jayway.dejavu.impl.ExampleUseCase;
 import com.jayway.dejavu.impl.SickProviderUseCase;
 import com.jayway.dejavu.impl.UseCaseSetup;
@@ -20,7 +20,7 @@ public class TracerTest {
             setup.run(ExampleUseCase.class, null);
             Assert.fail("use case is expected to fail");
         } catch (ArithmeticException e ) {
-            DejaVuUseCase dejaVu = new DejaVuUseCase(setup.getTrace());
+            DejaVuTrace dejaVu = new DejaVuTrace(setup.getTrace());
             log.info("==== Deja vu ====");
             try {
                 dejaVu.run();
@@ -38,7 +38,7 @@ public class TracerTest {
             setup.run(SickProviderUseCase.class, null);
             Assert.fail("Sick provider must throw npe");
         } catch (NullPointerException e ) {
-            DejaVuUseCase dejaVu = new DejaVuUseCase(setup.getTrace());
+            DejaVuTrace dejaVu = new DejaVuTrace(setup.getTrace());
             try {
                 dejaVu.run();
                 Assert.fail("Must throw the same exception as the provider did");

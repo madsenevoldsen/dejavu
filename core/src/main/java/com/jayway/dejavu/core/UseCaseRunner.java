@@ -14,18 +14,18 @@ public class UseCaseRunner {
 
     private TraceRepository traceRepository;
 
-    protected <Input extends Value,Output> TracedUseCase<Input,Output> tracedUseCase(Class<? extends UseCase<Input,Output>> clazz) {
-        return new TracedUseCase<Input, Output>(clazz, this);
+    protected UseCaseTracer tracedUseCase(Class<? extends UseCase> clazz, Value value) {
+        return new UseCaseTracer(clazz, this, value);
     }
 
-    public <Input extends Value,Output> Output run( Class<? extends UseCase<Input,Output>> clazz, Input input ) {
-        TracedUseCase<Input, Output> useCase = tracedUseCase( clazz );
+    public <T> T run( Class<? extends UseCase> clazz, Value input ) {
+        UseCaseTracer tracer = tracedUseCase( clazz, input );
         try {
-            Output output = useCase.run(input);
-            traceRepository.storeTrace( null, new Trace(useCase.getTrace(),(Class<? extends UseCase<?,?>>)useCase.getUseCase().getClass() ));
-            return output;
+            Object output = tracer.getUseCase().run(input);
+            traceRepository.storeTrace( null, new Trace(tracer.getTrace(),tracer.getUseCase().getClass() ));
+            return (T) output;
         } catch ( RuntimeException e) {
-            Trace trace = new Trace( useCase.getTrace(), (Class<? extends UseCase<?,?>>)useCase.getUseCase().getClass() );
+            Trace trace = new Trace( tracer.getTrace(), tracer.getUseCase().getClass() );
             traceRepository.storeTrace( e, trace );
             throw e;
         }

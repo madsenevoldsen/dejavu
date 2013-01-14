@@ -1,9 +1,9 @@
-package com.jayway.dejavu.circuitbreaker.impl;
+package com.jayway.dejavu.core.impl;
 
 import com.jayway.dejavu.circuitbreaker.CircuitBreakerHandler;
 import com.jayway.dejavu.circuitbreaker.CircuitOpenException;
 import com.jayway.dejavu.core.Provider;
-import com.jayway.dejavu.core.Tracer;
+import com.jayway.dejavu.core.impl.Tracer;
 import com.jayway.dejavu.core.value.ExceptionValue;
 import com.jayway.dejavu.core.value.Value;
 

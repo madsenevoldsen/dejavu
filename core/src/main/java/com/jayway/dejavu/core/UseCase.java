@@ -1,5 +1,6 @@
 package com.jayway.dejavu.core;
 
+import com.jayway.dejavu.core.impl.Tracer;
 import com.jayway.dejavu.core.value.Value;
 
 public abstract class UseCase<Input extends Value,Output> {
@@ -9,8 +10,11 @@ public abstract class UseCase<Input extends Value,Output> {
         this.tracer = tracer;
     }
 
-    public <I,O> O run( Class<? extends Step<I,O>> clazz, I input ) {
-        return tracer.step(clazz, input);
+    protected <T> T wireDependencies( T t ) {
+        return tracer.wireDependencies( t );
+    }
+    protected Tracer getTracer() {
+        return tracer;
     }
 
     abstract public Output run(Input input);

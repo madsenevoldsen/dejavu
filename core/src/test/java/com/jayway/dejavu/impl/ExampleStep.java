@@ -2,24 +2,13 @@ package com.jayway.dejavu.impl;
 
 import com.jayway.dejavu.core.Provider;
 import com.jayway.dejavu.core.annotation.Autowire;
-import com.jayway.dejavu.core.value.LongValue;
 import com.jayway.dejavu.core.value.StringValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 public class ExampleStep {
-    private Logger log = LoggerFactory.getLogger(ExampleStep.class);
 
     @Autowire("RandomUUID") Provider<Void, StringValue> uuid;
-    @Autowire("Timestamp") Provider<Void, LongValue> timeStamp;
 
-    public void run(String input) {
-        String randomString = uuid.request(null).getString();
-        log.info( "Random string is: "+randomString);
-        Long time = timeStamp.request(null).getValue();
-
-        // we will crash here
-        double impossible = 4 / 0;
+    public String getRandomString() {
+        return uuid.request(null).getString();
     }
 }

@@ -1,8 +1,8 @@
 package com.jayway.dejavu.impl;
 
-import com.jayway.dejavu.core.annotation.Autowire;
 import com.jayway.dejavu.core.Provider;
 import com.jayway.dejavu.core.UseCase;
+import com.jayway.dejavu.core.annotation.Autowire;
 import com.jayway.dejavu.core.value.VoidValue;
 
 public class SickProviderUseCase extends UseCase<VoidValue, Void>{

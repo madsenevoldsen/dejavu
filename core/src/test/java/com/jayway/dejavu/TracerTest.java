@@ -1,6 +1,7 @@
 package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.DejaVuTrace;
+import com.jayway.dejavu.impl.AutowireUseCase;
 import com.jayway.dejavu.impl.ExampleUseCase;
 import com.jayway.dejavu.impl.SickProviderUseCase;
 import com.jayway.dejavu.impl.UseCaseSetup;
@@ -46,6 +47,12 @@ public class TracerTest {
 
             }
         }
+    }
+
+    @Test
+    public void autowire_other_instances() {
+        String result = new UseCaseSetup().run(AutowireUseCase.class, null);
+        Assert.assertNotNull( result );
     }
 
 

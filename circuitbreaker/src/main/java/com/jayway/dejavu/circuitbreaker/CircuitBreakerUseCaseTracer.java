@@ -39,6 +39,7 @@ public class CircuitBreakerUseCaseTracer extends UseCaseTracer {
                 }
             }
         }
-        return provider;
+        // for circuit breakers the decoration is added here
+        return new TracedProvider( this, provider);
     }
 }

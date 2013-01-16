@@ -16,6 +16,7 @@ public class UseCaseSetup implements TraceRepository {
         runner = new CircuitBreakerUseCaseRunner();
 
         runner.addProvider( CircuitBrokenProvider.class );
+        runner.addProvider( NormalProvider.class );
 
         runner.addCircuitBreakerHandler( handler );
 

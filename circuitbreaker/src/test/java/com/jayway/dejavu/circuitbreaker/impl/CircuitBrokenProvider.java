@@ -10,7 +10,7 @@ public class CircuitBrokenProvider implements Provider<Integer, VoidValue> {
     @Override
     public VoidValue request(Integer input) {
         if ( input == 1 ) {
-            throw new NullPointerException();
+            throw new MySpecificException();
         }
         return null;
     }

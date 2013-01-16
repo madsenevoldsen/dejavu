@@ -1,6 +1,7 @@
 package com.jayway.dejavu.circuitbreaker;
 
 import com.jayway.dejavu.circuitbreaker.impl.CircuitBreakerUseCase;
+import com.jayway.dejavu.circuitbreaker.impl.MySpecificException;
 import com.jayway.dejavu.circuitbreaker.impl.UseCaseSetup;
 import com.jayway.dejavu.core.DejaVuTrace;
 import com.jayway.dejavu.core.value.IntegerValue;
@@ -15,12 +16,12 @@ public class CircuitBreakerTest {
         UseCaseSetup setup = new UseCaseSetup( breaker );
         try {
             setup.run(CircuitBreakerUseCase.class, new IntegerValue(1));
-        } catch ( NullPointerException e ) {
+        } catch ( MySpecificException e ) {
             DejaVuTrace useCase = new DejaVuTrace(setup.getTrace());
             try {
                 useCase.run();
                 Assert.fail("runs as before so must throw npe");
-            } catch (NullPointerException ee ) {
+            } catch (MySpecificException ee ) {
             }
         }
     }
@@ -31,7 +32,7 @@ public class CircuitBreakerTest {
         UseCaseSetup setup = new UseCaseSetup( breaker );
         try {
             setup.run(CircuitBreakerUseCase.class, new IntegerValue(1));
-        } catch ( NullPointerException e ) {
+        } catch ( MySpecificException e ) {
             try {
                 setup.run(CircuitBreakerUseCase.class, new IntegerValue(1));
             } catch (CircuitOpenException ee ) {
@@ -52,12 +53,12 @@ public class CircuitBreakerTest {
             Assert.assertEquals( "Closed", breaker.getState() );
             setup.run(CircuitBreakerUseCase.class, new IntegerValue(1));
             Assert.fail("first crash");
-        } catch (NullPointerException e ) {
+        } catch (MySpecificException e ) {
             Assert.assertEquals( "Closed", breaker.getState() );
             try {
                 setup.run(CircuitBreakerUseCase.class, new IntegerValue(1) );
                 Assert.fail("second crash");
-            } catch (NullPointerException ee ) {
+            } catch (MySpecificException ee ) {
                 Assert.assertEquals( "Open", breaker.getState() );
                 try {
                     setup.run(CircuitBreakerUseCase.class, new IntegerValue(1) );

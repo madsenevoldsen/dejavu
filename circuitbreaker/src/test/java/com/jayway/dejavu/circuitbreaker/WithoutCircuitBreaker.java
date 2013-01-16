@@ -8,10 +8,10 @@ import com.jayway.dejavu.core.value.IntegerValue;
 import junit.framework.Assert;
 import org.junit.Test;
 
-public class CircuitBreakerGenerateTrace {
+public class WithoutCircuitBreaker {
 
     @Test
-    public void fail_and_generate_trace() {
+    public void fail_without_circuit_breaker_annotation() {
         CircuitBreakerHandler breaker = new CircuitBreakerHandler( "ExampleHandler", 500, 10 );
         UseCaseSetup setup = new UseCaseSetup(breaker);
 

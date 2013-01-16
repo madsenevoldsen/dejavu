@@ -10,6 +10,8 @@ public class UseCaseWithoutCB extends UseCase<IntegerValue, Long> {
 
     @Autowire("NormalProvider") Provider<Integer, VoidValue> sick;
 
+    private String provider;
+
     public Long run(IntegerValue value ) {
         sick.request( value.getValue() );
         return 42L;

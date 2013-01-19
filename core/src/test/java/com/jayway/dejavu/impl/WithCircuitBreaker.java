@@ -5,7 +5,6 @@ import com.jayway.dejavu.core.annotation.Traced;
 
 public class WithCircuitBreaker {
 
-
     @Traced
     public void run(Integer input) {
         poke(input);

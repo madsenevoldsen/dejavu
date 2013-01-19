@@ -8,9 +8,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class TracerTest {
 
     private Logger log = LoggerFactory.getLogger( TracerTest.class );
@@ -20,7 +17,7 @@ public class TracerTest {
     @Before
     public void setup() {
         callback = new TraceCallbackImpl();
-        DejaVuAspect.setCallback( callback );
+        DejaVuAspect.setCallback(callback);
     }
 
     @Test
@@ -36,7 +33,7 @@ public class TracerTest {
 
     @Test
     public void example() throws Throwable {
-        ExampleUseCase aCase = new ExampleUseCase();
+        ExampleTrace aCase = new ExampleTrace();
         try {
             aCase.run();
             Assert.fail("Must throw ArithmeticException");

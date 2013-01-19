@@ -8,9 +8,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Date;
 import java.util.UUID;
 
-public class ExampleUseCase {
+public class ExampleTrace {
 
-    private Logger log = LoggerFactory.getLogger(ExampleUseCase.class);
+    private Logger log = LoggerFactory.getLogger(ExampleTrace.class);
 
     @Traced
     public void run() {

@@ -1,17 +1,17 @@
 package com.jayway.dejavu.impl;
 
-import com.jayway.dejavu.core.Provider;
-import com.jayway.dejavu.core.UseCase;
-import com.jayway.dejavu.core.annotation.Autowire;
-import com.jayway.dejavu.core.value.VoidValue;
+import com.jayway.dejavu.core.annotation.IntegrationPoint;
+import com.jayway.dejavu.core.annotation.Traced;
 
-public class SickProviderUseCase extends UseCase<VoidValue, Void>{
+public class SickProviderUseCase {
 
-    @Autowire("SickProvider") Provider<Void, VoidValue> sick;
+    @Traced
+    public void run() {
+        sick();
+    }
 
-    @Override
-    public Void run(VoidValue input ) {
-        sick.request(null);
-        return null;
+    @IntegrationPoint
+    private void sick() {
+        throw new MyOwnException();
     }
 }

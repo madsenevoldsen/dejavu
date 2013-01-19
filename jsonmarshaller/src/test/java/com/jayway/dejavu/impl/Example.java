@@ -5,31 +5,29 @@ import com.jayway.dejavu.core.annotation.Traced;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Date;
 import java.util.UUID;
 
-public class ExampleUseCase {
+public class Example {
 
-    private Logger log = LoggerFactory.getLogger(ExampleUseCase.class);
+    private Logger log = LoggerFactory.getLogger(Example.class);
 
     @Traced
     public void run() {
         Long value = timeStamp();
         log.info("First  nano time is: " + value);
 
-        String randomString = randomUUID();
-        log.info( "Random string is: "+randomString);
-
         value = timeStamp();
         log.info( "Second nano time is: " + value );
 
-        // we will crash here
-        double impossible = 4 / 0;
+        String randomString = randomUUID();
+        log.info( "Random string is: "+randomString);
+
+        double impossible = 4 /0;
     }
 
     @IntegrationPoint
-    private long timeStamp() {
-        return new Date().getTime();
+    private Long timeStamp() {
+        return System.nanoTime();
     }
 
     @IntegrationPoint

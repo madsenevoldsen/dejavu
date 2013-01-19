@@ -1,11 +1,15 @@
 package com.jayway.dejavu;
 
+import com.jayway.dejavu.core.DejaVuAspect;
 import com.jayway.dejavu.core.DejaVuTrace;
 import com.jayway.dejavu.core.Trace;
-import com.jayway.dejavu.core.value.*;
 import com.jayway.dejavu.dto.TraceDTO;
-import com.jayway.dejavu.impl.*;
+import com.jayway.dejavu.impl.AlmostWorking;
+import com.jayway.dejavu.impl.Example;
+import com.jayway.dejavu.impl.ExampleFailingIntegrationPoint;
+import com.jayway.dejavu.impl.TraceCallbackImpl;
 import junit.framework.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -13,74 +17,77 @@ import java.util.List;
 
 public class ExampleFromSerialized {
 
-    @Test
-    public void run() {
-        Marshaller marshaller = new Marshaller();
-        List<Value> values = new ArrayList<Value>();
-        values.add( marshaller.unmarshal(VoidValue.class, null));
-        values.add( marshaller.unmarshal(LongValue.class, "{ \"value\": 349013193767909 }"));
-        values.add( marshaller.unmarshal(LongValue.class, "{ \"value\": 349013194166199 }"));
-        values.add( marshaller.unmarshal(StringValue.class, "{ \"string\": \"d09c2893-2835-4cbe-8c8e-4c790c268ed0\" }"));
+    private TraceCallbackImpl callback;
 
-        DejaVuTrace dejaVu = new DejaVuTrace(ExampleUseCase.class, values);
+    @Before
+    public void setup(){
+        callback = new TraceCallbackImpl();
+        DejaVuAspect.setCallback( callback );
+    }
+
+    @Test
+    public void run() throws Throwable {
+        Marshaller marshaller = new Marshaller();
+        List<Object> values = new ArrayList<Object>();
+        values.add( marshaller.unmarshal(Long.class, "349013193767909"));
+        values.add( marshaller.unmarshal(Long.class, "349013194166199"));
+        values.add( marshaller.unmarshal(String.class, "\"d09c2893-2835-4cbe-8c8e-4c790c268ed0\""));
+
+        Trace trace = new Trace();
+        trace.setStartPoint(Example.class.getDeclaredMethod("run"));
+        trace.setValues( values );
         try {
-            dejaVu.run();
+            DejaVuTrace.run(trace);
             Assert.fail();
-        } catch ( ArithmeticException e ) {
+        } catch (ArithmeticException e) {
 
         }
+
     }
 
 
     @Test
     public void generateTrace() {
-        UseCaseSetup setup = new UseCaseSetup();
         try {
-            setup.run( ExampleUseCase.class, null );
+            new Example().run();
         } catch (ArithmeticException e ) {
             Marshaller marshaller = new Marshaller();
-            Trace original = setup.getTrace();
+            Trace original = callback.getTrace();
             TraceDTO marshal = marshaller.marshal(original);
 
             Trace trace = marshaller.unmarshal(marshal);
-            Assert.assertEquals(original.getTracedElements().size(), trace.getTracedElements().size());
+            //Assert.assertEquals(original.getTracedElements().size(), trace.getTracedElements().size());
         }
     }
 
     @Test
     public void non_deterministic() {
-        UseCaseSetup setup = new UseCaseSetup();
         try {
+            AlmostWorking useCase = new AlmostWorking();
             while ( true ) {
-                setup.run( AlmostWorkingUseCase.class, null );
+                useCase.run();
             }
         } catch (Exception e ) {
             // this is an uncommon exception
 
             TestGenerator generator = new TestGenerator();
-            Trace trace = setup.getTrace();
+            Trace trace = callback.getTrace();
             String test = generator.generateTest( trace);
             // generate test that reproduces the hard bug
             System.out.println( test );
         }
     }
 
-    @Test
-    public void test() {
-        Marshaller marshaller = new Marshaller();
-        List<Value> values = new ArrayList<Value>();
-        values.add(marshaller.unmarshal(VoidValue.class, "null"));
-        values.add(marshaller.unmarshal(LongValue.class, "{\"value\":395972346776495}"));
-        values.add(marshaller.unmarshal(ExceptionValue.class, "{\"value\":\"com.jayway.dejavu.impl.NotFound\"}"));
 
-        DejaVuTrace dejaVu = new DejaVuTrace(BadProviderUseCase.class, values);
+    @Test
+    public void failing_integration_point() {
+        ExampleFailingIntegrationPoint point = new ExampleFailingIntegrationPoint();
         try {
-            dejaVu.run();
-            Assert.fail( "Must throw NotFound" );
-        } catch (NotFound e ) {
-            // this is what we expect
+            point.run("first", "second");
+        } catch (ArithmeticException e ) {
+            TestGenerator generator = new TestGenerator();
+            String test = generator.generateTest(callback.getTrace());
+            System.out.println( test );
         }
     }
-
-
 }

@@ -1,20 +1,35 @@
 package com.jayway.dejavu.core;
 
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 
 public class Trace {
-    private List<TracedElement> tracedElements;
-    private Class<? extends UseCase> useCaseClass;
+    private List<Object> values;
+    private Method startPoint;
+    private Object[] startArguments;
 
-    public Trace(List<TracedElement> tracedElements, Class<? extends UseCase> useCaseClass ) {
-        this.tracedElements = tracedElements;
-        this.useCaseClass = useCaseClass;
+    public Method getStartPoint() {
+        return startPoint;
     }
-    public List<TracedElement> getTracedElements() {
-        return Collections.unmodifiableList(tracedElements);
+
+    public void setStartPoint(Method startPoint) {
+        this.startPoint = startPoint;
     }
-    public Class<? extends UseCase> getUseCaseClass() {
-        return useCaseClass;
+
+    public Object[] getStartArguments() {
+        return startArguments;
+    }
+
+    public void setStartArguments(Object[] startArguments) {
+        this.startArguments = startArguments;
+    }
+
+    public List<Object> getValues() {
+        return values;
+    }
+
+    public void setValues(List<Object> values) {
+        this.values = values;
     }
 }

@@ -1,0 +1,22 @@
+package com.jayway.dejavu.impl;
+
+import com.jayway.dejavu.core.annotation.IntegrationPoint;
+import com.jayway.dejavu.core.annotation.Traced;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class ExampleFailingIntegrationPoint {
+
+    private Logger log = LoggerFactory.getLogger( ExampleFailingIntegrationPoint.class );
+
+    @Traced
+    public void run( String first, String second ) {
+        log.info( "received: "+first+", and: "+second);
+        impossible();
+    }
+
+    @IntegrationPoint
+    private Integer impossible() {
+        return 4/0;
+    }
+}

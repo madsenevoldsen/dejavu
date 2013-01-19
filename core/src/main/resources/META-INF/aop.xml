@@ -1,0 +1,21 @@
+<aspectj>
+
+    <aspects>
+        <aspect name="com.jayway.dejavu.core.DejaVuAspect"/>
+
+    </aspects>
+
+    <weaver options="-verbose -showWeaveInfo">
+        <!-- Weave types that are within the javax.* or org.aspectj.*
+   packages. Also weave all types in the foo package that do
+   not have the @NoWeave annotation. -->
+        <include within="com.jayway.dejavu.impl.*"/>
+        <include within="com.jayway.dejavu.core.DejaVuAspect"/>
+
+
+        <!-- Dump all types within the "somepack" package,
+both before are after they are woven,
+to the "./_ajdump" folder on disk (for diagnostic purposes) -->
+    </weaver>
+
+</aspectj>

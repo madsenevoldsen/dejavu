@@ -1,5 +1,7 @@
 package com.jayway.dejavu.core;
 
+import com.jayway.dejavu.core.exception.TraceEndedException;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;

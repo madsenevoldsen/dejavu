@@ -1,6 +1,7 @@
 package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.*;
+import com.jayway.dejavu.core.exception.CircuitOpenException;
 import com.jayway.dejavu.impl.*;
 import org.junit.Assert;
 import org.junit.Before;

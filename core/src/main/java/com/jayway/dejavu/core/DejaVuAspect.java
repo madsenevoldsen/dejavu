@@ -1,6 +1,8 @@
 package com.jayway.dejavu.core;
 
 import com.jayway.dejavu.core.annotation.IntegrationPoint;
+import com.jayway.dejavu.core.exception.CircuitOpenException;
+import com.jayway.dejavu.core.exception.NoSuchCircuitBreaker;
 import com.jayway.dejavu.core.repository.TraceCallback;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -76,23 +78,25 @@ public class DejaVuAspect {
 
     @Around("execution(@com.jayway.dejavu.core.annotation.IntegrationPoint * *(..)) && @annotation(integrationPoint)")
     public Object integrationPoint( ProceedingJoinPoint proceed, IntegrationPoint integrationPoint) throws Throwable {
-        if ( traceMode ) {
+        Trace trace = threadLocalTrace.get();
+        if ( traceMode && trace != null ) {
             CircuitBreaker handler = null;
-            Trace trace = threadLocalTrace.get();
 
-            String cbHandlerName = integrationPoint.circuitBreaker();
-            if ( cbHandlerName.length() > 0  ) {
+            String breaker = integrationPoint.circuitBreaker();
+            if ( breaker.length() > 0  ) {
                 // a circuit breaker is expected to guard this call
                 if ( circuitBreakerHandlers != null &&
-                        circuitBreakerHandlers.containsKey(cbHandlerName )) {
-                    handler = circuitBreakerHandlers.get(cbHandlerName);
+                        circuitBreakerHandlers.containsKey(breaker )) {
+                    handler = circuitBreakerHandlers.get(breaker);
                     if ( handler.getState().equals( "Open" )) {
-                        trace.getValues().add( new CircuitOpenException() );
-                        //tracer.provided( new ExceptionValue( CircuitOpenException.class.getCanonicalName(), "Circuit breaker '"+breaker.getName()+"' is open" ));
-                        throw new CircuitOpenException();
+                        CircuitOpenException exception = new CircuitOpenException( "Circuit breaker '"+breaker+"' is open");
+                        trace.getValues().add(exception);
+                        throw exception;
                     }
                 } else {
-                    // throw ConfigurationException(...)
+                    NoSuchCircuitBreaker exception = new NoSuchCircuitBreaker("Could not find circuit breaker '"+breaker+"'");
+                    trace.getValues().add(exception);
+                    throw exception;
                 }
             }
 

@@ -7,8 +7,8 @@ import com.jayway.dejavu.core.repository.TraceCallback;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.reflect.MethodSignature;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,19 +43,9 @@ public class DejaVuAspect {
     @Around("execution(@com.jayway.dejavu.core.annotation.Traced * *(..))")
     public Object traced( ProceedingJoinPoint proceed ) throws Throwable {
         if ( traceMode && threadLocalTrace.get() == null ) {
-            Class[] args = null;
-            int argLength = proceed.getArgs().length;
-            if ( argLength > 0 ) {
-                args = new Class[ argLength ];
-                for (int i=0; i<argLength; i++) {
-                    args[ i ] = proceed.getArgs()[i].getClass();
-                }
-            }
-            Class<?> aClass = Class.forName(proceed.getSignature().getDeclaringTypeName());
-            Method method = aClass.getDeclaredMethod(proceed.getSignature().getName(), args);
-
             Trace trace = new Trace();
-            trace.setStartPoint( method );
+            MethodSignature signature = (MethodSignature) proceed.getSignature();
+            trace.setStartPoint( signature.getMethod() );
             trace.setStartArguments( proceed.getArgs() );
             trace.setValues( new ArrayList<Object>());
 

@@ -4,10 +4,7 @@ import com.jayway.dejavu.core.DejaVuAspect;
 import com.jayway.dejavu.core.DejaVuTrace;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.dto.TraceDTO;
-import com.jayway.dejavu.impl.AlmostWorking;
-import com.jayway.dejavu.impl.Example;
-import com.jayway.dejavu.impl.ExampleFailingIntegrationPoint;
-import com.jayway.dejavu.impl.TraceCallbackImpl;
+import com.jayway.dejavu.impl.*;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,7 +19,7 @@ public class ExampleFromSerialized {
     @Before
     public void setup(){
         callback = new TraceCallbackImpl();
-        DejaVuAspect.setCallback( callback );
+        DejaVuAspect.setCallback(callback);
     }
 
     @Test
@@ -87,7 +84,21 @@ public class ExampleFromSerialized {
         } catch (ArithmeticException e ) {
             TestGenerator generator = new TestGenerator();
             String test = generator.generateTest(callback.getTrace());
-            System.out.println( test );
+            System.out.println(test);
         }
+    }
+
+    @Test
+    public void with_annotation() {
+        WithAnnotation withAnnotation = new WithAnnotation();
+        withAnnotation.run( WithAnnotation.State.second );
+
+        Marshaller marshaller = new Marshaller();
+        TraceDTO dto = marshaller.marshal(callback.getTrace());
+        WithAnnotation.State beforeMarshal = (WithAnnotation.State) callback.getTrace().getStartArguments()[0];
+
+        Trace trace = marshaller.unmarshal(dto);
+        WithAnnotation.State afterMarshal = (WithAnnotation.State) trace.getStartArguments()[0];
+        Assert.assertEquals( beforeMarshal, afterMarshal );
     }
 }

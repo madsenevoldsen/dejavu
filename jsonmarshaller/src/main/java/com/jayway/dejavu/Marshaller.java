@@ -22,13 +22,13 @@ public class Marshaller {
         TraceDTO dto = new TraceDTO();
         Method method = trace.getStartPoint();
         dto.setMethodName( method.getName() );
-        dto.setClassName(method.getDeclaringClass().getCanonicalName());
+        dto.setClassName(method.getDeclaringClass().getName());
         if ( !(trace.getStartArguments() == null || trace.getStartArguments().length == 0) ) {
             int length = trace.getStartArguments().length;
             String[] args = new String[length];
             String[] argsValue = new String[length];
             for (int i=0; i<length; i++) {
-                args[i] = trace.getStartArguments()[i].getClass().getCanonicalName();
+                args[i] = trace.getStartArguments()[i].getClass().getName();
                 argsValue[i] = marshalObject(trace.getStartArguments()[i]);
             }
             dto.setArgumentClasses( args );
@@ -40,11 +40,11 @@ public class Marshaller {
                 // handle specifically: note it is currently problematic
                 // with returning of exceptions
                 ExceptionDTO exp = new ExceptionDTO();
-                exp.setExceptionClassName( value.getClass().getCanonicalName() );
+                exp.setExceptionClassName( value.getClass().getName() );
                 exp.setExceptionMessage( ((Throwable) value).getMessage() );
-                values.add( new TracedElementDTO( marshalObject( exp ), ExceptionDTO.class.getCanonicalName()));
+                values.add( new TracedElementDTO( marshalObject( exp ), ExceptionDTO.class.getName()));
             } else {
-                values.add( new TracedElementDTO( marshalObject( value), value.getClass().getCanonicalName()));
+                values.add( new TracedElementDTO( marshalObject( value), value.getClass().getName()));
             }
         }
         dto.setValues( values );
@@ -71,7 +71,7 @@ public class Marshaller {
 
             trace.setValues( new ArrayList<Object>() );
             for (TracedElementDTO elementDTO : dto.getValues()) {
-                if ( elementDTO.getValueClass().equals( ExceptionDTO.class.getCanonicalName() ) ) {
+                if ( elementDTO.getValueClass().equals( ExceptionDTO.class.getName() ) ) {
 
                     //trace.getValues().add( )
                 } else {

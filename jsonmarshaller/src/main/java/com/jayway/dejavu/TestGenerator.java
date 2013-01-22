@@ -25,17 +25,17 @@ public class TestGenerator {
         sb.append("import com.jayway.dejavu.Marshaller;\n");
         sb.append("import com.jayway.dejavu.core.Trace;\n");
         sb.append("import com.jayway.dejavu.core.DejaVuTrace;\n\n");
-        sb.append("import ").append(trace.getStartPoint().getDeclaringClass().getCanonicalName()).append(";\n");
+        sb.append("import ").append(trace.getStartPoint().getDeclaringClass().getName()).append(";\n");
         Set<String> imports = new HashSet<String>();
         for (Object element : trace.getValues()) {
-            String name = element.getClass().getCanonicalName();
+            String name = element.getClass().getName();
             if ( !imports.contains( name ) && !name.startsWith("java.lang.")) {
                 sb.append("import ").append(name).append(";\n");
                 imports.add(name);
             }
         }
         for (Object arg : trace.getStartArguments()) {
-            String name = arg.getClass().getCanonicalName();
+            String name = arg.getClass().getName();
             if ( !imports.contains( name ) && !name.startsWith("java.lang.")) {
                 sb.append("import ").append(name).append(";\n");
                 imports.add(name);

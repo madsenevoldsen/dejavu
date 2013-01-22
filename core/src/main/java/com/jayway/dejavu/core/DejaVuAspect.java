@@ -69,7 +69,12 @@ public class DejaVuAspect {
     @Around("execution(@com.jayway.dejavu.core.annotation.IntegrationPoint * *(..)) && @annotation(integrationPoint)")
     public Object integrationPoint( ProceedingJoinPoint proceed, IntegrationPoint integrationPoint) throws Throwable {
         Trace trace = threadLocalTrace.get();
-        if ( traceMode && trace != null ) {
+        if ( traceMode && trace == null ) {
+            // we are outside of a trace so call the method normally
+            return proceed.proceed();
+        }
+
+        if ( traceMode ) {
             CircuitBreaker handler = null;
 
             String breaker = integrationPoint.circuitBreaker();

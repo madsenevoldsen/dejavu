@@ -132,4 +132,15 @@ public class TracerTest {
         Assert.assertEquals( result, reRun );
         System.out.println( result );
     }
+
+
+    @Test
+    public void integration_point_calling_integration_point() throws Throwable {
+        Long time = new IPCallingIP().getTime();
+        Trace trace = callback.getTrace();
+        Assert.assertEquals( 1, trace.getValues().size() );
+
+        Long second = DejaVuTrace.run(trace);
+        Assert.assertEquals( time, second );
+    }
 }

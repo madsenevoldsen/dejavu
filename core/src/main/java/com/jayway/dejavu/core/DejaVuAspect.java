@@ -19,6 +19,7 @@ public class DejaVuAspect {
     private static TraceCallback callback;
     private static boolean traceMode = true;
     private static ThreadLocal<Trace> threadLocalTrace = new ThreadLocal<Trace>();
+    private static ThreadLocal<Boolean> threadLocalInIntegrationPoint = new ThreadLocal<Boolean>();
     private static Map<String, CircuitBreaker> circuitBreakerHandlers;
 
     public static void setCallback( TraceCallback cb ) {
@@ -50,14 +51,17 @@ public class DejaVuAspect {
             trace.setValues( new ArrayList<Object>());
 
             threadLocalTrace.set( trace );
+            threadLocalInIntegrationPoint.set( false );
             try {
                 Object result = proceed.proceed();
                 callback.traced( trace, null );
                 threadLocalTrace.remove();
+                threadLocalInIntegrationPoint.remove();
                 return result;
             } catch ( Throwable t) {
                 callback.traced( trace, t );
                 threadLocalTrace.remove();
+                threadLocalInIntegrationPoint.remove();
                 throw t;
             }
         } else {
@@ -73,8 +77,16 @@ public class DejaVuAspect {
             // we are outside of a trace so call the method normally
             return proceed.proceed();
         }
+        Boolean inIntegratonPoint = threadLocalInIntegrationPoint.get();
+        if ( traceMode && inIntegratonPoint ) {
+            // we are in a trace and in an integration point
+            // called from another integration point, so don't
+            // trace this call
+            return proceed.proceed();
+        }
 
         if ( traceMode ) {
+            threadLocalInIntegrationPoint.set( true );
             CircuitBreaker handler = null;
 
             String breaker = integrationPoint.circuitBreaker();
@@ -101,12 +113,14 @@ public class DejaVuAspect {
                 if ( handler != null ) {
                     handler.success();
                 }
+                threadLocalInIntegrationPoint.set( false );
                 return result;
             } catch (Throwable t ) {
                 trace.getValues().add( t );
                 if ( handler != null ) {
                     handler.exceptionOccurred( t );
                 }
+                threadLocalInIntegrationPoint.set( false );
                 throw t;
             }
         } else {

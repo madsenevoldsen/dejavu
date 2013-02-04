@@ -1,0 +1,5 @@
+<aspectj>
+    <weaver options="">
+        <include within="com.jayway.dejavu.neo4j.*"/>
+    </weaver>
+</aspectj>

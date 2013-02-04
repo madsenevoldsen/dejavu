@@ -3,6 +3,7 @@ package com.jayway.dejavu;
 import com.jayway.dejavu.core.DejaVuAspect;
 import com.jayway.dejavu.core.DejaVuTrace;
 import com.jayway.dejavu.core.Trace;
+import com.jayway.dejavu.core.TraceElement;
 import com.jayway.dejavu.dto.TraceDTO;
 import com.jayway.dejavu.impl.*;
 import junit.framework.Assert;
@@ -19,18 +20,19 @@ public class ExampleFromSerialized {
     @Before
     public void setup(){
         callback = new TraceCallbackImpl();
-        DejaVuAspect.setCallback(callback);
+        DejaVuAspect.initialize(callback);
     }
 
     @Test
     public void run() throws Throwable {
         Marshaller marshaller = new Marshaller();
-        List<Object> values = new ArrayList<Object>();
-        values.add( marshaller.unmarshal(Long.class, "349013193767909"));
-        values.add( marshaller.unmarshal(Long.class, "349013194166199"));
-        values.add( marshaller.unmarshal(String.class, "\"d09c2893-2835-4cbe-8c8e-4c790c268ed0\""));
+        List<TraceElement> values = new ArrayList<TraceElement>();
+        values.add( new TraceElement( "TEST_TRACE", marshaller.unmarshal(Long.class, "349013193767909")));
+        values.add( new TraceElement( "TEST_TRACE", marshaller.unmarshal(Long.class, "349013194166199")));
+        values.add( new TraceElement( "TEST_TRACE", marshaller.unmarshal(String.class, "\"d09c2893-2835-4cbe-8c8e-4c790c268ed0\"")));
 
         Trace trace = new Trace();
+        trace.setId("TEST_TRACE");
         trace.setStartPoint(Example.class.getDeclaredMethod("run"));
         trace.setValues( values );
         try {

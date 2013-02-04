@@ -1,13 +1,25 @@
 package com.jayway.dejavu.core;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Trace {
-    private List<Object> values;
+    private String id;
+    private List<TraceElement> values;
     private Method startPoint;
     private Object[] startArguments;
+
+    public Trace() {
+        values = new ArrayList<TraceElement>();
+    }
+
+    public Trace( String id, Method startPoint, Object[] startArguments ) {
+        this();
+        this.id = id;
+        this.startPoint = startPoint;
+        this.startArguments = startArguments;
+    }
 
     public Method getStartPoint() {
         return startPoint;
@@ -25,11 +37,23 @@ public class Trace {
         this.startArguments = startArguments;
     }
 
-    public List<Object> getValues() {
+    public List<TraceElement> getValues() {
         return values;
     }
 
-    public void setValues(List<Object> values) {
+    public void setValues(List<TraceElement> values) {
         this.values = values;
+    }
+
+    public void addValue( TraceElement element ) {
+        values.add( element );
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }

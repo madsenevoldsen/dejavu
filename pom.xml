@@ -11,6 +11,7 @@
         <module>core</module>
         <module>jsonmarshaller</module>
         <module>samples</module>
+        <module>neo4j-adapter</module>
     </modules>
     <properties>
         <slf4j.version>1.6.2</slf4j.version>

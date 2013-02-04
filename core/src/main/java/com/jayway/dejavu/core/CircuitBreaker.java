@@ -34,9 +34,17 @@ public class CircuitBreaker {
         return name;
     }
 
-    public String getState() {
+    public boolean isOpen() {
         ensureState();
-        return state.name();
+        return state == State.Open;
+    }
+    public boolean isClosed() {
+        ensureState();
+        return state == State.Closed;
+    }
+    public boolean isHalfOpen() {
+        ensureState();
+        return state == State.Half_open;
     }
 
     public void forceClose() {

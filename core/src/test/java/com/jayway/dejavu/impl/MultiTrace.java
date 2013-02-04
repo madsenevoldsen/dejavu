@@ -1,6 +1,6 @@
 package com.jayway.dejavu.impl;
 
-import com.jayway.dejavu.core.annotation.IntegrationPoint;
+import com.jayway.dejavu.core.annotation.Impure;
 import com.jayway.dejavu.core.annotation.Traced;
 
 import java.util.UUID;
@@ -18,7 +18,7 @@ public class MultiTrace {
     }
 
 
-    @IntegrationPoint
+    @Impure
     private String random() {
         return UUID.randomUUID().toString();
     }

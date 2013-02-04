@@ -1,6 +1,6 @@
 package com.jayway.dejavu.impl;
 
-import com.jayway.dejavu.core.annotation.IntegrationPoint;
+import com.jayway.dejavu.core.annotation.Impure;
 import com.jayway.dejavu.core.annotation.Traced;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,12 +25,12 @@ public class Example {
         double impossible = 4 /0;
     }
 
-    @IntegrationPoint
+    @Impure
     private Long timeStamp() {
         return System.nanoTime();
     }
 
-    @IntegrationPoint
+    @Impure
     private String randomUUID() {
         return UUID.randomUUID().toString();
     }

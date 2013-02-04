@@ -3,7 +3,7 @@ package com.jayway.dejavu;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.dejavu.core.Trace;
-import com.jayway.dejavu.dto.ExceptionDTO;
+import com.jayway.dejavu.core.TraceElement;
 import com.jayway.dejavu.dto.TraceDTO;
 import com.jayway.dejavu.dto.TracedElementDTO;
 import org.slf4j.Logger;
@@ -35,17 +35,8 @@ public class Marshaller {
             dto.setArgumentJsonValues( argsValue );
         }
         List<TracedElementDTO> values = new ArrayList<TracedElementDTO>();
-        for (Object value : trace.getValues()) {
-            if ( value instanceof Throwable ) {
-                // handle specifically: note it is currently problematic
-                // with returning of exceptions
-                ExceptionDTO exp = new ExceptionDTO();
-                exp.setExceptionClassName( value.getClass().getName() );
-                exp.setExceptionMessage( ((Throwable) value).getMessage() );
-                values.add( new TracedElementDTO( marshalObject( exp ), ExceptionDTO.class.getName()));
-            } else {
-                values.add( new TracedElementDTO( marshalObject( value), value.getClass().getName()));
-            }
+        for (TraceElement value : trace.getValues()) {
+            values.add( new TracedElementDTO( value.getThreadId(), marshalObject( value), value.getClass().getName()));
         }
         dto.setValues( values );
         return dto;
@@ -69,14 +60,10 @@ public class Marshaller {
                 trace.setStartPoint(aClass.getDeclaredMethod(dto.getMethodName()));
             }
 
-            trace.setValues( new ArrayList<Object>() );
+            trace.setValues( new ArrayList<TraceElement>() );
             for (TracedElementDTO elementDTO : dto.getValues()) {
-                if ( elementDTO.getValueClass().equals( ExceptionDTO.class.getName() ) ) {
-
-                    //trace.getValues().add( )
-                } else {
-                    trace.getValues().add(unmarshal(Class.forName(elementDTO.getValueClass()), elementDTO.getJsonValue()));
-                }
+                Object value = unmarshal(Class.forName(elementDTO.getValueClass()), elementDTO.getJsonValue());
+                trace.getValues().add(new TraceElement( elementDTO.getThreadId(), value ));
             }
             return trace;
         } catch (ClassNotFoundException e) {

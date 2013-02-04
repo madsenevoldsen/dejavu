@@ -1,6 +1,6 @@
 package com.jayway.dejavu.impl;
 
-import com.jayway.dejavu.core.annotation.IntegrationPoint;
+import com.jayway.dejavu.core.annotation.Impure;
 import com.jayway.dejavu.core.annotation.Traced;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +16,7 @@ public class AlmostWorking {
         log.info( "My lucky number is: "+luckyNumber);
     }
 
-    @IntegrationPoint
+    @Impure
     private Long timeStamp() {
         return System.nanoTime();
     }

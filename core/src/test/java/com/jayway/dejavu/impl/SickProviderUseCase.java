@@ -1,6 +1,6 @@
 package com.jayway.dejavu.impl;
 
-import com.jayway.dejavu.core.annotation.IntegrationPoint;
+import com.jayway.dejavu.core.annotation.Impure;
 import com.jayway.dejavu.core.annotation.Traced;
 
 public class SickProviderUseCase {
@@ -10,7 +10,7 @@ public class SickProviderUseCase {
         sick();
     }
 
-    @IntegrationPoint
+    @Impure
     private void sick() {
         throw new MyOwnException();
     }

@@ -18,7 +18,7 @@ public class TracerTest {
     @Before
     public void setup() {
         callback = new TraceCallbackImpl();
-        DejaVuAspect.setCallback(callback);
+        DejaVuAspect.initialize( callback );
     }
 
     @Test
@@ -67,7 +67,7 @@ public class TracerTest {
     public void with_circuit_breaker() throws Throwable {
         // exactly as before but with a circuit breaker
         DejaVuAspect.addCircuitBreaker( "cb1", 500, 1);
-        WithCircuitBreaker example = new WithCircuitBreaker();
+        WithIntegrationPoint example = new WithIntegrationPoint();
         try {
             example.run(1);
         } catch (MyOwnException e) {
@@ -89,30 +89,30 @@ public class TracerTest {
     public void exceed_threshold() {
         CircuitBreaker breaker = new CircuitBreaker("cb1", 500, 2);
         DejaVuAspect.addCircuitBreaker( breaker );
-        WithCircuitBreaker example = new WithCircuitBreaker();
+        WithIntegrationPoint example = new WithIntegrationPoint();
         try {
-            Assert.assertEquals("Closed", breaker.getState());
+            Assert.assertTrue( breaker.isClosed());
             example.run(1);
             Assert.fail("first crash");
         } catch (MyOwnException e ) {
-            Assert.assertEquals("Closed", breaker.getState());
+            Assert.assertTrue( breaker.isClosed());
             try {
                 example.run(1);
                 Assert.fail("second crash");
             } catch (MyOwnException ee ) {
-                Assert.assertEquals("Open", breaker.getState());
+                Assert.assertTrue( breaker.isOpen());
                 try {
                     example.run(1);
                     Assert.fail("third must be of type CircuitOpenException");
                 } catch (CircuitOpenException eee ) {
-                    Assert.assertEquals("Open", breaker.getState());
+                    Assert.assertTrue( breaker.isOpen());
                     try {
                         Thread.sleep( 600 );
                         // should now be set to half open
-                        Assert.assertEquals("Half_open", breaker.getState());
+                        Assert.assertTrue( breaker.isHalfOpen());
                         // should succeed
                         example.run(0);
-                        Assert.assertEquals("Closed", breaker.getState());
+                        Assert.assertTrue( breaker.isClosed() );
                     } catch (InterruptedException e1) {
                         Assert.fail();
                     }

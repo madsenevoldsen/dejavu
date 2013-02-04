@@ -92,7 +92,7 @@ public class TestGenerator {
         }
         sb.append("        trace.setValues( values );\n");
         sb.append("\n");
-        sb.append("        DejaVuTrace.run(trace);\n");
+        sb.append("        DejaVuTrace.begin(trace);\n");
         sb.append("    }\n");
         sb.append("}\n");
         return sb.toString();

@@ -3,11 +3,9 @@ package com.jayway.dejavu.core;
 import com.jayway.dejavu.core.annotation.Impure;
 import com.jayway.dejavu.core.exception.CircuitOpenException;
 import com.jayway.dejavu.core.repository.TraceCallback;
-import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
 
 import java.util.HashMap;
@@ -28,20 +26,17 @@ public class DejaVuAspect {
 
     private static Map<String, CircuitBreaker> circuitBreakers;
     private static Map<String, RunningTrace> runningTraces;
-    private static Map<Runnable, String> threadIdMap;
 
     public static void initialize( TraceCallback cb ) {
         callback = cb;
         circuitBreakers = new HashMap<String, CircuitBreaker>();
         runningTraces = new HashMap<String, RunningTrace>();
-        threadIdMap = new HashMap<Runnable, String>();
     }
 
     public static void destroy() {
         callback = null;
         circuitBreakers = null;
         runningTraces = null;
-        threadIdMap = null;
     }
 
     protected static void setTraceMode( boolean mode ) {
@@ -71,11 +66,11 @@ public class DejaVuAspect {
             threadLocalInIntegrationPoint.set( false );
             try {
                 Object result = proceed.proceed();
-                ifFinished(trace, null);
+                callbackIfFinished(trace, null);
                 return result;
             } catch ( Throwable t) {
                 runningTraces.get( trace.getId() ).setThrowable( t );
-                ifFinished(trace, t);
+                callbackIfFinished(trace, t);
                 throw t;
             }
         } else {
@@ -100,7 +95,7 @@ public class DejaVuAspect {
             return proceed.proceed();
         }
         Trace trace = runningTraces.get( traceId.get() ).getTrace();
-        Boolean inIntegratonPoint = threadLocalInIntegrationPoint.get();
+        boolean inIntegratonPoint = threadLocalInIntegrationPoint.get() == null ? false : threadLocalInIntegrationPoint.get();
         if ( traceMode && inIntegratonPoint ) {
             // we are in a trace and in an integration point
             // called from another integration point, so don't
@@ -128,7 +123,7 @@ public class DejaVuAspect {
                     result = new ThrownThrowable( t );
                     throw t;
                 } finally {
-                    add( trace, result );
+                    add(trace, result);
                     if ( handler != null ) {
                         if ( result instanceof ThrownThrowable ) {
                             handler.exceptionOccurred(((ThrownThrowable) result).getThrowable());
@@ -151,51 +146,40 @@ public class DejaVuAspect {
         return circuitBreakers.get( integrationPoint );
     }
 
-    @Before("execution(@com.jayway.dejavu.core.annotation.AttachThread * *(..))")
-    public void attach( JoinPoint proceed ) {
-        Runnable runnable = findRunnable(proceed.getArgs());
-        if ( runnable == null || threadId.get() == null ) {
-            return;
+    @Around("execution(@com.jayway.dejavu.core.annotation.AttachThread * *(..))")
+    public void attach( ProceedingJoinPoint proceed ) throws Throwable {
+        Object[] args = proceed.getArgs();
+        if ( threadId.get() != null ) {
+            patchRunnables( args );
+
         }
-        String childThreadId;
+        proceed.proceed( args );
+    }
+
+    private String getChildThreadId() {
         if ( traceMode ) {
             // generate id for new thread that will begin this runnable
-            childThreadId = threadId.get() + "." + UUID.randomUUID().toString();
+            return threadId.get() + "." + UUID.randomUUID().toString();
         } else {
             // when in deja vu mode threadId is already set
-            childThreadId = DejaVuTrace.nextChildThreadId( threadId.get() );
-        }
-        threadIdMap.put( runnable, childThreadId);
-        runningTraces.get( traceId.get() ).threadAttached( childThreadId );
-    }
-
-    @Around("execution(* java.lang.Runnable.run(..))")
-    public Object run( ProceedingJoinPoint proceed ) throws Throwable {
-        threadLocalInIntegrationPoint.set( false );
-        String threadId = threadIdMap.get(proceed.getThis());
-        if ( threadId != null ) {
-            DejaVuAspect.threadId.set( threadId );
-            String[] split = threadId.split("\\.");
-            traceId.set( split[0] );
-            threadIdMap.remove( proceed.getThis() );
-        }
-        try {
-            return proceed.proceed();
-        } finally {
-            // clean up
-            RunningTrace runningTrace = runningTraces.get(traceId.get());
-            runningTrace.threadCompleted(threadId);
-            ifFinished(runningTrace.getTrace(), runningTrace.getThrowable());
+            return DejaVuTrace.nextChildThreadId( threadId.get() );
         }
     }
 
-    private Runnable findRunnable(Object[] args) {
-        for (Object arg : args) {
+    private void patchRunnables(Object[] args) {
+        if ( args == null || args.length == 0 ) {
+            return;
+        }
+        for (int i=0; i<args.length; i++) {
+            Object arg = args[i];
             if ( arg instanceof Runnable ) {
-                return (Runnable) arg;
+                String childThreadId = getChildThreadId();
+                args[i] = new AttachedRunnable((Runnable) arg, traceId.get(), childThreadId);
+                // if runnable is passed as argument to @AttachThread and not
+                // run, the trace will not stop
+                runningTraces.get( traceId.get() ).threadAttached( childThreadId );
             }
         }
-        return null;
     }
 
     private void add( Trace trace, Object value ) {
@@ -203,7 +187,7 @@ public class DejaVuAspect {
         trace.addValue(element);
     }
 
-    private void ifFinished(Trace trace, Throwable t) {
+    private static void callbackIfFinished(Trace trace, Throwable t) {
         RunningTrace runningTrace = runningTraces.get(trace.getId());
         if ( runningTrace.completed() ) {
             callback.traced(trace, t);
@@ -212,5 +196,16 @@ public class DejaVuAspect {
         traceId.remove();
         threadId.remove();
         threadLocalInIntegrationPoint.remove();
+    }
+
+    public static void threadStarted( String threadId, String traceId ) {
+        DejaVuAspect.threadId.set( threadId );
+        DejaVuAspect.traceId.set( traceId );
+    }
+
+    public static void threadCompleted() {
+        RunningTrace runningTrace = DejaVuAspect.runningTraces.get( traceId.get() );
+        runningTrace.threadCompleted(threadId.get());
+        callbackIfFinished(runningTrace.getTrace(), runningTrace.getThrowable());
     }
 }

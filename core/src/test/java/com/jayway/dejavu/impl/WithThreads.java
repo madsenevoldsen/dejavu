@@ -10,7 +10,6 @@ public class WithThreads {
 
     private static ExecutorService executorService;
 
-
     public static void initialize() {
         executorService = Executors.newCachedThreadPool();
     }

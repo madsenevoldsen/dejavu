@@ -9,13 +9,11 @@ public class Runner implements Runnable {
 
     public void run() {
         uuid();
-
         try {
             Thread.sleep(randomLong());
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
         uuid();
     }
 

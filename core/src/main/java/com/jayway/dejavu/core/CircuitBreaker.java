@@ -5,6 +5,23 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 
+/**
+ * Circuit breaker guarding the call to @Impure methods.
+ *
+ * Configured by name, timeout, and exception threshold.
+ *
+ * Example:
+ *
+ * @Impure( integrationPoint = "mySql" )
+ * public void connect() {
+ *     // setup connection to database
+ * }
+ *
+ * public void setup() {
+ *     DejaVuAspect.addCircuitBreaker( "mySql", 1000, 2 );
+ * }
+ *
+ */
 public class CircuitBreaker {
 
     private Logger log = LoggerFactory.getLogger(CircuitBreaker.class);

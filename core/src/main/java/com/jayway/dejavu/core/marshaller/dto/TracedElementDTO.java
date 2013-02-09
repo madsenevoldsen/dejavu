@@ -1,4 +1,4 @@
-package com.jayway.dejavu.dto;
+package com.jayway.dejavu.core.marshaller.dto;
 
 public class TracedElementDTO {
     private String threadId;

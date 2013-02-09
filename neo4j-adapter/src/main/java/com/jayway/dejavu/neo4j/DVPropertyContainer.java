@@ -4,7 +4,7 @@ import com.jayway.dejavu.core.annotation.Impure;
 import org.neo4j.graphdb.PropertyContainer;
 
 public class DVPropertyContainer {
-    private PropertyContainer container;
+    transient PropertyContainer container;
 
     DVPropertyContainer( PropertyContainer container ) {
         this.container = container;

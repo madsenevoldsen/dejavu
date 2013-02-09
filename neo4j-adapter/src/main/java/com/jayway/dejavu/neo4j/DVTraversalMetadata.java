@@ -10,12 +10,12 @@ public class DVTraversalMetadata {
         this.metadata = metadata;
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public Integer getNumberOfPathsReturned() {
         return metadata.getNumberOfPathsReturned();
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public Integer getNumberOfRelationshipsTraversed() {
         return metadata.getNumberOfRelationshipsTraversed();
     }

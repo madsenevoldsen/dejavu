@@ -13,17 +13,17 @@ public class RelationshipIterator {
         this.iterator = iterator;
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public Boolean hasNext() {
         return iterator.hasNext();
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public DVRelationship next() {
         return new DVRelationship(iterator.next());
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public void remove() {
         iterator.remove();
     }

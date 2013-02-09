@@ -5,58 +5,58 @@ import org.neo4j.graphdb.Path;
 
 public class DVPath {
 
-    Path path;
+    transient Path path;
 
     DVPath( Path path ) {
         this.path = path;
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public DVNode endNode() {
         return new DVNode( path.endNode() );
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public PropertyContainerIterator iterator() {
         return new PropertyContainerIterator( path.iterator() );
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public DVRelationship lastRelationship() {
         return new DVRelationship( path.lastRelationship() );
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public Integer length() {
         return path.length();
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public NodeIterator nodes() {
         return new NodeIterator( path.nodes().iterator() );
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public RelationshipIterator relationships() {
         return new RelationshipIterator( path.relationships().iterator() );
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public NodeIterator reverseNodes() {
         return new NodeIterator( path.reverseNodes().iterator() );
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public RelationshipIterator reverseRelationships() {
         return new RelationshipIterator( path.reverseRelationships().iterator() );
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public DVNode startNode() {
         return new DVNode( path.startNode() );
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public String toString() {
         return path.toString();
     }

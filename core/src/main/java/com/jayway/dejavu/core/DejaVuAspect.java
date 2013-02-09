@@ -24,19 +24,17 @@ public class DejaVuAspect {
     private static ThreadLocal<String> threadId = new ThreadLocal<String>();
     private static ThreadLocal<Boolean> threadLocalInIntegrationPoint = new ThreadLocal<Boolean>();
 
+    private static Map<String, RunningTrace> runningTraces = new HashMap<String, RunningTrace>();
     private static Map<String, CircuitBreaker> circuitBreakers;
-    private static Map<String, RunningTrace> runningTraces;
 
     public static void initialize( TraceCallback cb ) {
         callback = cb;
         circuitBreakers = new HashMap<String, CircuitBreaker>();
-        runningTraces = new HashMap<String, RunningTrace>();
     }
 
     public static void destroy() {
         callback = null;
         circuitBreakers = null;
-        runningTraces = null;
     }
 
     protected static void setTraceMode( boolean mode ) {
@@ -123,7 +121,10 @@ public class DejaVuAspect {
                     result = new ThrownThrowable( t );
                     throw t;
                 } finally {
-                    add(trace, result);
+                    //MethodSignature signature = (MethodSignature) proceed.getSignature();
+                    //if ( result instanceof ThrownThrowable || !signature.getReturnType().toString().equals( "void" ) ) {
+                        add(trace, result);
+                    //}
                     if ( handler != null ) {
                         if ( result instanceof ThrownThrowable ) {
                             handler.exceptionOccurred(((ThrownThrowable) result).getThrowable());
@@ -135,7 +136,13 @@ public class DejaVuAspect {
                 }
             }
         } else {
-            return DejaVuTrace.nextValue( threadId.get() );
+            //MethodSignature signature = (MethodSignature) proceed.getSignature();
+            //if ( !signature.getReturnType().toString().equals("void") ) {
+                return DejaVuTrace.nextValue( threadId.get() );
+            //} else {
+            //    return null;
+            //}
+
         }
     }
 
@@ -190,7 +197,7 @@ public class DejaVuAspect {
     private static void callbackIfFinished(Trace trace, Throwable t) {
         RunningTrace runningTrace = runningTraces.get(trace.getId());
         if ( runningTrace.completed() ) {
-            callback.traced(trace, t);
+            if ( traceMode ) callback.traced(trace, t);
             runningTraces.remove( trace.getId() );
         }
         traceId.remove();
@@ -207,5 +214,18 @@ public class DejaVuAspect {
         RunningTrace runningTrace = DejaVuAspect.runningTraces.get( traceId.get() );
         runningTrace.threadCompleted(threadId.get());
         callbackIfFinished(runningTrace.getTrace(), runningTrace.getThrowable());
+    }
+
+    public static void threadThrowable(Throwable throwable) {
+        if ( traceMode ) {
+            Trace trace = runningTraces.get(traceId.get()).getTrace();
+            synchronized ( trace ) {
+                trace.addThreadThrowable( new ThreadThrowable( threadId.get(), throwable ));
+            }
+        }
+    }
+
+    public static boolean traceCompleted( String traceId ) {
+        return runningTraces.get( traceId ) == null;
     }
 }

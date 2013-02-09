@@ -5,23 +5,23 @@ import org.neo4j.graphdb.Transaction;
 
 public class DVTransaction {
 
-    private Transaction transaction;
+    private transient Transaction transaction;
 
     DVTransaction(Transaction transaction) {
         this.transaction = transaction;
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public void success() {
         transaction.success();
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public void finish() {
         transaction.finish();
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public void failure() {
         transaction.failure();
     }

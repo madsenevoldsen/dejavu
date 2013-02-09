@@ -6,13 +6,13 @@ import org.neo4j.graphdb.traversal.Evaluator;
 
 public class DVEvaluator {
 
-    Evaluator evaluator;
+    transient Evaluator evaluator;
 
     DVEvaluator( Evaluator evaluator ) {
         this.evaluator = evaluator;
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public Evaluation evaluate( DVPath path ) {
         return evaluator.evaluate( path.path );
     }

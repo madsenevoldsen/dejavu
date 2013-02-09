@@ -4,7 +4,8 @@ import com.jayway.dejavu.core.DejaVuAspect;
 import com.jayway.dejavu.core.DejaVuTrace;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.TraceElement;
-import com.jayway.dejavu.dto.TraceDTO;
+import com.jayway.dejavu.core.marshaller.Marshaller;
+import com.jayway.dejavu.core.marshaller.dto.TraceDTO;
 import com.jayway.dejavu.impl.*;
 import junit.framework.Assert;
 import org.junit.Before;
@@ -13,19 +14,20 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ExampleFromSerialized {
+public class ExampleFromSerializedTest {
 
     private TraceCallbackImpl callback;
+    private Marshaller marshaller;
 
     @Before
     public void setup(){
         callback = new TraceCallbackImpl();
         DejaVuAspect.initialize(callback);
+        marshaller = new Marshaller( new JacksonMarshallerPlugin() );
     }
 
     @Test
     public void run() throws Throwable {
-        Marshaller marshaller = new Marshaller();
         List<TraceElement> values = new ArrayList<TraceElement>();
         values.add( new TraceElement( "TEST_TRACE", marshaller.unmarshal(Long.class, "349013193767909")));
         values.add( new TraceElement( "TEST_TRACE", marshaller.unmarshal(Long.class, "349013194166199")));
@@ -50,7 +52,6 @@ public class ExampleFromSerialized {
         try {
             new Example().run();
         } catch (ArithmeticException e ) {
-            Marshaller marshaller = new Marshaller();
             Trace original = callback.getTrace();
             TraceDTO marshal = marshaller.marshal(original);
 
@@ -68,10 +69,8 @@ public class ExampleFromSerialized {
             }
         } catch (Exception e ) {
             // this is an uncommon exception
-
-            TestGenerator generator = new TestGenerator();
             Trace trace = callback.getTrace();
-            String test = generator.generateTest( trace);
+            String test = marshaller.generateTest( trace);
             // generate test that reproduces the hard bug
             System.out.println( test );
         }
@@ -84,8 +83,7 @@ public class ExampleFromSerialized {
         try {
             point.run("first", "second");
         } catch (ArithmeticException e ) {
-            TestGenerator generator = new TestGenerator();
-            String test = generator.generateTest(callback.getTrace());
+            String test = marshaller.generateTest(callback.getTrace());
             System.out.println(test);
         }
     }
@@ -95,7 +93,6 @@ public class ExampleFromSerialized {
         WithAnnotation withAnnotation = new WithAnnotation();
         withAnnotation.run( WithAnnotation.State.second );
 
-        Marshaller marshaller = new Marshaller();
         TraceDTO dto = marshaller.marshal(callback.getTrace());
         WithAnnotation.State beforeMarshal = (WithAnnotation.State) callback.getTrace().getStartArguments()[0];
 

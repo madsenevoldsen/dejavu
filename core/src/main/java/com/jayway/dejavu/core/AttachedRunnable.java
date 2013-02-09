@@ -17,6 +17,8 @@ class AttachedRunnable implements Runnable {
         DejaVuAspect.threadStarted( threadId, traceId );
         try {
             runnable.run();
+        } catch( Throwable throwable) {
+            DejaVuAspect.threadThrowable( throwable );
         } finally {
             DejaVuAspect.threadCompleted();
         }

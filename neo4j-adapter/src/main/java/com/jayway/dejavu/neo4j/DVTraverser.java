@@ -11,22 +11,22 @@ public class DVTraverser {
         this.traverser = traverser;
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public PathIterator iterator() {
         return new PathIterator(traverser.iterator());
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public DVTraversalMetadata metadata() {
         return new DVTraversalMetadata( traverser.metadata() );
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public NodeIterator nodes() {
         return new NodeIterator( traverser.nodes().iterator() );
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public RelationshipIterator relationships() {
         return new RelationshipIterator( traverser.relationships().iterator() );
     }

@@ -53,8 +53,13 @@ public class DejaVuTrace {
         }
     }
 
-    private static synchronized boolean done() {
-        if ( index >= values.size() ) return true;
+    private static synchronized boolean done( String traceId ) {
+        //if ( index >= values.size() ) return true;
+        // or all threads are done?!? i.e. incompatible trace
+        //if (DejaVuAspect.runningTraces.get( traceId ) == null) return true;
+        if ( DejaVuAspect.traceCompleted( traceId ) ) {
+            return true;
+        }
         DejaVuTrace.class.notifyAll();
         return false;
     }
@@ -76,7 +81,7 @@ public class DejaVuTrace {
         } catch (InvocationTargetException ee ) {
             throw ee.getTargetException();
         } finally {
-            while (!done() ) {
+            while (!done( trace.getId() )) {
                 // wait until finished
                 Thread.sleep(500);
             }

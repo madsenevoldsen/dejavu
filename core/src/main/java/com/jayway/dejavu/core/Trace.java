@@ -9,9 +9,11 @@ public class Trace {
     private List<TraceElement> values;
     private Method startPoint;
     private Object[] startArguments;
+    private List<ThreadThrowable> threadThrowables;
 
     public Trace() {
         values = new ArrayList<TraceElement>();
+        threadThrowables = new ArrayList<ThreadThrowable>();
     }
 
     public Trace( String id, Method startPoint, Object[] startArguments ) {
@@ -55,5 +57,17 @@ public class Trace {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public List<ThreadThrowable> getThreadThrowables() {
+        return threadThrowables;
+    }
+
+    public void setThreadThrowables(List<ThreadThrowable> threadThrowables) {
+        this.threadThrowables = threadThrowables;
+    }
+
+    public void addThreadThrowable( ThreadThrowable threadThrowable ) {
+        threadThrowables.add( threadThrowable );
     }
 }

@@ -13,17 +13,17 @@ public class PathIterator {
         this.iterator = iterator;
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public Boolean hasNext() {
         return iterator.hasNext();
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public DVPath next() {
         return new DVPath(iterator.next());
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public void remove() {
         iterator.remove();
     }

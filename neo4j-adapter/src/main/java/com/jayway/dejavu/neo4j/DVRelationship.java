@@ -48,8 +48,8 @@ public class DVRelationship extends DVPropertyContainer {
     }
 
     @Impure
-    public RelationshipType getType() {
-        return relationship.getType();
+    public DVRelationshipType getType() {
+        return new DVRelationshipType( relationship.getType() );
     }
 
     @Impure

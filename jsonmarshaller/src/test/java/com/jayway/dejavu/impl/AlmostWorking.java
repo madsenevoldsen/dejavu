@@ -13,7 +13,7 @@ public class AlmostWorking {
     public void run() {
         Long value = timeStamp();
         Long luckyNumber = 2304432 / ( value % 1001 );
-        log.info( "My lucky number is: "+luckyNumber);
+        //log.info( "My lucky number is: "+luckyNumber);
     }
 
     @Impure

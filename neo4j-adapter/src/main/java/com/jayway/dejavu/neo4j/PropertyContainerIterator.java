@@ -13,17 +13,17 @@ public class PropertyContainerIterator {
         this.iterator = iterator;
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public Boolean hasNext() {
         return iterator.hasNext();
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public DVPropertyContainer next() {
         return new DVPropertyContainer(iterator.next());
     }
 
-    @Impure
+    @Impure( integrationPoint = "neo4j" )
     public void remove() {
         iterator.remove();
     }

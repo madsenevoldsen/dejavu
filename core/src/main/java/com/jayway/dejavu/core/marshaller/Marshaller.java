@@ -9,10 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class Marshaller {
 
@@ -98,47 +95,74 @@ public class Marshaller {
         StringBuilder sb = new StringBuilder();
         sb.append("package ").append(packageName).append(";\n\n");
         // imports
-        sb.append("import com.jayway.dejavu.Marshaller;\n");
-        sb.append("import com.jayway.dejavu.core.Trace;\n");
-        sb.append("import com.jayway.dejavu.core.DejaVuTrace;\n\n");
-        sb.append("import ").append(trace.getStartPoint().getDeclaringClass().getName()).append(";\n");
+        addImport( sb, "com.jayway.dejavu.core.marshaller.Marshaller");
+        addImport( sb, "com.jayway.dejavu.core.Trace");
+        addImport( sb, "com.jayway.dejavu.core.TraceElement");
+        addImport( sb, "com.jayway.dejavu.core.DejaVuTrace");
+        addImport(sb, trace.getStartPoint().getDeclaringClass().getName());
+        addImport(sb, "org.junit.Test");
+        addImport(sb, "java.util.ArrayList");
+        addImport(sb, "java.util.List");
+        addImport(sb, "java.util.Map");
+        addImport(sb, "java.util.HashMap");
+
         Set<String> imports = new HashSet<String>();
-        for (Object element : trace.getValues()) {
-            String name = element.getClass().getName();
-            if ( !imports.contains( name ) && !name.startsWith("java.lang.")) {
-                sb.append("import ").append(name).append(";\n");
-                imports.add(name);
-            }
+        Set<String> threads = new HashSet<String>();
+        for (TraceElement element : trace.getValues()) {
+            threads.add( element.getThreadId() );
+            addImport( sb, imports, element.getValue() );
         }
         for (Object arg : trace.getStartArguments()) {
-            String name = arg.getClass().getName();
-            if ( !imports.contains( name ) && !name.startsWith("java.lang.")) {
-                sb.append("import ").append(name).append(";\n");
-                imports.add(name);
-            }
+            addImport( sb, imports, arg );
         }
-        sb.append("\nimport org.junit.Test;\n");
-        sb.append("import java.util.ArrayList;\n");
-        sb.append("import java.util.List;\n\n");
+        List<Class> classes = chain.getClasses(new ArrayList<Class>());
+        for (Class aClass : classes) {
+            addImport( sb, aClass.getName() );
+        }
+        StringBuilder newMarshaller = new StringBuilder();
+        boolean first = true;
+        for (Class aClass : classes) {
+            if ( first ) {
+                newMarshaller.append("Marshaller marshaller = new Marshaller(");
+                first = false;
+            } else {
+                newMarshaller.append(", ");
+            }
+            newMarshaller.append("new ").append(aClass.getSimpleName()).append("()");
+        }
+        newMarshaller.append(");");
+
+        Map<String, Integer> threadIds = new HashMap<String, Integer>();
+        int idx = 0;
+        for (String thread : threads) {
+            threadIds.put( thread, idx++);
+        }
+        sb.append("\n");
 
         // class
-        sb.append("public class ").append(classSimpleName).append(" {\n\n");
-        sb.append("    @Test\n");
-        sb.append("    public void ").append(classSimpleName.toLowerCase()).append("() throws Throwable {\n");
+        add(sb, "public class " + classSimpleName + "{", 0);
+        sb.append("\n");
+        add(sb, "@Test", 1);
+        add(sb, "public void " + classSimpleName.toLowerCase() + "() throws Throwable {", 1);
         // add new all the chain instances (except MarshallerPlugin)
-        sb.append("        Marshaller marshaller = new Marshaller();\n");
-        sb.append("        Trace trace = new Trace();\n");
+        add(sb, newMarshaller.toString(), 2);
+        add(sb, "Trace trace = new Trace();", 2);
+        add(sb, "trace.setId(\""+trace.getId()+"\");",2);
+
+        add(sb, "Map<Integer, String> threadIds = new HashMap<Integer, String>();", 2);
+        for (Map.Entry<String, Integer> entry : threadIds.entrySet()) {
+            add(sb, "threadIds.put("+entry.getValue()+", \"" + entry.getKey() + "\");", 2);
+        }
 
         // figure out input types
         Class<?>[] types = trace.getStartPoint().getParameterTypes();
         if ( types == null || types.length == 0 ) {
-            sb.append("        trace.setStartPoint(").append( trace.getStartPoint().getDeclaringClass().getSimpleName())
-                    .append(".class.getDeclaredMethod(\"").append(trace.getStartPoint().getName())
-                    .append("\"));\n");
+            add(sb, "trace.setStartPoint(" + trace.getStartPoint().getDeclaringClass().getSimpleName()
+                    + ".class.getDeclaredMethod(\"" + trace.getStartPoint().getName() + "\"));", 2);
         } else {
             StringBuilder argTypes = new StringBuilder();
             StringBuilder argValues = new StringBuilder();
-            boolean first = true;
+            first = true;
             for (Object instance : trace.getStartArguments()) {
                 if ( !first ) {
                     argTypes.append(", ");
@@ -149,32 +173,57 @@ public class Marshaller {
                 String className = instance.getClass().getSimpleName() + ".class";
                 String value = StringEscapeUtils.escapeJava( marshalObject(instance));
                 argTypes.append( className );
-                argValues.append(String.format("marshaller.unmarshal(%s, \"%s\")", className, value));
+                argValues.append(String.format("marshaller.unmarshal(%s, \"%s\");", className, value));
             }
-            sb.append("        trace.setStartPoint(").append( trace.getStartPoint().getDeclaringClass().getSimpleName())
-                    .append(".class.getDeclaredMethod(\"").append(trace.getStartPoint().getName())
-                    .append("\", ").append( argTypes.toString()).append("));\n");
-
+            add(sb, "trace.setStartPoint(" + trace.getStartPoint().getDeclaringClass().getSimpleName()
+                    + ".class.getDeclaredMethod(\"" + trace.getStartPoint().getName() + "\", " + argTypes + "));", 2);
             // actual inputs
-            sb.append("        trace.setStartArguments(new Object[]{").append( argValues.toString() ).append("});\n");
+            add(sb, "trace.setStartArguments(new Object[]{" + argValues + "});", 2);
         }
-
-        sb.append("        List<Object> values = new ArrayList<Object>();\n");
+        add(sb, "List<TraceElement> values = new ArrayList<TraceElement>();", 2);
         // append values
         for (TraceElement element : trace.getValues()) {
             if ( element.getValue() == null ) {
-                sb.append(              "        values.add(null);\n");
+                addElement(sb, threadIds.get(element.getThreadId()) + "), null", 2);
             } else {
                 String cName = element.getValue().getClass().getSimpleName();
                 String value = StringEscapeUtils.escapeJava( marshalObject( element.getValue() ) );
-                sb.append(String.format("        values.add(marshaller.unmarshal(%s.class, \"%s\"));\n", cName, value));
+                String stm = String.format( "marshaller.unmarshal(%s.class, \"%s\"", cName, value );
+                addElement(sb, threadIds.get(element.getThreadId()) + "), " + stm+")", 2);
             }
         }
-        sb.append("        trace.setValues( values );\n");
+        add(sb, "trace.setValues( values );", 2);
         sb.append("\n");
-        sb.append("        DejaVuTrace.begin(trace);\n");
-        sb.append("    }\n");
-        sb.append("}\n");
+        add(sb, "DejaVuTrace.run( trace );", 2);
+        add(sb, "}", 1);
+        add(sb, "}", 0);
         return sb.toString();
+    }
+
+    private void addImport( StringBuilder sb, Set<String> imports, Object argument ) {
+        if ( argument == null ) return;
+
+        String name = argument.getClass().getName();
+        if ( !imports.contains( name ) ) {
+            addImport(sb, name);
+            imports.add(name);
+        }
+    }
+
+    private void addImport( StringBuilder sb, String importName ) {
+        if ( !importName.startsWith("java.lang."))
+        sb.append("import ").append(importName).append(";\n");
+    }
+
+    private void add(StringBuilder sb, String line, int scope) {
+        String scopeOne = "   ";
+        for (int i=0; i<scope; i++) {
+            sb.append( scopeOne );
+        }
+        sb.append( line ).append("\n");
+    }
+
+    private void addElement( StringBuilder sb, String threadIdAndElement, int scope ) {
+        add( sb, "values.add( new TraceElement( threadIds.get(" + threadIdAndElement + "));" , scope );
     }
 }

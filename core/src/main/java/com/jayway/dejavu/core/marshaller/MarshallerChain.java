@@ -1,5 +1,8 @@
 package com.jayway.dejavu.core.marshaller;
 
+import java.util.List;
+import java.util.Set;
+
 class MarshallerChain implements MarshallerPlugin {
 
     static MarshallerChain build( MarshallerPlugin... plugins ) {
@@ -43,5 +46,11 @@ class MarshallerChain implements MarshallerPlugin {
         if ( next == null ) return null;
 
         return next.marshalObject( value );
+    }
+
+    protected List<Class> getClasses( List<Class> classes ) {
+        classes.add( current.getClass() );
+        if ( next != null ) next.getClasses( classes );
+        return classes;
     }
 }

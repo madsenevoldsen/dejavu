@@ -121,10 +121,7 @@ public class DejaVuAspect {
                     result = new ThrownThrowable( t );
                     throw t;
                 } finally {
-                    //MethodSignature signature = (MethodSignature) proceed.getSignature();
-                    //if ( result instanceof ThrownThrowable || !signature.getReturnType().toString().equals( "void" ) ) {
-                        add(trace, result);
-                    //}
+                    add(trace, result);
                     if ( handler != null ) {
                         if ( result instanceof ThrownThrowable ) {
                             handler.exceptionOccurred(((ThrownThrowable) result).getThrowable());
@@ -136,13 +133,7 @@ public class DejaVuAspect {
                 }
             }
         } else {
-            //MethodSignature signature = (MethodSignature) proceed.getSignature();
-            //if ( !signature.getReturnType().toString().equals("void") ) {
-                return DejaVuTrace.nextValue( threadId.get() );
-            //} else {
-            //    return null;
-            //}
-
+            return DejaVuTrace.nextValue( threadId.get() );
         }
     }
 

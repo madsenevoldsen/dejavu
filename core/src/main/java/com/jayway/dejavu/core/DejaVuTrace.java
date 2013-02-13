@@ -54,9 +54,6 @@ public class DejaVuTrace {
     }
 
     private static synchronized boolean done( String traceId ) {
-        //if ( index >= values.size() ) return true;
-        // or all threads are done?!? i.e. incompatible trace
-        //if (DejaVuAspect.runningTraces.get( traceId ) == null) return true;
         if ( DejaVuAspect.traceCompleted( traceId ) ) {
             return true;
         }

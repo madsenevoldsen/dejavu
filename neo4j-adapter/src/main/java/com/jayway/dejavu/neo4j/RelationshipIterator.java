@@ -5,7 +5,7 @@ import org.neo4j.graphdb.Relationship;
 
 import java.util.Iterator;
 
-public class RelationshipIterator {
+public class RelationshipIterator implements Iterator<DVRelationship>, Iterable<DVRelationship> {
 
     private Iterator<Relationship> iterator;
 
@@ -13,18 +13,26 @@ public class RelationshipIterator {
         this.iterator = iterator;
     }
 
+    @Override
     @Impure( integrationPoint = "neo4j" )
-    public Boolean hasNext() {
+    public boolean hasNext() {
         return iterator.hasNext();
     }
 
+    @Override
     @Impure( integrationPoint = "neo4j" )
     public DVRelationship next() {
         return new DVRelationship(iterator.next());
     }
 
+    @Override
     @Impure( integrationPoint = "neo4j" )
     public void remove() {
         iterator.remove();
+    }
+
+    @Override
+    public Iterator<DVRelationship> iterator() {
+        return this;
     }
 }

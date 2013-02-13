@@ -7,6 +7,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -102,35 +104,33 @@ public class DejaVuAspect {
         }
 
         if ( traceMode ) {
-            synchronized (trace) {
-                CircuitBreaker handler = null;
-                Object result = null;
-                try {
-                    threadLocalInIntegrationPoint.set( true );
-                    String integrationPoint = impure.integrationPoint();
-                    if ( !integrationPoint.isEmpty() ) {
-                        // a circuit breaker is guarding this call
-                        handler = getCircuitBreaker( integrationPoint );
-                        if ( handler.isOpen() ) {
-                            throw new CircuitOpenException( "Circuit breaker '"+integrationPoint+"' is open");
-                        }
+            CircuitBreaker handler = null;
+            Object result = null;
+            try {
+                threadLocalInIntegrationPoint.set( true );
+                String integrationPoint = impure.integrationPoint();
+                if ( !integrationPoint.isEmpty() ) {
+                    // a circuit breaker is guarding this call
+                    handler = getCircuitBreaker( integrationPoint );
+                    if ( handler.isOpen() ) {
+                        throw new CircuitOpenException( "Circuit breaker '"+integrationPoint+"' is open");
                     }
-                    result = proceed.proceed();
-                    return result;
-                } catch (Throwable t ) {
-                    result = new ThrownThrowable( t );
-                    throw t;
-                } finally {
-                    add(trace, result);
-                    if ( handler != null ) {
-                        if ( result instanceof ThrownThrowable ) {
-                            handler.exceptionOccurred(((ThrownThrowable) result).getThrowable());
-                        } else {
-                            handler.success();
-                        }
-                    }
-                    threadLocalInIntegrationPoint.set( false );
                 }
+                result = proceed.proceed();
+                return result;
+            } catch (Throwable t ) {
+                result = new ThrownThrowable( t );
+                throw t;
+            } finally {
+                add(trace, result);
+                if ( handler != null ) {
+                    if ( result instanceof ThrownThrowable ) {
+                        handler.exceptionOccurred(((ThrownThrowable) result).getThrowable());
+                    } else {
+                        handler.success();
+                    }
+                }
+                threadLocalInIntegrationPoint.set( false );
             }
         } else {
             return DejaVuTrace.nextValue( threadId.get() );
@@ -181,8 +181,10 @@ public class DejaVuAspect {
     }
 
     private void add( Trace trace, Object value ) {
-        TraceElement element = new TraceElement(threadId.get(), value);
-        trace.addValue(element);
+        synchronized (trace) {
+            TraceElement element = new TraceElement(threadId.get(), value);
+            trace.addValue(element);
+        }
     }
 
     private static void callbackIfFinished(Trace trace, Throwable t) {

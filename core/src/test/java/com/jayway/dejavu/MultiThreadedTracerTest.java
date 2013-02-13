@@ -27,6 +27,25 @@ public class MultiThreadedTracerTest {
         DejaVuAspect.initialize( callback );
     }
 
+   /* @Test
+    public void testing() throws Throwable {
+        WithThreads withThreads = new WithThreads();
+        int threads = 3;
+        withThreads.begin( threads );
+        waitForCompletion();
+
+
+        Trace trace = callback.getTrace();
+        log.info("======Deja vu=========");
+        DejaVuTrace.setNextValueCallback( new DejaVuTrace.NextValueCallback() {
+            public void nextValue(Object value) {
+                log.info( "Read value "+value);
+            }
+        });
+        DejaVuTrace.run(trace);
+    }*/
+
+
     @Test
     public void with_three_child_threads() throws Throwable {
         WithThreads withThreads = new WithThreads();

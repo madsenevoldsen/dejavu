@@ -1,6 +1,7 @@
 package com.jayway.dejavu.neo4j;
 
 import com.jayway.dejavu.core.annotation.Impure;
+import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.index.ReadableIndex;
 
 public class DVReadableIndex {
@@ -31,17 +32,31 @@ public class DVReadableIndex {
     }
 
     @Impure( integrationPoint = "neo4j" )
-    public DVIndexHits get( String key, Object value ) {
-        return new DVIndexHits( readableIndex.get( key, value ) );
+    public PropertyContainerIterator get( String key, Object value ) {
+        IndexHits indexHits = readableIndex.get(key, value);
+        return new PropertyContainerIterator( indexHits.iterator());
+    }
+
+
+    @Impure( integrationPoint = "neo4j" )
+    public RelationshipIterator getR( String key, Object value ) {
+        IndexHits indexHits = readableIndex.get(key, value);
+        return new RelationshipIterator(indexHits.iterator());
     }
 
     @Impure( integrationPoint = "neo4j" )
-    public DVIndexHits query( Object queryOrQueryObject ) {
-        return new DVIndexHits( readableIndex.query( queryOrQueryObject ));
+    public NodeIterator getN( String key, Object value ) {
+        IndexHits indexHits = readableIndex.get(key, value);
+        return new NodeIterator( indexHits.iterator() );
     }
 
     @Impure( integrationPoint = "neo4j" )
-    public DVIndexHits query( String key, Object queryOrQueryObject ) {
-        return new DVIndexHits( readableIndex.query( key, queryOrQueryObject ));
+    public <T extends DVPropertyContainer> DVIndexHits<T> query( Object queryOrQueryObject ) {
+        return new DVIndexHits<T>( readableIndex.query( queryOrQueryObject ));
+    }
+
+    @Impure( integrationPoint = "neo4j" )
+    public <T extends DVPropertyContainer> DVIndexHits<T> query( String key, Object queryOrQueryObject ) {
+        return new DVIndexHits<T>( readableIndex.query( key, queryOrQueryObject ));
     }
 }

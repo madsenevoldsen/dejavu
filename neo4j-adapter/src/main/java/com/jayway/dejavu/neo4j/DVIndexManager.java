@@ -49,7 +49,7 @@ public class DVIndexManager {
     }
 
     /*
- AutoIndexer<Node>	getNodeAutoIndexer()
+ AutoIndexer<No de>	getNodeAutoIndexer()
 
  RelationshipAutoIndexer	getRelationshipAutoIndexer()
 

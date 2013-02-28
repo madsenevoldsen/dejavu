@@ -2,91 +2,31 @@ package com.jayway.dejavu.core.marshaller;
 
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.TraceElement;
-import com.jayway.dejavu.core.marshaller.dto.TraceDTO;
-import com.jayway.dejavu.core.marshaller.dto.TracedElementDTO;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Method;
 import java.util.*;
 
 public class Marshaller {
 
-    private Logger log = LoggerFactory.getLogger( Marshaller.class);
     private final MarshallerChain chain;
 
     public Marshaller( MarshallerPlugin... plugins) {
-        if ( plugins == null ) log.error( "No marshal implementation supplied!" );
         this.chain = MarshallerChain.build( plugins );
     }
 
-    public TraceDTO marshal( Trace trace ) {
-        TraceDTO dto = new TraceDTO();
-        Method method = trace.getStartPoint();
-        dto.setMethodName( method.getName() );
-        dto.setClassName(method.getDeclaringClass().getName());
-        if ( !(trace.getStartArguments() == null || trace.getStartArguments().length == 0) ) {
-            int length = trace.getStartArguments().length;
-            String[] args = new String[length];
-            String[] argsValue = new String[length];
-            for (int i=0; i<length; i++) {
-                args[i] = trace.getStartArguments()[i].getClass().getName();
-                argsValue[i] = marshalObject(trace.getStartArguments()[i]);
-            }
-            dto.setArgumentClasses( args );
-            dto.setArgumentJsonValues( argsValue );
-        }
-        List<TracedElementDTO> values = new ArrayList<TracedElementDTO>();
-        for (TraceElement value : trace.getValues()) {
-            values.add( new TracedElementDTO( value.getThreadId(), marshalObject(value.getValue()), value.getValue().getClass().getName()));
-        }
-        dto.setValues( values );
-        return dto;
-    }
-
-    public Trace unmarshal( TraceDTO dto ) {
-        try {
-            Trace trace = new Trace();
-            Class<?> aClass = Class.forName(dto.getClassName());
-            if ( dto.getArgumentClasses() != null && dto.getArgumentClasses().length > 0 ) {
-                int size = dto.getArgumentClasses().length;
-                Class[] argumentTypes = new Class[size];
-                Object[] startArgument = new Object[size];
-                for (int i=0; i<size; i++) {
-                    argumentTypes[i] = Class.forName( dto.getArgumentClasses()[i]);
-                    startArgument[i] = unmarshal(argumentTypes[i], dto.getArgumentJsonValues()[i]);
-                }
-                trace.setStartPoint( aClass.getDeclaredMethod( dto.getMethodName(), argumentTypes) );
-                trace.setStartArguments( startArgument );
-            } else {
-                trace.setStartPoint(aClass.getDeclaredMethod(dto.getMethodName()));
-            }
-
-            trace.setValues( new ArrayList<TraceElement>() );
-            for (TracedElementDTO elementDTO : dto.getValues()) {
-                Object value = unmarshal(Class.forName(elementDTO.getValueClass()), elementDTO.getJsonValue());
-                trace.getValues().add(new TraceElement( elementDTO.getThreadId(), value ));
-            }
-            return trace;
-        } catch (ClassNotFoundException e) {
-            log.error("could not find class",e);
-            return null;
-        } catch (NoSuchMethodException e) {
-            log.error("could not find method",e);
-            return null;
-        }
-    }
-
-    public Object unmarshal( Class<?> clazz, String jsonValue ) {
-        return chain.unmarshal( clazz, jsonValue );
+    public Object unmarshal( Class<?> clazz, String marshaled ) {
+        return chain.unmarshal( clazz, marshaled );
     }
 
     public String marshalObject( Object value ) {
         return chain.marshalObject( value );
     }
 
-    public String generateTest( Trace trace ) {
+    protected String asTraceBuilderArgument( Object value ) {
+        return chain.asTraceBuilderArgument( value );
+    }
+
+    public String marshal( Trace trace ) {
         String testClassName = trace.getStartPoint().getDeclaringClass().getCanonicalName() + "Test";
         int index = testClassName.lastIndexOf('.');
         String classSimpleName = testClassName.substring(index+1);
@@ -95,19 +35,11 @@ public class Marshaller {
         StringBuilder sb = new StringBuilder();
         sb.append("package ").append(packageName).append(";\n\n");
         // imports
-        addImport( sb, "com.jayway.dejavu.core.marshaller.Marshaller");
-        addImport( sb, "com.jayway.dejavu.core.Trace");
-        addImport( sb, "com.jayway.dejavu.core.TraceElement");
-        addImport( sb, "com.jayway.dejavu.core.DejaVuTrace");
-        addImport(sb, trace.getStartPoint().getDeclaringClass().getName());
+        addImport(sb, Marshaller.class, Trace.class, TraceBuilder.class, trace.getStartPoint().getDeclaringClass() );
         addImport(sb, "org.junit.Test");
-        addImport(sb, "java.util.ArrayList");
-        addImport(sb, "java.util.List");
-        addImport(sb, "java.util.Map");
-        addImport(sb, "java.util.HashMap");
 
         Set<String> imports = new HashSet<String>();
-        Set<String> threads = new HashSet<String>();
+        Set<String> threads = new LinkedHashSet<String>();
         for (TraceElement element : trace.getValues()) {
             threads.add( element.getThreadId() );
             addImport( sb, imports, element.getValue() );
@@ -116,21 +48,12 @@ public class Marshaller {
             addImport( sb, imports, arg );
         }
         List<Class> classes = chain.getClasses(new ArrayList<Class>());
-        for (Class aClass : classes) {
-            addImport( sb, aClass.getName() );
-        }
-        StringBuilder newMarshaller = new StringBuilder();
-        boolean first = true;
-        for (Class aClass : classes) {
-            if ( first ) {
-                newMarshaller.append("Marshaller marshaller = new Marshaller(");
-                first = false;
-            } else {
-                newMarshaller.append(", ");
+        addImport(sb, classes.toArray(new Class[classes.size()]));
+        String marshallerArgs = join(classes,new Join<Class>() {
+            public String element(Class aClass) {
+                return "new "+aClass.getSimpleName()+"()";
             }
-            newMarshaller.append("new ").append(aClass.getSimpleName()).append("()");
-        }
-        newMarshaller.append(");");
+        });
 
         Map<String, Integer> threadIds = new HashMap<String, Integer>();
         int idx = 0;
@@ -144,16 +67,23 @@ public class Marshaller {
         sb.append("\n");
         add(sb, "@Test", 1);
         add(sb, "public void " + classSimpleName.toLowerCase() + "() throws Throwable {", 1);
-        // add new all the chain instances (except MarshallerPlugin)
-        add(sb, newMarshaller.toString(), 2);
-        add(sb, "Trace trace = new Trace();", 2);
-        add(sb, "trace.setId(\""+trace.getId()+"\");",2);
-
-        add(sb, "Map<Integer, String> threadIds = new HashMap<Integer, String>();", 2);
-        for (Map.Entry<String, Integer> entry : threadIds.entrySet()) {
-            add(sb, "threadIds.put("+entry.getValue()+", \"" + entry.getKey() + "\");", 2);
+        add(sb, "TraceBuilder builder = TraceBuilder.", 2);
+        add(sb, "build(" + marshallerArgs +").", 4);
+        // TODO fix if not only one in method
+        add(sb, "setMethod("+trace.getStartPoint().getDeclaringClass().getSimpleName()+".class);",4);
+        if (trace.getStartPoint().getParameterTypes().length > 0 ) {
+            String params = join(trace.getStartArguments(),new Join<Object>() {
+                public String element(Object element ) {
+                return asTraceBuilderArgument( element );
+                }
+            });
+            add(sb, "builder.addMethodArguments("+params+");", 2);
         }
+        sb.append("\n");
 
+        // TODO fix threadIds
+
+        /*
         // figure out input types
         Class<?>[] types = trace.getStartPoint().getParameterTypes();
         if ( types == null || types.length == 0 ) {
@@ -163,38 +93,58 @@ public class Marshaller {
             StringBuilder argTypes = new StringBuilder();
             StringBuilder argValues = new StringBuilder();
             first = true;
-            for (Object instance : trace.getStartArguments()) {
-                if ( !first ) {
+            Object[] startArguments = trace.getStartArguments();
+            for (int i = 0; i < startArguments.length; i++) {
+                Object instance = startArguments[i];
+                if (!first) {
                     argTypes.append(", ");
                     argValues.append(", ");
                 } else {
                     first = false;
                 }
-                String className = instance.getClass().getSimpleName() + ".class";
-                String value = StringEscapeUtils.escapeJava( marshalObject(instance));
-                argTypes.append( className );
+                String className = trace.getStartPoint().getParameterTypes()[i].getSimpleName() + ".class";
+                String value = StringEscapeUtils.escapeJava(marshalObject(instance));
+                argTypes.append(className);
                 argValues.append(String.format("marshaller.unmarshal(%s, \"%s\");", className, value));
             }
             add(sb, "trace.setStartPoint(" + trace.getStartPoint().getDeclaringClass().getSimpleName()
                     + ".class.getDeclaredMethod(\"" + trace.getStartPoint().getName() + "\", " + argTypes + "));", 2);
             // actual inputs
             add(sb, "trace.setStartArguments(new Object[]{" + argValues + "});", 2);
-        }
-        add(sb, "List<TraceElement> values = new ArrayList<TraceElement>();", 2);
+        } */
+
         // append values
+        List<StringBuilder> valueRows = new ArrayList<StringBuilder>();
+        int row = 0;
         for (TraceElement element : trace.getValues()) {
-            if ( element.getValue() == null ) {
-                addElement(sb, threadIds.get(element.getThreadId()) + "), null", 2);
+            StringBuilder current;
+            if ( valueRows.size() == row ) {
+                valueRows.add( new StringBuilder() );
             } else {
-                String cName = element.getValue().getClass().getSimpleName();
-                String value = StringEscapeUtils.escapeJava( marshalObject( element.getValue() ) );
-                String stm = String.format( "marshaller.unmarshal(%s.class, \"%s\"", cName, value );
-                addElement(sb, threadIds.get(element.getThreadId()) + "), " + stm+")", 2);
+                valueRows.get( row ).append( ", ");
+            }
+            current = valueRows.get( row );
+            current.append( asTraceBuilderArgument( element.getValue() ));
+            if ( current.length() > 80 ) {
+                row++;
             }
         }
-        add(sb, "trace.setValues( values );", 2);
+        if ( trace.getValues().size() > 0 ) {
+            for (int i=0;i<valueRows.size(); i++) {
+                StringBuilder valueRow = valueRows.get(i);
+                String end = ".";
+                if ( i+1==valueRows.size() ) {
+                    end = ";";
+                }
+                if ( i == 0 ) {
+                    add( sb, "builder.add("+valueRow.toString()+")"+end, 2);
+                } else {
+                    add( sb, "add("+valueRow.toString() + ")"+end, 4);
+                }
+            }
+        }
         sb.append("\n");
-        add(sb, "DejaVuTrace.run( trace );", 2);
+        add(sb, "builder.run();", 2);
         add(sb, "}", 1);
         add(sb, "}", 0);
         return sb.toString();
@@ -214,7 +164,13 @@ public class Marshaller {
         if ( !importName.startsWith("java.lang."))
         sb.append("import ").append(importName).append(";\n");
     }
-
+    private void addImport( StringBuilder sb, Class<?>... classes ) {
+        for (Class<?> aClass : classes) {
+            if ( !aClass.getPackage().getName().startsWith( "java.lang" ) ) {
+                sb.append( "import ").append( aClass.getName() ).append(";\n");
+            }
+        }
+    }
     private void add(StringBuilder sb, String line, int scope) {
         String scopeOne = "   ";
         for (int i=0; i<scope; i++) {
@@ -222,8 +178,21 @@ public class Marshaller {
         }
         sb.append( line ).append("\n");
     }
+    private <T> String join( T[] list, Join<T> join ) {
+        return join(Arrays.asList( list ), join);
+    }
+    private <T> String join( List<T> list, Join<T> join ) {
+        StringBuilder sb = new StringBuilder();
+        for ( int i=0; i<list.size(); i++) {
+            if ( i!=0 ) {
+                sb.append(", ");
+            }
+            sb.append( join.element( list.get(i)));
+        }
+        return sb.toString();
+    }
 
-    private void addElement( StringBuilder sb, String threadIdAndElement, int scope ) {
-        add( sb, "values.add( new TraceElement( threadIds.get(" + threadIdAndElement + "));" , scope );
+    interface Join<T> {
+        String element(T t);
     }
 }

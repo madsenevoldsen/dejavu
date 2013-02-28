@@ -22,7 +22,7 @@ public class DatabaseConnector {
         new DatabaseTrace().createNodesAndRelations();
 
         Trace trace = callback.getTrace();
-        String test = new Marshaller( new Neo4jMarshallerPlugin(), new JacksonMarshallerPlugin()).generateTest(trace);
+        String test = new Marshaller( new Neo4jMarshallerPlugin(), new JacksonMarshallerPlugin()).marshal(trace);
 
         log.info(test);
     }

@@ -7,4 +7,5 @@ package com.jayway.dejavu.core.marshaller;
 public interface MarshallerPlugin {
     Object unmarshal( Class<?> clazz, String marshalValue );
     String marshalObject( Object value );
+    String asTraceBuilderArgument( Object value );
 }

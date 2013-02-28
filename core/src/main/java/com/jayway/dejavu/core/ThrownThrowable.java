@@ -6,6 +6,7 @@ package com.jayway.dejavu.core;
 public class ThrownThrowable {
     private Throwable throwable;
 
+    public ThrownThrowable () {}
     ThrownThrowable( Throwable throwable ) {
         this.throwable = throwable;
     }

@@ -6,7 +6,7 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
 public class DVGraphDatabaseService {
 
-    private transient GraphDatabaseService graphDb;
+    protected transient GraphDatabaseService graphDb;
 
     DVGraphDatabaseService( GraphDatabaseService graphDb ) {
         this.graphDb = graphDb;
@@ -15,7 +15,7 @@ public class DVGraphDatabaseService {
     @Impure( integrationPoint = "neo4j" )
     public static DVGraphDatabaseService connectEmbedded( String pathToDatabase ) {
         GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(pathToDatabase);
-        registerShutdownHook( graphDb );
+        registerShutdownHook(graphDb);
         return new DVGraphDatabaseService( graphDb );
     }
 

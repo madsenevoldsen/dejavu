@@ -4,6 +4,7 @@ import com.jayway.dejavu.core.DejaVuAspect;
 import com.jayway.dejavu.core.DejaVuTrace;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.TraceElement;
+import com.jayway.dejavu.core.marshaller.Marshaller;
 import com.jayway.dejavu.impl.FailingWithThreads;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
 import com.jayway.dejavu.impl.WithThreads;
@@ -25,26 +26,8 @@ public class MultiThreadedTracerTest {
     public void setup() {
         callback = new TraceCallbackImpl();
         DejaVuAspect.initialize( callback );
+        DejaVuTrace.setBeforeRunCallback(null);
     }
-
-   /* @Test
-    public void testing() throws Throwable {
-        WithThreads withThreads = new WithThreads();
-        int threads = 3;
-        withThreads.begin( threads );
-        waitForCompletion();
-
-
-        Trace trace = callback.getTrace();
-        log.info("======Deja vu=========");
-        DejaVuTrace.setNextValueCallback( new DejaVuTrace.NextValueCallback() {
-            public void nextValue(Object value) {
-                log.info( "Read value "+value);
-            }
-        });
-        DejaVuTrace.run(trace);
-    }*/
-
 
     @Test
     public void with_three_child_threads() throws Throwable {
@@ -112,6 +95,18 @@ public class MultiThreadedTracerTest {
 
         Assert.assertEquals( trace.getThreadThrowables().size() +  threadCount, threadNameMap.size() );
     }
+
+    @Test
+    public void threading_and_marshalling() throws Throwable {
+        int threadCount = 8;
+        new WithThreads().begin( threadCount );
+        waitForCompletion();
+        Trace trace = callback.getTrace();
+
+        String test = new Marshaller().marshal( trace );
+        System.out.println( test );
+    }
+
 
     private void waitForCompletion() {
         // wait for the trace to be done

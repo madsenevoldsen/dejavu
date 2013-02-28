@@ -34,6 +34,11 @@ public class Neo4jMarshallerPlugin implements MarshallerPlugin  {
         return null;
     }
 
+    @Override
+    public String asTraceBuilderArgument(Object value) {
+        return value.getClass().getSimpleName() + ".class";
+    }
+
     private boolean neo4jDejaVuClass( Class<?> clazz ) {
         return clazz.getPackage().getName().equals( DVGraphDatabaseService.class.getPackage().getName());
     }

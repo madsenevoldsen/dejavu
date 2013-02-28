@@ -3,6 +3,7 @@ package com.jayway.dejavu;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.dejavu.core.marshaller.MarshallerPlugin;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +21,7 @@ public class JacksonMarshallerPlugin implements MarshallerPlugin {
 
         ObjectMapper mapper = new ObjectMapper();
         try {
-            return mapper.readValue( jsonValue, clazz );
+            return mapper.readValue(jsonValue, clazz);
         } catch (IOException e) {
             log.error( "could not unmarshal", e );
             return null;
@@ -31,10 +32,15 @@ public class JacksonMarshallerPlugin implements MarshallerPlugin {
     public String marshalObject( Object value ) {
         ObjectMapper mapper = new ObjectMapper();
         try {
-            return mapper.writeValueAsString(value);
+            return "\""+ StringEscapeUtils.escapeJava( mapper.writeValueAsString(value) ) + "\"";
         } catch (JsonProcessingException e) {
             log.error("could not marshal", e);
             return null;
         }
+    }
+
+    @Override
+    public String asTraceBuilderArgument(Object value) {
+        return value.getClass().getSimpleName() + ".class, " + marshalObject( value );
     }
 }

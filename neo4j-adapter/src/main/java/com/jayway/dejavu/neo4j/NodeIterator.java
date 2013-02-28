@@ -7,7 +7,7 @@ import java.util.Iterator;
 
 public class NodeIterator implements Iterator<DVNode>, Iterable<DVNode> {
 
-    private Iterator<Node> iterator;
+    protected Iterator<Node> iterator;
 
     NodeIterator(Iterator<Node> iterator) {
         this.iterator = iterator;

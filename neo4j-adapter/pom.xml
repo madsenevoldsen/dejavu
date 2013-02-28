@@ -24,6 +24,17 @@
             <artifactId>neo4j</artifactId>
             <version>1.9.M04</version>
         </dependency>
+        <dependency>
+            <groupId>org.neo4j.app</groupId>
+            <artifactId>neo4j-server</artifactId>
+            <version>1.9.M04</version>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j.app</groupId>
+            <artifactId>neo4j-server</artifactId>
+            <classifier>static-web</classifier>
+            <version>1.9.M04</version>
+        </dependency>
 
         <!-- TEST -->
         <dependency>

@@ -16,13 +16,21 @@ public class DejaVuTrace {
     private static Map<String, LinkedList<String>> childThreads;
     private static Trace trace;
     private static NextValueCallback cb;
+    private static BeforeRunCallback beforeRunCallback;
 
     public static void setNextValueCallback( NextValueCallback cb ) {
         DejaVuTrace.cb = cb;
     }
 
+    public static void setBeforeRunCallback( BeforeRunCallback beforeRunCallback ) {
+        DejaVuTrace.beforeRunCallback = beforeRunCallback;
+    }
+
     public interface NextValueCallback {
         void nextValue( Object value );
+    }
+    public interface BeforeRunCallback {
+        void beforeRun( Trace trace );
     }
 
     public synchronized static Object nextValue( String threadId ) throws Throwable {
@@ -62,6 +70,9 @@ public class DejaVuTrace {
     }
 
     public static <T> T run( Trace trace ) throws Throwable {
+        if ( beforeRunCallback != null ) {
+            beforeRunCallback.beforeRun( trace );
+        }
         initialize( trace );
         Method method = trace.getStartPoint();
         Class<?> aClass = method.getDeclaringClass();

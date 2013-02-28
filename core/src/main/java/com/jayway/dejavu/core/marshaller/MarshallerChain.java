@@ -1,23 +1,17 @@
 package com.jayway.dejavu.core.marshaller;
 
 import java.util.List;
-import java.util.Set;
 
 class MarshallerChain implements MarshallerPlugin {
 
     static MarshallerChain build( MarshallerPlugin... plugins ) {
-        MarshallerChain first = null;
-        MarshallerChain current = null;
+        MarshallerChain first = new MarshallerChain( new SimpleTypeMarshaller());
+        MarshallerChain current = first;
         if ( plugins != null && plugins.length > 0 ) {
             for (MarshallerPlugin plugin : plugins) {
                 MarshallerChain chain = new MarshallerChain(plugin);
-                if ( first == null ) {
-                    first = chain;
-                    current = chain;
-                } else {
-                    current.next = chain;
-                    current = chain;
-                }
+                current.next = chain;
+                current = chain;
             }
         }
         return first;
@@ -30,12 +24,12 @@ class MarshallerChain implements MarshallerPlugin {
     private MarshallerChain next;
 
     @Override
-    public Object unmarshal(Class<?> clazz, String jsonValue) {
-        Object obj = current.unmarshal(clazz, jsonValue);
+    public Object unmarshal(Class<?> clazz, String marshaled) {
+        Object obj = current.unmarshal(clazz, marshaled);
         if ( obj != null ) return obj;
         if ( next == null ) return null;
 
-        return next.unmarshal( clazz, jsonValue );
+        return next.unmarshal( clazz, marshaled );
     }
 
     @Override
@@ -48,8 +42,20 @@ class MarshallerChain implements MarshallerPlugin {
         return next.marshalObject( value );
     }
 
+    @Override
+    public String asTraceBuilderArgument(Object value) {
+        if ( value == null ) return null;
+        String string = current.asTraceBuilderArgument( value );
+        if ( string != null ) return string;
+        if ( next == null ) return null;
+
+        return next.asTraceBuilderArgument( value );
+    }
+
     protected List<Class> getClasses( List<Class> classes ) {
-        classes.add( current.getClass() );
+        if ( !(current instanceof SimpleTypeMarshaller) ) {
+            classes.add( current.getClass() );
+        }
         if ( next != null ) next.getClasses( classes );
         return classes;
     }

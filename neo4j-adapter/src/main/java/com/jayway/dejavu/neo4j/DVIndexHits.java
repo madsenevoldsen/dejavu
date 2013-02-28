@@ -1,18 +1,18 @@
 package com.jayway.dejavu.neo4j;
 
 import com.jayway.dejavu.core.annotation.Impure;
+import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.IndexHits;
 
 import java.util.Iterator;
 
-public class DVIndexHits<T> implements Iterable<T>, Iterator<T> {
+public class DVIndexHits<T extends DVPropertyContainer> implements Iterable<T>, Iterator<T> {
 
-    transient IndexHits<T> indexHits;
+    transient IndexHits<PropertyContainer> indexHits;
 
-    DVIndexHits( IndexHits<T> indexHits ) {
+    DVIndexHits( IndexHits<PropertyContainer> indexHits ) {
         this.indexHits = indexHits;
     }
-
 
     @Override
     public Iterator<T> iterator() {
@@ -28,7 +28,8 @@ public class DVIndexHits<T> implements Iterable<T>, Iterator<T> {
     @Override
     @Impure( integrationPoint = "neo4j" )
     public T next() {
-        return indexHits.next();
+        PropertyContainer next = indexHits.next();
+        return (T) DVPropertyContainer.construct( next );
     }
 
     @Override
@@ -49,7 +50,8 @@ public class DVIndexHits<T> implements Iterable<T>, Iterator<T> {
 
     @Impure( integrationPoint = "neo4j" )
     public T getSingle() {
-        return indexHits.getSingle();
+        PropertyContainer container = indexHits.getSingle();
+        return (T) DVPropertyContainer.construct( container );
     }
 
     @Impure( integrationPoint = "neo4j" )

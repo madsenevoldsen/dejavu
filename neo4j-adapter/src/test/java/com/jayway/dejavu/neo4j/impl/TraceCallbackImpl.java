@@ -1,15 +1,15 @@
 package com.jayway.dejavu.neo4j.impl;
 
+import com.jayway.dejavu.core.ThreadThrowable;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.repository.TraceCallback;
 
 public class TraceCallbackImpl implements TraceCallback {
 
-
     private Trace trace;
 
     @Override
-    public void traced(Trace trace, Throwable cause) {
+    public void traced(Trace trace, Throwable cause, ThreadThrowable... threadThrowables) {
         this.trace = trace;
     }
 

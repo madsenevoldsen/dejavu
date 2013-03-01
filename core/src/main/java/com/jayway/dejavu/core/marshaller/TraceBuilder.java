@@ -39,7 +39,9 @@ public class TraceBuilder {
      * Add ids of all other threads than the main one
      */
     public TraceBuilder threadIds( String... ids ) {
-        Collections.addAll(threadIds, ids);
+        for (String id : ids) {
+            threadIds.add( trace.getId() + "." + id );
+        }
         return this;
     }
 
@@ -90,7 +92,7 @@ public class TraceBuilder {
                 args.add( argument );
             }
         }
-        trace.setStartArguments( args.toArray(new Object[args.size()]) );
+        trace.setStartArguments(args.toArray(new Object[args.size()]));
         return this;
     }
 
@@ -104,7 +106,7 @@ public class TraceBuilder {
     }
 
     public TraceBuilder add( Object... arguments ) {
-        return addIded( 0, arguments );
+        return addT(0, arguments);
     }
 
     /**
@@ -121,7 +123,7 @@ public class TraceBuilder {
      *
      * @return this TraceBuilder instance to make a fluent API
      */
-    public TraceBuilder addIded( int threadIdx, Object... arguments ) {
+    public TraceBuilder addT( int threadIdx, Object... arguments ) {
         if ( arguments == null ) {
             addNull( threadIdx );
             return this;

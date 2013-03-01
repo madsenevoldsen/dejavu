@@ -2,7 +2,6 @@ package com.jayway.dejavu.core.marshaller;
 
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.TraceElement;
-import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.util.*;
 
@@ -26,7 +25,7 @@ public class Marshaller {
         return chain.asTraceBuilderArgument( value );
     }
 
-    public String marshal( Trace trace ) {
+    public String marshal( final Trace trace ) {
         String testClassName = trace.getStartPoint().getDeclaringClass().getCanonicalName() + "Test";
         int index = testClassName.lastIndexOf('.');
         String classSimpleName = testClassName.substring(index+1);
@@ -55,8 +54,9 @@ public class Marshaller {
             }
         });
 
+        threads.remove( trace.getId() );
         Map<String, Integer> threadIds = new HashMap<String, Integer>();
-        int idx = 0;
+        int idx = 1;
         for (String thread : threads) {
             threadIds.put( thread, idx++);
         }
@@ -68,16 +68,33 @@ public class Marshaller {
         add(sb, "@Test", 1);
         add(sb, "public void " + classSimpleName.toLowerCase() + "() throws Throwable {", 1);
         add(sb, "TraceBuilder builder = TraceBuilder.", 2);
-        add(sb, "build(" + marshallerArgs +").", 4);
+        if ( threads.isEmpty() ) {
+            add(sb, "build(" + marshallerArgs +").", 4);
+        } else {
+            if ( marshallerArgs.isEmpty() ) {
+                add(sb, "build(\"" +trace.getId()+"\").", 4);
+            } else {
+                add(sb, "build(\"" +trace.getId()+"\"," + marshallerArgs +").", 4);
+            }
+        }
+
         // TODO fix if not only one in method
         add(sb, "setMethod("+trace.getStartPoint().getDeclaringClass().getSimpleName()+".class);",4);
         if (trace.getStartPoint().getParameterTypes().length > 0 ) {
-            String params = join(trace.getStartArguments(),new Join<Object>() {
+            String params = join(new Join<Object>() {
                 public String element(Object element ) {
                 return asTraceBuilderArgument( element );
                 }
-            });
+            },trace.getStartArguments());
             add(sb, "builder.addMethodArguments("+params+");", 2);
+        }
+        if ( !threads.isEmpty() ) {
+            String threadArguments = join( threads, new Join<String>() {
+                public String element(String s) {
+                    return "\"" + s.substring( trace.getId().length()+1 ) + "\"";
+                }
+            });
+            add( sb, "builder.threadIds("+threadArguments + ");", 2);
         }
         sb.append("\n");
 
@@ -116,15 +133,29 @@ public class Marshaller {
         // append values
         List<StringBuilder> valueRows = new ArrayList<StringBuilder>();
         int row = 0;
+        String thread = null;
         for (TraceElement element : trace.getValues()) {
             StringBuilder current;
+            if ( thread != null ) {
+                if ( !thread.equals( element.getThreadId()) ) {
+                    // we have to start a new line because this
+                    // element is from a different thread
+                    row++;
+                }
+            }
+
             if ( valueRows.size() == row ) {
-                valueRows.add( new StringBuilder() );
+                if ( threadIds.isEmpty() ) {
+                    valueRows.add( new StringBuilder("add(") );
+                } else {
+                    valueRows.add( new StringBuilder( "addT("+threadIds.get( element.getThreadId() ) + ", ") );
+                }
+                thread = element.getThreadId();
             } else {
                 valueRows.get( row ).append( ", ");
             }
             current = valueRows.get( row );
-            current.append( asTraceBuilderArgument( element.getValue() ));
+            current.append(asTraceBuilderArgument(element.getValue()));
             if ( current.length() > 80 ) {
                 row++;
             }
@@ -137,9 +168,9 @@ public class Marshaller {
                     end = ";";
                 }
                 if ( i == 0 ) {
-                    add( sb, "builder.add("+valueRow.toString()+")"+end, 2);
+                    add( sb, "builder."+valueRow.toString()+")"+end, 2);
                 } else {
-                    add( sb, "add("+valueRow.toString() + ")"+end, 4);
+                    add( sb, valueRow.toString() + ")"+end, 5);
                 }
             }
         }
@@ -178,16 +209,19 @@ public class Marshaller {
         }
         sb.append( line ).append("\n");
     }
-    private <T> String join( T[] list, Join<T> join ) {
+    private <T> String join( Join<T> join, T... list ) {
         return join(Arrays.asList( list ), join);
     }
-    private <T> String join( List<T> list, Join<T> join ) {
+    private <T> String join( Collection<T> list, Join<T> join ) {
         StringBuilder sb = new StringBuilder();
-        for ( int i=0; i<list.size(); i++) {
-            if ( i!=0 ) {
+        boolean first = true;
+        for (T t : list) {
+            if ( first ) {
+                first = false;
+            } else {
                 sb.append(", ");
             }
-            sb.append( join.element( list.get(i)));
+            sb.append( join.element( t));
         }
         return sb.toString();
     }

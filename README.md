@@ -1,7 +1,7 @@
 Deja vu
 =======
 
-h2.Introduction
+## Introduction
 Deja vu is a tracing framework that allows you to create sandboxed runnable traces replicating traces from production environments.
 It works by annotating the code you want traced and uses aspectj for weaving in tracing behaviour.
 
@@ -9,23 +9,23 @@ Traces consists of runnable code (a unit test) and such tests can also manually 
 as well.
 
 
-h2. Run/Re-run
+## Run/Re-run
 The idea is that once a traced method has been run it is possible, by using the framework, to re-run it with the exact same execution path as the
 original run.
 
 The methods you want traced can done so by annotating them @Traced, example:
 
-<code>
+<pre>
 @Traced
 public void findUserById( String id ) {
    ///...
 }
-<code>
+</pre>
 
 The framework must be provided an implementation of the interface TraceCallback. This interface has a method that will be called
 upon every completed call to @Traced methods.
 
-h2. Pure/Impure
+## Pure/Impure
 The goal of the framework is to produce a deterministic sandboxed runnable trace having the same execution path as the original.
 For this to be possible the framework must know explicitly what methods have behaviour making it either environment dependent (e.g.
 reading from a database) or non-deterministic (e.g. making an execution path decision based on a random number).
@@ -36,15 +36,15 @@ Deja vu pure code is allowed to have side effects).
 
 For tracing to work all code that does not pass the "pure" definition must be annotated @Impure:
 
-<code>
+<pre>
 @Impure
 public String randomUUID() {
     return UUID.randomUUID().toString();
 }
-</code>
+</pre>
 
 
-h2. Marshaling
+## Marshaling
 
 Since Deja vu is about running code a Trace instance can be marshaled using the class Marshaller. A trace is marshaled to
 the source code of a unit test.
@@ -56,61 +56,61 @@ h2. @AttachThread
 It is possible to get traces even when multi threading is involved. However this requires the framework to understand when
 parts of the trace is executed in another thread.
 
-<code>
+<pre>
 @AttachThread
 public void run( Runnable runnable ) {
     new Thread( runnable ).start();
 }
-</code>
+</pre>
 
 Using @AttachThread the framework will assume that all instances of runnable passed as arguments is about to be run
 in a separate thread and the trace will only be completed when all such runnables are also finished running.
 
-h2. Threaded re-run
+## Threaded re-run
 
 When re-running a threaded trace the pure parts of the different threads will run parallel - so we are not guaranteed
 the exact same ordering of instruction execution among threads (but this should not matter as this code is "pure").
 What is guaranteed, however, is the order of execution of @Impure parts (the framework will simply let threads wait if
 they tend to pass @Impure points before their time).
 
-h2. Setup
+## Setup
 
 Since the framework is using aspectj there is an option of compile time weaving or runtime weaving. A typical setup
 would be to have compile time weaving for production setup and compile time weaving for test setup.
 
-h3. Compile time weaving
+### Compile time weaving
 
 Using maven the following must be added to your pom.xml:
 <pre>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>aspectj-maven-plugin</artifactId>
-                <version>1.4</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                    <encoding>utf-8</encoding>
-                    <complianceLevel>1.6</complianceLevel>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compile</goal>
-                            <goal>test-compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
+                &lt;artifactId&gt;aspectj-maven-plugin&lt;/artifactId&gt;
+                &lt;version&gt;1.4&lt;/version&gt;
+                &lt;configuration&gt;
+                    &lt;source&gt;1.6&lt;/source&gt;
+                    &lt;target&gt;1.6&lt;/target&gt;
+                    &lt;encoding&gt;utf-8&lt;/encoding&gt;
+                    &lt;complianceLevel&gt;1.6&lt;/complianceLevel&gt;
+                &lt;/configuration&gt;
+                &lt;executions&gt;
+                    &lt;execution&gt;
+                        &lt;goals&gt;
+                            &lt;goal&gt;compile&lt;/goal&gt;
+                            &lt;goal&gt;test-compile&lt;/goal&gt;
+                        &lt;/goals&gt;
+                    &lt;/execution&gt;
+                &lt;/executions&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
 </pre>
 
-Any classes using the Deja vu annotation must be specified in the aop.xml file (standard aspectj setup).
+Any classes using the Deja vu annotation must be specified in the <code>aop.xml</code> file (standard aspectj setup).
 
-h3. Runtime weaving
+### Runtime weaving
 
 Runtime weaving can be done by adding a javaagent argument to the VM options for the compiler:
--javaagent:PATH TO ASPECTJWEAVER.jar
+<code>-javaagent:PATH TO ASPECTJWEAVER.jar</code>
 

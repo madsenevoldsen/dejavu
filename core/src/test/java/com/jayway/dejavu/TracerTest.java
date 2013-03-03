@@ -149,7 +149,7 @@ public class TracerTest {
     }
 
 
-     @Test
+    @Test
     public void non_deterministic() {
         try {
             AlmostWorking useCase = new AlmostWorking();

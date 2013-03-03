@@ -13,7 +13,7 @@ as well.
 The idea is that once a traced method has been run it is possible, by using the framework, to re-run it with the exact same execution path as the
 original run.
 
-The methods you want traced can done so by annotating them @Traced, example:
+The methods you want traced can done so by annotating them <code>@Traced</code>, example:
 
 <pre>
 @Traced
@@ -23,7 +23,7 @@ public void findUserById( String id ) {
 </pre>
 
 The framework must be provided an implementation of the interface TraceCallback. This interface has a method that will be called
-upon every completed call to @Traced methods.
+upon every completed call to <code>@Traced</code> methods.
 
 ## Pure/Impure
 The goal of the framework is to produce a deterministic sandboxed runnable trace having the same execution path as the original.
@@ -43,15 +43,22 @@ public String randomUUID() {
 }
 </pre>
 
+For details see http://www.jayway.com/2013/01/03/debugging-your-production-bugs-with-deja-vu/
+
+## Immutability
+Inputs to <code>@Traced</code> methods and outputs from <code>@Impure</code> methods must be kept immutable
+otherwise a re-run will not execute identically.
+
+Note: The framework does not enforce this immutability constraint so be careful!
 
 ## Marshaling
 
 Since Deja vu is about running code a Trace instance can be marshaled using the class Marshaller. A trace is marshaled to
 the source code of a unit test.
 
+For details see http://www.jayway.com/2013/01/05/json-marshaller-for-deja-vu-2/
 
-
-h2. @AttachThread
+## @AttachThread
 
 It is possible to get traces even when multi threading is involved. However this requires the framework to understand when
 parts of the trace is executed in another thread.
@@ -72,6 +79,8 @@ When re-running a threaded trace the pure parts of the different threads will ru
 the exact same ordering of instruction execution among threads (but this should not matter as this code is "pure").
 What is guaranteed, however, is the order of execution of @Impure parts (the framework will simply let threads wait if
 they tend to pass @Impure points before their time).
+
+For details see http://www.jayway.com/2013/02/10/multi-threaded-traces-with-deja-vu/
 
 ## Setup
 

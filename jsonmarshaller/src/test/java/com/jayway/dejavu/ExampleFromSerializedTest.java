@@ -31,7 +31,7 @@ public class ExampleFromSerializedTest {
             new ExampleFailingIntegrationPoint().run( "first", "second" );
         } catch ( ArithmeticException e ) {
             String test = marshaller.marshal( callback.getTrace() );
-            System.out.println( test );
+            //System.out.println( test );
 
             JavaSourceCompiler compiler = new JavaSourceCompilerImpl();
             JavaSourceCompiler.CompilationUnit compilationUnit = compiler.createCompilationUnit();

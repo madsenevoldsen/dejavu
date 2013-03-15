@@ -7,8 +7,6 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +22,8 @@ public class DejaVuAspect {
 
     private static ThreadLocal<String> traceId = new ThreadLocal<String>();
     private static ThreadLocal<String> threadId = new ThreadLocal<String>();
-    private static ThreadLocal<Boolean> threadLocalInIntegrationPoint = new ThreadLocal<Boolean>();
+    private static ThreadLocal<Boolean> threadLocalInImpure = new ThreadLocal<Boolean>();
+    private static ThreadLocal<Boolean> threadLocalIgnore = new ThreadLocal<Boolean>();
 
     private static Map<String, RunningTrace> runningTraces = new HashMap<String, RunningTrace>();
     private static Map<String, CircuitBreaker> circuitBreakers;
@@ -63,7 +62,7 @@ public class DejaVuAspect {
             threadId.set( trace.getId() );
             runningTraces.put(trace.getId(), new RunningTrace(trace));
 
-            threadLocalInIntegrationPoint.set( false );
+            threadLocalInImpure.set(false);
             try {
                 Object result = proceed.proceed();
                 callbackIfFinished(trace, null);
@@ -90,25 +89,19 @@ public class DejaVuAspect {
 
     @Around("execution(@com.jayway.dejavu.core.annotation.Impure * *(..)) && @annotation(impure)")
     public Object integrationPoint( ProceedingJoinPoint proceed, Impure impure) throws Throwable {
-        if ( traceMode && traceId.get() == null ) {
-            // we are outside of a trace so call the method normally
+        if ( fallThrough() ) {
             return proceed.proceed();
         }
-        Trace trace = runningTraces.get( traceId.get() ).getTrace();
-        boolean inIntegratonPoint = threadLocalInIntegrationPoint.get() == null ? false : threadLocalInIntegrationPoint.get();
-        if ( traceMode && inIntegratonPoint ) {
-            // we are in a trace and in an integration point
-            // called from another integration point, so don't
-            // trace this call
-            return proceed.proceed();
-        }
+        return handle(proceed, null, impure.integrationPoint() );
+    }
 
+    public static Object handle(ProceedingJoinPoint proceed, ProxyMethod proxyMethod, String integrationPoint) throws Throwable {
+        Trace trace = runningTraces.get( traceId.get() ).getTrace();
         if ( traceMode ) {
             CircuitBreaker handler = null;
             Object result = null;
             try {
-                threadLocalInIntegrationPoint.set( true );
-                String integrationPoint = impure.integrationPoint();
+                threadLocalInImpure.set(true);
                 if ( !integrationPoint.isEmpty() ) {
                     // a circuit breaker is guarding this call
                     handler = getCircuitBreaker( integrationPoint );
@@ -116,7 +109,7 @@ public class DejaVuAspect {
                         throw new CircuitOpenException( "Circuit breaker '"+integrationPoint+"' is open");
                     }
                 }
-                result = proceed.proceed();
+                result = proceed == null ? proxyMethod.invoke() : proceed.proceed();
                 return result;
             } catch (Throwable t ) {
                 result = new ThrownThrowable( t );
@@ -130,14 +123,36 @@ public class DejaVuAspect {
                         handler.success();
                     }
                 }
-                threadLocalInIntegrationPoint.set( false );
+                threadLocalInImpure.set(false);
             }
         } else {
-            return DejaVuTrace.nextValue( threadId.get() );
+            return DejaVuTrace.nextValue(threadId.get());
         }
     }
 
-    private CircuitBreaker getCircuitBreaker( String integrationPoint ) {
+    public static boolean fallThrough() throws Throwable {
+        if ( traceMode && traceId.get() == null ) {
+            // we are outside of a trace so call the method normally
+            return true;
+        }
+        boolean inIntegratonPoint = threadLocalInImpure.get() == null ? false : threadLocalInImpure.get();
+        if ( traceMode && inIntegratonPoint ) {
+            // we are in a trace and in an integration point
+            // called from another integration point, so don't
+            // trace this call
+            return true;
+        }
+        if ( threadLocalIgnore.get() != null && threadLocalIgnore.get() ) {
+            return true;
+        }
+        return false;
+    }
+
+    public static void setIgnore( boolean ignore ) {
+        threadLocalIgnore.set( ignore );
+    }
+
+    private static CircuitBreaker getCircuitBreaker( String integrationPoint ) {
         if (!circuitBreakers.containsKey(integrationPoint)) {
             circuitBreakers.put( integrationPoint, new CircuitBreaker(integrationPoint, timeout, exceptionThreshold));
         }
@@ -180,7 +195,7 @@ public class DejaVuAspect {
         }
     }
 
-    private void add( Trace trace, Object value ) {
+    private static void add( Trace trace, Object value ) {
         synchronized (trace) {
             TraceElement element = new TraceElement(threadId.get(), value);
             trace.addValue(element);
@@ -195,7 +210,7 @@ public class DejaVuAspect {
         }
         traceId.remove();
         threadId.remove();
-        threadLocalInIntegrationPoint.remove();
+        threadLocalInImpure.remove();
     }
 
     public static void threadStarted( String threadId, String traceId ) {

@@ -10,6 +10,7 @@ public class DatabaseTrace {
     @Traced
     public void createNodesAndRelations() {
         DVGraphDatabaseService graphDb = DVGraphDatabaseService.connectEmbedded("/home/mads/Development/neo4j-community-1.8.1/data");
+
         DVTransaction transaction = graphDb.beginTx();
 
         DVNode node = graphDb.createNode();

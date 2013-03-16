@@ -5,7 +5,14 @@ import net.sf.cglib.proxy.MethodProxy;
 
 import java.lang.reflect.Method;
 
-public class RandomProxy implements MethodInterceptor {
+public class AllImpureProxy implements MethodInterceptor {
+
+    private String integrationPoint = "";
+
+    public AllImpureProxy() {}
+    public AllImpureProxy( String integrationPoint ) {
+        this.integrationPoint = integrationPoint;
+    }
 
     @Override
     public Object intercept(Object object, Method method, Object[] arguments, MethodProxy methodProxy) throws Throwable {
@@ -13,6 +20,6 @@ public class RandomProxy implements MethodInterceptor {
         if ( DejaVuAspect.fallThrough() ) {
             return methodProxy.invokeSuper(object, arguments);
         }
-        return DejaVuAspect.handle(null, new ProxyMethod(object, arguments, methodProxy), "");
+        return DejaVuAspect.handle(null, new ProxyMethod(object, arguments, methodProxy), integrationPoint);
     }
 }

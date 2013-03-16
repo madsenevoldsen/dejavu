@@ -132,32 +132,33 @@ public class Marshaller {
 
         // append values
         List<StringBuilder> valueRows = new ArrayList<StringBuilder>();
-        int row = 0;
         String thread = null;
+        boolean preferNewLine = true;
         for (TraceElement element : trace.getValues()) {
             StringBuilder current;
             if ( thread != null ) {
                 if ( !thread.equals( element.getThreadId()) ) {
                     // we have to start a new line because this
                     // element is from a different thread
-                    row++;
+                    preferNewLine = true;
                 }
             }
 
-            if ( valueRows.size() == row ) {
+            if ( preferNewLine ) {
                 if ( threadIds.isEmpty() ) {
                     valueRows.add( new StringBuilder("add(") );
                 } else {
                     valueRows.add( new StringBuilder( "addT("+threadIds.get( element.getThreadId() ) + ", ") );
                 }
                 thread = element.getThreadId();
+                preferNewLine = false;
             } else {
-                valueRows.get( row ).append( ", ");
+                valueRows.get( valueRows.size()-1 ).append( ", ");
             }
-            current = valueRows.get( row );
+            current = valueRows.get( valueRows.size()-1 );
             current.append(asTraceBuilderArgument(element.getValue()));
             if ( current.length() > 80 ) {
-                row++;
+                preferNewLine = true;
             }
         }
         if ( trace.getValues().size() > 0 ) {

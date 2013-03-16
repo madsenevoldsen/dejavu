@@ -3,6 +3,7 @@ package com.jayway.dejavu.core;
 import com.jayway.dejavu.core.annotation.Impure;
 import com.jayway.dejavu.core.exception.CircuitOpenException;
 import com.jayway.dejavu.core.repository.TraceCallback;
+import net.sf.cglib.proxy.Enhancer;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -10,6 +11,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 @Aspect
@@ -148,15 +150,23 @@ public class DejaVuAspect {
         return false;
     }
 
-    public static void setIgnore( boolean ignore ) {
-        threadLocalIgnore.set( ignore );
-    }
-
     private static CircuitBreaker getCircuitBreaker( String integrationPoint ) {
         if (!circuitBreakers.containsKey(integrationPoint)) {
             circuitBreakers.put( integrationPoint, new CircuitBreaker(integrationPoint, timeout, exceptionThreshold));
         }
         return circuitBreakers.get( integrationPoint );
+    }
+
+    @Around("call(java.util.Random.new(..))")
+    public Object random(ProceedingJoinPoint proceed ) throws Throwable {
+        // if already inside an @impure just proceed
+        if ( fallThrough() ) {
+            return proceed.proceed();
+        }
+        threadLocalIgnore.set(true);
+        Random random = (Random) Enhancer.create(Random.class, new AllImpureProxy());
+        threadLocalIgnore.set(false);
+        return random;
     }
 
     @Around("execution(@com.jayway.dejavu.core.annotation.AttachThread * *(..))")

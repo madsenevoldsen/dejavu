@@ -4,11 +4,15 @@ import com.jayway.dejavu.core.annotation.Impure;
 import com.jayway.dejavu.core.exception.CircuitOpenException;
 import com.jayway.dejavu.core.repository.TraceCallback;
 import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.InterfaceMaker;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -159,14 +163,55 @@ public class DejaVuAspect {
 
     @Around("call(java.util.Random.new(..))")
     public Object random(ProceedingJoinPoint proceed ) throws Throwable {
+        return impureProxy( Random.class, proceed );
+    }
+
+    @Around("call(java.io.FileReader.new(..))")
+    public Object fileReader(ProceedingJoinPoint proceed ) throws Throwable {
         // if already inside an @impure just proceed
         if ( fallThrough() ) {
             return proceed.proceed();
         }
         threadLocalIgnore.set(true);
-        Random random = (Random) Enhancer.create(Random.class, new AllImpureProxy());
+        String fileName = (String) proceed.getArgs()[0];
+        if ( !traceMode ) {
+            // read file known to exist it will never
+            // be read because this is test mode
+            fileName = this.getClass().getResource( "DejaVuAspect.class" ).getPath();
+        }
+        Enhancer enhancer = new Enhancer();
+        enhancer.setCallback( new AllImpureProxy());
+        enhancer.setSuperclass(FileReader.class);
+        // if test mode it can only be a mock
+        Object proxy = enhancer.create( new Class[]{String.class}, new Object[]{ fileName });
         threadLocalIgnore.set(false);
-        return random;
+        return proxy;
+    }
+
+    @Around("call(java.io.BufferedReader.new(..))")
+    public Object buffered(ProceedingJoinPoint proceed ) throws Throwable {
+        // if already inside an @impure just proceed
+        if ( fallThrough() ) {
+            return proceed.proceed();
+        }
+        threadLocalIgnore.set(true);
+        Enhancer enhancer = new Enhancer();
+        enhancer.setCallback( new AllImpureProxy());
+        enhancer.setSuperclass(BufferedReader.class);
+        Object proxy = enhancer.create( new Class[]{Reader.class}, new Object[]{proceed.getArgs()[0]});
+        threadLocalIgnore.set(false);
+        return proxy;
+    }
+
+    private Object impureProxy( Class<?> clazz, ProceedingJoinPoint proceed ) throws Throwable {
+        // if already inside an @impure just proceed
+        if ( fallThrough() ) {
+            return proceed.proceed();
+        }
+        threadLocalIgnore.set(true);
+        Object proxy = Enhancer.create(clazz, new AllImpureProxy());
+        threadLocalIgnore.set(false);
+        return proxy;
     }
 
     @Around("execution(@com.jayway.dejavu.core.annotation.AttachThread * *(..))")

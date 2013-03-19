@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.jayway.dejavu</groupId>
-    <artifactId>dejavu-core</artifactId>
+    <artifactId>dejavu-auto-impure</artifactId>
     <packaging>jar</packaging>
     <parent>
         <groupId>com.jayway.dejavu</groupId>
@@ -13,18 +13,14 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.1</version>
+            <groupId>com.jayway.dejavu</groupId>
+            <artifactId>dejavu-core</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
         </dependency>
-
-
-        <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-        <!-- Logging dependencies            -->
-        <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>3.1</version>
         </dependency>
 
         <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
@@ -57,6 +53,14 @@
                     <target>1.6</target>
                     <encoding>utf-8</encoding>
                     <complianceLevel>1.6</complianceLevel>
+                    <showWeaveInfo>true</showWeaveInfo>
+                    <verbose>true</verbose>
+                    <aspectLibraries>
+                        <aspectLibrary>
+                            <groupId>com.jayway.dejavu</groupId>
+                            <artifactId>dejavu-core</artifactId>
+                        </aspectLibrary>
+                    </aspectLibraries>
                 </configuration>
                 <executions>
                     <execution>

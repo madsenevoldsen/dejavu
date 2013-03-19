@@ -3,20 +3,18 @@ package com.jayway.dejavu.core;
 import com.jayway.dejavu.core.annotation.Impure;
 import com.jayway.dejavu.core.exception.CircuitOpenException;
 import com.jayway.dejavu.core.repository.TraceCallback;
-import net.sf.cglib.proxy.Enhancer;
-import net.sf.cglib.proxy.InterfaceMaker;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+
 
 @Aspect
 public class DejaVuAspect {
@@ -87,7 +85,10 @@ public class DejaVuAspect {
     private static Trace trace( ProceedingJoinPoint proceed ) {
         if ( traceMode ) {
             MethodSignature signature = (MethodSignature) proceed.getSignature();
-            return new Trace(UUID.randomUUID().toString(), signature.getMethod(), proceed.getArgs() );
+            setIgnore(true);
+            String id = UUID.randomUUID().toString();
+            setIgnore(false);
+            return new Trace(id, signature.getMethod(), proceed.getArgs() );
         } else {
             return DejaVuTrace.getTrace();
         }
@@ -98,10 +99,10 @@ public class DejaVuAspect {
         if ( fallThrough() ) {
             return proceed.proceed();
         }
-        return handle(proceed, null, impure.integrationPoint() );
+        return handle(proceed, impure.integrationPoint() );
     }
 
-    public static Object handle(ProceedingJoinPoint proceed, ProxyMethod proxyMethod, String integrationPoint) throws Throwable {
+    public static Object handle(ProceedingJoinPoint proceed, String integrationPoint) throws Throwable {
         Trace trace = runningTraces.get( traceId.get() ).getTrace();
         if ( traceMode ) {
             CircuitBreaker handler = null;
@@ -115,7 +116,7 @@ public class DejaVuAspect {
                         throw new CircuitOpenException( "Circuit breaker '"+integrationPoint+"' is open");
                     }
                 }
-                result = proceed == null ? proxyMethod.invoke() : proceed.proceed();
+                result = proceed.proceed();
                 return result;
             } catch (Throwable t ) {
                 result = new ThrownThrowable( t );
@@ -136,7 +137,11 @@ public class DejaVuAspect {
         }
     }
 
-    public static boolean fallThrough() throws Throwable {
+    protected static boolean isTraceMode() {
+        return traceMode;
+    }
+
+    protected static boolean fallThrough() throws Throwable {
         if ( traceMode && traceId.get() == null ) {
             // we are outside of a trace so call the method normally
             return true;
@@ -154,6 +159,10 @@ public class DejaVuAspect {
         return false;
     }
 
+    protected static void setIgnore( boolean ignore ) {
+        threadLocalIgnore.set( ignore );
+    }
+
     private static CircuitBreaker getCircuitBreaker( String integrationPoint ) {
         if (!circuitBreakers.containsKey(integrationPoint)) {
             circuitBreakers.put( integrationPoint, new CircuitBreaker(integrationPoint, timeout, exceptionThreshold));
@@ -161,80 +170,29 @@ public class DejaVuAspect {
         return circuitBreakers.get( integrationPoint );
     }
 
-    @Around("call(java.util.Random.new(..))")
-    public Object random(ProceedingJoinPoint proceed ) throws Throwable {
-        return impureProxy( Random.class, proceed );
-    }
-
-    @Around("call(java.io.FileReader.new(..))")
-    public Object fileReader(ProceedingJoinPoint proceed ) throws Throwable {
-        // if already inside an @impure just proceed
-        if ( fallThrough() ) {
-            return proceed.proceed();
-        }
-        threadLocalIgnore.set(true);
-        String fileName = (String) proceed.getArgs()[0];
-        if ( !traceMode ) {
-            // read file known to exist it will never
-            // be read because this is test mode
-            fileName = this.getClass().getResource( "DejaVuAspect.class" ).getPath();
-        }
-        Enhancer enhancer = new Enhancer();
-        enhancer.setCallback( new AllImpureProxy());
-        enhancer.setSuperclass(FileReader.class);
-        // if test mode it can only be a mock
-        Object proxy = enhancer.create( new Class[]{String.class}, new Object[]{ fileName });
-        threadLocalIgnore.set(false);
-        return proxy;
-    }
-
-    @Around("call(java.io.BufferedReader.new(..))")
-    public Object buffered(ProceedingJoinPoint proceed ) throws Throwable {
-        // if already inside an @impure just proceed
-        if ( fallThrough() ) {
-            return proceed.proceed();
-        }
-        threadLocalIgnore.set(true);
-        Enhancer enhancer = new Enhancer();
-        enhancer.setCallback( new AllImpureProxy());
-        enhancer.setSuperclass(BufferedReader.class);
-        Object proxy = enhancer.create( new Class[]{Reader.class}, new Object[]{proceed.getArgs()[0]});
-        threadLocalIgnore.set(false);
-        return proxy;
-    }
-
-    private Object impureProxy( Class<?> clazz, ProceedingJoinPoint proceed ) throws Throwable {
-        // if already inside an @impure just proceed
-        if ( fallThrough() ) {
-            return proceed.proceed();
-        }
-        threadLocalIgnore.set(true);
-        Object proxy = Enhancer.create(clazz, new AllImpureProxy());
-        threadLocalIgnore.set(false);
-        return proxy;
-    }
-
     @Around("execution(@com.jayway.dejavu.core.annotation.AttachThread * *(..))")
     public void attach( ProceedingJoinPoint proceed ) throws Throwable {
         Object[] args = proceed.getArgs();
-        if ( threadId.get() != null ) {
-            patchRunnables( args );
-
+        if ( threadId.get() != null && args != null ) {
+            patch(args);
         }
         proceed.proceed( args );
     }
 
-    private String getChildThreadId() {
+    private static String getChildThreadId() {
         if ( traceMode ) {
             // generate id for new thread that will begin this runnable
-            return threadId.get() + "." + UUID.randomUUID().toString();
+            setIgnore(true);
+            String id = UUID.randomUUID().toString();
+            setIgnore(false);
+            return threadId.get() + "." + id;
         } else {
             // when in deja vu mode threadId is already set
             return DejaVuTrace.nextChildThreadId( threadId.get() );
         }
     }
 
-    private void patchRunnables(Object[] args) {
+    protected static void patch(Object[] args) {
         if ( args == null || args.length == 0 ) {
             return;
         }
@@ -245,6 +203,10 @@ public class DejaVuAspect {
                 args[i] = new AttachedRunnable((Runnable) arg, traceId.get(), childThreadId);
                 // if runnable is passed as argument to @AttachThread and not
                 // run, the trace will not stop
+                runningTraces.get( traceId.get() ).threadAttached( childThreadId );
+            } else if ( arg instanceof Callable ) {
+                String childThreadId = getChildThreadId();
+                args[i] = new AttachedCallable((Callable) arg, traceId.get(), childThreadId);
                 runningTraces.get( traceId.get() ).threadAttached( childThreadId );
             }
         }

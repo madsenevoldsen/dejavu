@@ -11,8 +11,8 @@ import java.util.List;
 public class FileReading {
 
     @Traced
-    public List<String> readFile() throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader("src/test/resources/example.txt"));
+    public List<String> readFile( String fileName ) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(fileName));
 
         List<String> fileLines = new ArrayList<String>();
         String line;

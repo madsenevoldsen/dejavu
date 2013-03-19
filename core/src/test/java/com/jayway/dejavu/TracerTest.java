@@ -163,21 +163,4 @@ public class TracerTest {
             System.out.println( test );
         }
     }
-
-    @Test
-    public void randomProxy() throws Throwable {
-        RandomProxyExample example = new RandomProxyExample();
-
-        int result = example.invoke();
-
-        Trace trace = callback.getTrace();
-        Assert.assertNotNull( trace );
-
-        String test = new Marshaller().marshal(trace);
-        System.out.println( test );
-        int result2 = DejaVuTrace.run(trace);
-
-        System.out.println( result + " and " +result2 );
-        Assert.assertEquals( result, result2);
-    }
 }

@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 public class ProxiedTest {
@@ -47,11 +48,11 @@ public class ProxiedTest {
         Assert.assertEquals( result, result2);
     }
 
-    @Test
+    /*@Test
     public void fileReading() throws Throwable {
         FileReading reading = new FileReading();
 
-        List<String> list = reading.readFile();
+        List<String> list = reading.readFile("src/test/resources/example.txt");
 
         Assert.assertEquals( list.size(), 4);
         Assert.assertEquals( "first line", list.get(0));
@@ -62,12 +63,14 @@ public class ProxiedTest {
         Trace trace = callback.getTrace();
         String test = new Marshaller().marshal(trace);
         System.out.println(test );
-    }
+    } */
 
     @Test
     public void notReadingFile() throws Throwable {
         // now read the file in test mode where it only produces one line
-        TraceBuilder builder = TraceBuilder.build().setMethod(FileReading.class);
+        TraceBuilder builder = TraceBuilder.build()
+                .setMethod(FileReading.class)
+                .addMethodArguments( String.class, "not a filename");
 
         builder.add(String.class, "ONLY LINE", null);
 
@@ -81,14 +84,17 @@ public class ProxiedTest {
     public void notReadingFileException() throws Throwable {
         // now read the file in test mode where it only produces one line
         TraceBuilder builder = TraceBuilder.build(new SimpleExceptionMarshaller())
-                .setMethod(FileReading.class);
+                .setMethod(FileReading.class)
+                .addMethodArguments( String.class, "nonexisting.xyz");
 
-        builder.add(IOException.class );
+        // reading the first line of the Buffered reader
+        // will produce a ConcurrentModificationException
+        builder.add(ConcurrentModificationException.class );
 
         try {
             builder.run();
             Assert.fail();
-        } catch (IOException e ) {
+        } catch (ConcurrentModificationException e ) {
             // it must throw IOException
         }
     }

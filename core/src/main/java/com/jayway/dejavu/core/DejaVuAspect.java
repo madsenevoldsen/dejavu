@@ -122,7 +122,16 @@ public class DejaVuAspect {
                 result = new ThrownThrowable( t );
                 throw t;
             } finally {
-                add(trace, result);
+                if ( result instanceof ThrownThrowable ) {
+                    // an exception was thrown so save its type
+                    //Class<?> thrown = ((ThrownThrowable) result).getThrowable().getClass();
+                    add( trace, result, ThrownThrowable.class );
+                } else if ( proceed.getSignature() instanceof MethodSignature ) {
+                    Class type = ((MethodSignature) proceed.getSignature()).getReturnType();
+                    add(trace, result, type);
+                } else {
+                    add(trace, result, null );
+                }
                 if ( handler != null ) {
                     if ( result instanceof ThrownThrowable ) {
                         handler.exceptionOccurred(((ThrownThrowable) result).getThrowable());
@@ -212,9 +221,9 @@ public class DejaVuAspect {
         }
     }
 
-    private static void add( Trace trace, Object value ) {
+    private static void add( Trace trace, Object value, Class<?> type ) {
         synchronized (trace) {
-            TraceElement element = new TraceElement(threadId.get(), value);
+            TraceElement element = new TraceElement(threadId.get(), value, type);
             trace.addValue(element);
         }
     }

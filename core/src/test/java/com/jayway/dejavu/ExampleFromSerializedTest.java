@@ -1,7 +1,6 @@
 package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.DejaVuAspect;
-import com.jayway.dejavu.core.DejaVuTrace;
 import com.jayway.dejavu.core.marshaller.Marshaller;
 import com.jayway.dejavu.impl.ExampleFailingIntegrationPoint;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
@@ -16,13 +15,11 @@ import java.lang.reflect.Method;
 public class ExampleFromSerializedTest {
 
     private TraceCallbackImpl callback;
-    private Marshaller marshaller;
 
     @Before
     public void setup(){
         callback = new TraceCallbackImpl();
         DejaVuAspect.initialize(callback);
-        marshaller = new Marshaller( new JacksonMarshallerPlugin() );
     }
 
     @Test
@@ -30,8 +27,8 @@ public class ExampleFromSerializedTest {
         try {
             new ExampleFailingIntegrationPoint().run( "first", "second" );
         } catch ( ArithmeticException e ) {
-            String test = marshaller.marshal( callback.getTrace() );
-            //System.out.println( test );
+            String test = new Marshaller().marshal( callback.getTrace() );
+            System.out.println( test );
 
             JavaSourceCompiler compiler = new JavaSourceCompilerImpl();
             JavaSourceCompiler.CompilationUnit compilationUnit = compiler.createCompilationUnit();

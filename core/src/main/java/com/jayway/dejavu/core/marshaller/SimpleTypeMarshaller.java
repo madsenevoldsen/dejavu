@@ -1,5 +1,7 @@
 package com.jayway.dejavu.core.marshaller;
 
+import com.jayway.dejavu.core.TraceElement;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -55,8 +57,8 @@ class SimpleTypeMarshaller implements MarshallerPlugin  {
     }
 
     @Override
-    public String asTraceBuilderArgument(Object value) {
-        if ( value instanceof String ) return "String.class, \""+value+"\"";
-        return marshalObject( value );
+    public String asTraceBuilderArgument(TraceElement element ) {
+        if ( element.getValue() instanceof String ) return "String.class, \""+element.getValue()+"\"";
+        return marshalObject( element.getValue() );
     }
 }

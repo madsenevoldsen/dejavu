@@ -1,14 +1,19 @@
-package com.jayway.dejavu;
+package com.jayway.dejavu.core.marshaller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.dejavu.core.marshaller.MarshallerPlugin;
+import com.jayway.dejavu.core.TraceElement;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+/**
+ * Can be used to marshal arbitrary objects but requires structure
+ * dictated by Jackson. Can marshal/un-marshal exceptions and is
+ * therefore always added at the end of the marshaller chain
+ */
 public class JacksonMarshallerPlugin implements MarshallerPlugin {
 
     private static Logger log = LoggerFactory.getLogger( JacksonMarshallerPlugin.class );
@@ -40,7 +45,11 @@ public class JacksonMarshallerPlugin implements MarshallerPlugin {
     }
 
     @Override
-    public String asTraceBuilderArgument(Object value) {
-        return value.getClass().getSimpleName() + ".class, " + marshalObject( value );
+    public String asTraceBuilderArgument( TraceElement element ) {
+        if ( element.getType() == null ) {
+            return element.getValue().getClass().getSimpleName() + ".class, " + marshalObject( element.getValue() );
+        } else {
+            return element.getType().getSimpleName() + ".class, " + marshalObject( element.getValue() );
+        }
     }
 }

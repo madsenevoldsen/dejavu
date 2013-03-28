@@ -3,26 +3,27 @@ package com.jayway.dejavu.core;
 public class TraceElement {
     private String threadId;
     private Object value;
+    private Class type;
 
-    public TraceElement() {}
     public TraceElement( String threadId, Object value ) {
         this.threadId = threadId;
         this.value = value;
+    }
+    public TraceElement( String threadId, Object value, Class<?> type ) {
+        this.threadId = threadId;
+        this.value = value;
+        this.type = type;
     }
 
     public Object getValue() {
         return value;
     }
 
-    public void setValue(Object value) {
-        this.value = value;
-    }
-
     public String getThreadId() {
         return threadId;
     }
 
-    public void setThreadId(String threadId) {
-        this.threadId = threadId;
+    public Class getType() {
+        return type;
     }
 }

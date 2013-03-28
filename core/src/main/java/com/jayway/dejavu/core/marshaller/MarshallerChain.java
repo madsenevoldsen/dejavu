@@ -1,7 +1,15 @@
 package com.jayway.dejavu.core.marshaller;
 
+import com.jayway.dejavu.core.TraceElement;
+
 import java.util.List;
 
+/**
+ * Chain of marshallers used inside the Marshaller class.
+ * By default it is capable of marshalling exceptions and
+ * simple types: Integer, Long, Float, Double, String, and
+ * Boolean.
+ */
 class MarshallerChain implements MarshallerPlugin {
 
     static MarshallerChain build( MarshallerPlugin... plugins ) {
@@ -14,6 +22,7 @@ class MarshallerChain implements MarshallerPlugin {
                 current = chain;
             }
         }
+        current.next = new MarshallerChain( new JacksonMarshallerPlugin());
         return first;
     }
 
@@ -43,17 +52,18 @@ class MarshallerChain implements MarshallerPlugin {
     }
 
     @Override
-    public String asTraceBuilderArgument(Object value) {
-        if ( value == null ) return null;
-        String string = current.asTraceBuilderArgument( value );
+    public String asTraceBuilderArgument( TraceElement element ) {
+        if ( element.getValue() == null ) return null;
+        String string = current.asTraceBuilderArgument( element );
         if ( string != null ) return string;
         if ( next == null ) return null;
 
-        return next.asTraceBuilderArgument( value );
+        return next.asTraceBuilderArgument( element );
     }
 
     protected List<Class> getClasses( List<Class> classes ) {
-        if ( !(current instanceof SimpleTypeMarshaller) ) {
+        if ( !(current instanceof SimpleTypeMarshaller)
+                && !(current instanceof JacksonMarshallerPlugin)) {
             classes.add( current.getClass() );
         }
         if ( next != null ) next.getClasses( classes );

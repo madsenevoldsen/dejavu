@@ -21,8 +21,8 @@ public class Marshaller {
         return chain.marshalObject( value );
     }
 
-    protected String asTraceBuilderArgument( Object value ) {
-        return chain.asTraceBuilderArgument( value );
+    protected String asTraceBuilderArgument( TraceElement element ) {
+        return chain.asTraceBuilderArgument( element );
     }
 
     public String marshal( final Trace trace ) {
@@ -79,11 +79,12 @@ public class Marshaller {
         }
 
         // TODO fix if not only one in method
+        // TODO fix proper argument elements (with type)
         add(sb, "setMethod("+trace.getStartPoint().getDeclaringClass().getSimpleName()+".class);",4);
         if (trace.getStartPoint().getParameterTypes().length > 0 ) {
             String params = join(new Join<Object>() {
                 public String element(Object element ) {
-                return asTraceBuilderArgument( element );
+                return asTraceBuilderArgument( new TraceElement("0", element) );
                 }
             },trace.getStartArguments());
             add(sb, "builder.addMethodArguments("+params+");", 2);
@@ -156,7 +157,7 @@ public class Marshaller {
                 valueRows.get( valueRows.size()-1 ).append( ", ");
             }
             current = valueRows.get( valueRows.size()-1 );
-            current.append(asTraceBuilderArgument(element.getValue()));
+            current.append(asTraceBuilderArgument(element));
             if ( current.length() > 80 ) {
                 preferNewLine = true;
             }

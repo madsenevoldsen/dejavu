@@ -9,9 +9,8 @@
     <url>http://github.com/madsenevoldsen/dejavu</url>
     <modules>
         <module>core</module>
-        <module>jsonmarshaller</module>
         <module>samples</module>
-        <module>neo4j-adapter</module>
+        <module>neo4j-auto-impure</module>
         <module>auto-impure</module>
     </modules>
     <properties>

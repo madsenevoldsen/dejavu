@@ -1,5 +1,0 @@
-<aspectj>
-    <weaver options="">
-        <include within="com.jayway.dejavu.impl.*"/>
-    </weaver>
-</aspectj>

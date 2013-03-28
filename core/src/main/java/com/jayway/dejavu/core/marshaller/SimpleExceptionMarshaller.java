@@ -1,6 +1,7 @@
 package com.jayway.dejavu.core.marshaller;
 
 import com.jayway.dejavu.core.ThrownThrowable;
+import com.jayway.dejavu.core.TraceElement;
 
 /**
  * Mainly usable for test purposes.
@@ -34,7 +35,7 @@ public class SimpleExceptionMarshaller implements MarshallerPlugin  {
     }
 
     @Override
-    public String asTraceBuilderArgument(Object value) {
-        return marshalObject(value);
+    public String asTraceBuilderArgument(TraceElement element ) {
+        return marshalObject(element.getValue());
     }
 }

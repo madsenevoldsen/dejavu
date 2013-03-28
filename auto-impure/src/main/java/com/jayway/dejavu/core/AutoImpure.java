@@ -1,16 +1,13 @@
 package com.jayway.dejavu.core;
 
-import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.Collection;
+import java.lang.reflect.Modifier;
 import java.util.Random;
-import java.util.concurrent.Callable;
 
 import static org.easymock.EasyMock.createMock;
 
@@ -63,8 +60,11 @@ public class AutoImpure {
         return impureMethod(proceed);
     }
 
-    @Around("call(* java.util.UUID.toString(..))")
+    @Around("call(* java.util.UUID.*(..))")
     public Object uuid( ProceedingJoinPoint proceed ) throws Throwable {
+        if (Modifier.isStatic( proceed.getSignature().getModifiers() )) {
+            return proceed.proceed();
+        }
         return impureMethod(proceed);
     }
 

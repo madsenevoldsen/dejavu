@@ -1,11 +1,10 @@
 <aspectj>
 <aspects>
-    <aspect name="com.jayway.dejavu.core.DejaVuAspect"/>
     <aspect name="com.jayway.dejavu.core.Neo4jAutoImpure"/>
 </aspects>
 
 <weaver options="">
-    <include within="com.jayway.dejavu.core.DejaVuAspect"/>
     <include within="com.jayway.dejavu.core.Neo4jAutoImpure"/>
+    <include within="com.jayway.dejavu.neo4j.*"/>
 </weaver>
 </aspectj>

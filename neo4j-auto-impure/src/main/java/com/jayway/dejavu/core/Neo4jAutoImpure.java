@@ -9,7 +9,6 @@ public class Neo4jAutoImpure {
 
     @Around("call(* org.neo4j.graphdb.GraphDatabaseService.*(..))")
     public Object dbService(ProceedingJoinPoint proceed ) throws Throwable {
-        System.out.println("GDS");
         return impureMethod(proceed);
     }
 
@@ -20,6 +19,21 @@ public class Neo4jAutoImpure {
 
     @Around("call(* org.neo4j.graphdb.Transaction.*(..))")
     public Object transaction(ProceedingJoinPoint proceed ) throws Throwable {
+        return impureMethod(proceed);
+    }
+
+    @Around("call(* org.neo4j.graphdb.index.IndexManager.*(..))")
+    public Object indexManager(ProceedingJoinPoint proceed ) throws Throwable {
+        return impureMethod(proceed);
+    }
+
+    @Around("call(* org.neo4j.graphdb.index.Index.*(..))")
+    public Object index(ProceedingJoinPoint proceed ) throws Throwable {
+        return impureMethod(proceed);
+    }
+
+    @Around("call(* org.neo4j.graphdb.index.IndexHits.*(..))")
+    public Object indexHits(ProceedingJoinPoint proceed ) throws Throwable {
         return impureMethod(proceed);
     }
 

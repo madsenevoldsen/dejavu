@@ -2,5 +2,6 @@
     <weaver options="">
         <include within="com.jayway.dejavu.neo4j.impl.*"/>
         <include within="com.jayway.dejavu.neo4j.impl.DatabaseInteraction.*"/>
+        <include within="com.jayway.dejavu.neo4j.impl.DatabaseQuery.*"/>
     </weaver>
 </aspectj>

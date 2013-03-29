@@ -41,7 +41,7 @@ public class Marshaller {
         Set<String> threads = new LinkedHashSet<String>();
         for (TraceElement element : trace.getValues()) {
             threads.add( element.getThreadId() );
-            addImport( sb, imports, element.getValue() );
+            addImport( sb, imports, element.getType() );
         }
         for (Object arg : trace.getStartArguments()) {
             addImport( sb, imports, arg );
@@ -183,14 +183,18 @@ public class Marshaller {
         return sb.toString();
     }
 
-    private void addImport( StringBuilder sb, Set<String> imports, Object argument ) {
-        if ( argument == null ) return;
-
-        String name = argument.getClass().getName();
+    private void addImport( StringBuilder sb, Set<String> imports, Class<?> argument ) {
+        if ( argument.isPrimitive() ) return;
+        String name = argument.getName();
         if ( !imports.contains( name ) ) {
             addImport(sb, name);
             imports.add(name);
         }
+    }
+
+    private void addImport( StringBuilder sb, Set<String> imports, Object argument ) {
+        if ( argument == null ) return;
+        addImport( sb, imports, argument.getClass() );
     }
 
     private void addImport( StringBuilder sb, String importName ) {

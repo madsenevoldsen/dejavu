@@ -22,6 +22,7 @@ public class Neo4jMarshallerPlugin implements MarshallerPlugin  {
 
     static {
         Set<Class<?>> classes = new HashSet<Class<?>>();
+        // so far these are the supported classes
         classes.add( GraphDatabaseService.class );
         classes.add( Transaction.class );
         classes.add( Node.class);
@@ -29,7 +30,6 @@ public class Neo4jMarshallerPlugin implements MarshallerPlugin  {
         classes.add( Index.class);
         classes.add( IndexHits.class);
         classes.add( PagingIterator.class);
-
 
         neo4jClasses = Collections.unmodifiableSet( classes );
     }
@@ -40,19 +40,6 @@ public class Neo4jMarshallerPlugin implements MarshallerPlugin  {
             // create mock instance
             return createMock( clazz );
         }
-        /*if ( neo4jDejaVuClass( clazz )) {
-            try {
-                Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
-                constructor.setAccessible( true );
-                return constructor.newInstance(new Object[]{null});
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        }*/
         return null;
     }
 
@@ -62,10 +49,6 @@ public class Neo4jMarshallerPlugin implements MarshallerPlugin  {
             // all neo4j classes serializes to the default value
             return "";
         }
-        /*if ( neo4jDejaVuClass(value.getClass()) ) {
-            return "";
-        }*/
-        // else continue
         return null;
     }
 
@@ -77,8 +60,4 @@ public class Neo4jMarshallerPlugin implements MarshallerPlugin  {
             return element.getType().getSimpleName() + ".class";
         }
     }
-
-    /*private boolean neo4jDejaVuClass( Class<?> clazz ) {
-        return clazz.getPackage().getName().equals( DVGraphDatabaseService.class.getPackage().getName());
-    }*/
 }

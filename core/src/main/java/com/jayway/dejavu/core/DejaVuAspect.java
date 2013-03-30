@@ -131,6 +131,8 @@ public class DejaVuAspect {
                     add( trace, result, ThrownThrowable.class );
                 } else {
                     // infer type of produced value
+                    // if return type equals instance type is it ok?
+                    // consider performance
                     Class<?> typeClass = null;
                     if ( proceed.getSignature() instanceof MethodSignature && typeHelpers != null ) {
                         for (TypeInference typeHelper : typeHelpers) {

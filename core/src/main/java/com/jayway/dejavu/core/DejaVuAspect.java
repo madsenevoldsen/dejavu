@@ -3,6 +3,7 @@ package com.jayway.dejavu.core;
 import com.jayway.dejavu.core.annotation.Impure;
 import com.jayway.dejavu.core.exception.CircuitOpenException;
 import com.jayway.dejavu.core.repository.TraceCallback;
+import com.jayway.dejavu.core.typeinference.TypeInference;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -31,10 +32,12 @@ public class DejaVuAspect {
 
     private static Map<String, RunningTrace> runningTraces = new HashMap<String, RunningTrace>();
     private static Map<String, CircuitBreaker> circuitBreakers;
+    private static TypeInference[] typeHelpers;
 
-    public static void initialize( TraceCallback cb ) {
+    public static void initialize( TraceCallback cb, TypeInference... typeHelpers ) {
         callback = cb;
         circuitBreakers = new HashMap<String, CircuitBreaker>();
+        DejaVuAspect.typeHelpers = typeHelpers;
     }
 
     public static void destroy() {
@@ -124,13 +127,23 @@ public class DejaVuAspect {
             } finally {
                 if ( result instanceof ThrownThrowable ) {
                     // an exception was thrown so save its type
-                    //Class<?> thrown = ((ThrownThrowable) result).getThrowable().getClass();
+                    // TODO save correct exception type
                     add( trace, result, ThrownThrowable.class );
-                } else if ( proceed.getSignature() instanceof MethodSignature ) {
-                    Class type = ((MethodSignature) proceed.getSignature()).getReturnType();
-                    add(trace, result, type);
                 } else {
-                    add(trace, result, null );
+                    // infer type of produced value
+                    Class<?> typeClass = null;
+                    if ( proceed.getSignature() instanceof MethodSignature && typeHelpers != null ) {
+                        for (TypeInference typeHelper : typeHelpers) {
+                            typeClass = typeHelper.inferType( result, (MethodSignature) proceed.getSignature());
+                            if ( typeClass != null ) {
+                                break;
+                            }
+                        }
+                        if ( typeClass == null ) {
+                            typeClass = ((MethodSignature) proceed.getSignature()).getReturnType();
+                        }
+                    }
+                    add( trace, result, typeClass );
                 }
                 if ( handler != null ) {
                     if ( result instanceof ThrownThrowable ) {

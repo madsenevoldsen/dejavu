@@ -6,5 +6,6 @@
 <weaver options="">
     <include within="com.jayway.dejavu.core.Neo4jAutoImpure"/>
     <include within="com.jayway.dejavu.neo4j.*"/>
+    <include within="com.jayway.dejavu.core.*"/>
 </weaver>
 </aspectj>

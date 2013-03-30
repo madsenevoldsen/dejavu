@@ -8,6 +8,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.PagingIterator;
+import org.neo4j.index.lucene.QueryContext;
 
 import java.lang.String;
 import java.util.Iterator;
@@ -34,7 +35,7 @@ public class DatabasePagesQuery {
         });
 
         Index<Node> index = graphDb().index().forNodes("nodeIndex");
-        IndexHits<Node> hits = index.query("name", "indexed*");
+        IndexHits<Node> hits = index.query("name", new QueryContext("indexed*").sort("name"));
 
         PagingIterator<Node> iterator = new PagingIterator<Node>(hits, 3);
         iterator.page(1);
@@ -42,12 +43,13 @@ public class DatabasePagesQuery {
 
         Assert.assertEquals( "indexed dd", nodes.next().getProperty("name") );
         Assert.assertEquals( "indexed gg", nodes.next().getProperty("name") );
-        Assert.assertEquals( "indexed xx", nodes.next().getProperty("name") );
+        Assert.assertEquals( "indexed rr", nodes.next().getProperty("name") );
         Assert.assertFalse( nodes.hasNext() );
     }
 
     private void addNode( GraphDatabaseService graphDb, Index index, String postFix ) {
         Node node = graphDb.createNode();
+        node.setProperty( "name", "indexed "+postFix);
         index.add( node, "name", "indexed "+postFix);
     }
 }

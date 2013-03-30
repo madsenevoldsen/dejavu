@@ -5,6 +5,10 @@ import com.jayway.dejavu.core.marshaller.MarshallerPlugin;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.graphdb.index.IndexManager;
+import org.neo4j.helpers.collection.PagingIterator;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -20,7 +24,12 @@ public class Neo4jMarshallerPlugin implements MarshallerPlugin  {
         Set<Class<?>> classes = new HashSet<Class<?>>();
         classes.add( GraphDatabaseService.class );
         classes.add( Transaction.class );
-        classes.add(Node.class);
+        classes.add( Node.class);
+        classes.add( IndexManager.class);
+        classes.add( Index.class);
+        classes.add( IndexHits.class);
+        classes.add( PagingIterator.class);
+
 
         neo4jClasses = Collections.unmodifiableSet( classes );
     }

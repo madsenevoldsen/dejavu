@@ -3,5 +3,6 @@
         <include within="com.jayway.dejavu.neo4j.impl.*"/>
         <include within="com.jayway.dejavu.neo4j.impl.DatabaseInteraction.*"/>
         <include within="com.jayway.dejavu.neo4j.impl.DatabaseQuery.*"/>
+        <include within="com.jayway.dejavu.neo4j.impl.DatabasePagesQuery.*"/>
     </weaver>
 </aspectj>

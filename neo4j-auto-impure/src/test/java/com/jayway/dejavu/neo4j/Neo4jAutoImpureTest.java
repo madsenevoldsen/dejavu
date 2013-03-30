@@ -6,6 +6,7 @@ import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.marshaller.Marshaller;
 import com.jayway.dejavu.core.marshaller.TraceBuilder;
 import com.jayway.dejavu.neo4j.impl.DatabaseInteraction;
+import com.jayway.dejavu.neo4j.impl.DatabasePagesQuery;
 import com.jayway.dejavu.neo4j.impl.DatabaseQuery;
 import com.jayway.dejavu.neo4j.impl.TraceCallbackImpl;
 import org.junit.Before;
@@ -56,12 +57,30 @@ public class Neo4jAutoImpureTest {
         builder.run();
     }
 
-    @Test
+    /*@Test
     public void query() throws Throwable {
         // create a real connection to the database
         ConnectionManager.initialize( "testdb/" );
 
         new DatabaseQuery().query();
+
+        // shutdown the database
+        ConnectionManager.graphDb().shutdown();
+
+        // now re-run without database
+        Trace trace = callback.getTrace();
+        Marshaller marshaller = new Marshaller(new Neo4jMarshallerPlugin());
+        System.out.println(marshaller.marshal(trace));
+
+        DejaVuTrace.run(trace);
+    } */
+
+    @Test
+    public void queryPages() throws Throwable {
+        // create a real connection to the database
+        ConnectionManager.initialize( "testdb/" );
+
+        new DatabasePagesQuery().query();
 
         // shutdown the database
         ConnectionManager.graphDb().shutdown();

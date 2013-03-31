@@ -11,9 +11,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 
@@ -32,12 +30,15 @@ public class DejaVuAspect {
 
     private static Map<String, RunningTrace> runningTraces = new HashMap<String, RunningTrace>();
     private static Map<String, CircuitBreaker> circuitBreakers;
-    private static TypeInference[] typeHelpers;
+    private static List<TypeInference> typeHelpers = new ArrayList<TypeInference>();
 
-    public static void initialize( TraceCallback cb, TypeInference... typeHelpers ) {
+    public static void initialize( TraceCallback cb ) {
         callback = cb;
         circuitBreakers = new HashMap<String, CircuitBreaker>();
-        DejaVuAspect.typeHelpers = typeHelpers;
+    }
+
+    protected static void addTypeHelper( TypeInference typeInference ) {
+        typeHelpers.add( typeInference );
     }
 
     public static void destroy() {

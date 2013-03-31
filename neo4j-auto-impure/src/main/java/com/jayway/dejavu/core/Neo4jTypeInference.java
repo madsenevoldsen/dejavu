@@ -7,8 +7,13 @@ import org.neo4j.graphdb.Relationship;
 
 public class Neo4jTypeInference implements TypeInference {
 
+    protected Neo4jTypeInference() {}
+
     @Override
     public Class<?> inferType(Object instance, MethodSignature signature) {
+        // inside the neo4j API an iterator can be returned. The
+        // type information for this iterator is erased on runtime and therefore
+        // we have to use this class to infer the specific type
         if ( signature.getMethod().getDeclaringClass() == Neo4jIterator.class ) {
             if ( signature.getName().equals("next") ) {
                 if ( instance instanceof Node) {

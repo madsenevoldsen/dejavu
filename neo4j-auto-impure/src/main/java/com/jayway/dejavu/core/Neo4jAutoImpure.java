@@ -14,6 +14,11 @@ import static org.easymock.EasyMock.resetToNice;
 @Aspect
 public class Neo4jAutoImpure {
 
+    static {
+        // install this as a type helper
+        DejaVuAspect.addTypeHelper( new Neo4jTypeInference() );
+    }
+
     @Around("call(* org.neo4j.graphdb.GraphDatabaseService.*(..))")
     public Object dbService(ProceedingJoinPoint proceed ) throws Throwable {
         return impureMethod(proceed);

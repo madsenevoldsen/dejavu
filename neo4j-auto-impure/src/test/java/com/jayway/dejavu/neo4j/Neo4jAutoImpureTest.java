@@ -2,9 +2,6 @@ package com.jayway.dejavu.neo4j;
 
 import com.jayway.dejavu.core.DejaVuAspect;
 import com.jayway.dejavu.core.DejaVuTrace;
-import com.jayway.dejavu.core.Neo4jTypeInference;
-import com.jayway.dejavu.core.Trace;
-import com.jayway.dejavu.core.marshaller.Marshaller;
 import com.jayway.dejavu.core.marshaller.TraceBuilder;
 import com.jayway.dejavu.neo4j.impl.DatabaseInteraction;
 import com.jayway.dejavu.neo4j.impl.DatabasePagesQuery;
@@ -26,29 +23,25 @@ public class Neo4jAutoImpureTest {
     @Before
     public void before(){
         callback = new TraceCallbackImpl();
-        DejaVuAspect.initialize(callback, new Neo4jTypeInference());
+        DejaVuAspect.initialize( callback );
     }
 
-    /*@Test
-    public void createNode() throws Throwable {
+    @Test
+    public void real_run() throws Throwable {
         // create a real connection to the database
-        ConnectionManager.initialize( "src/test/neo4j-testdb/" );
+        ConnectionManager.initialize( "testdb/" );
 
-        String name = "First node";
+        String name = "a Node";
         new DatabaseInteraction().createAndVerify(name);
 
         // shutdown the database
         ConnectionManager.graphDb().shutdown();
 
         // now re-run without database
-        Trace trace = callback.getTrace();
-        Marshaller marshaller = new Marshaller(new Neo4jMarshallerPlugin());
-        System.out.println(marshaller.marshal(trace));
+        DejaVuTrace.run( callback.getTrace() );
+    }
 
-        DejaVuTrace.run( trace );
-    } */
-
-    /*@Test
+    @Test
     public void create_node() throws Throwable {
         TraceBuilder builder = TraceBuilder.
                 build(new Neo4jMarshallerPlugin()).
@@ -59,25 +52,20 @@ public class Neo4jAutoImpureTest {
                 add(GraphDatabaseService.class, Node.class, String.class, "First node");
 
         builder.run();
-    } */
+    }
 
-    /*@Test
-    public void query() throws Throwable {
-        // create a real connection to the database
-        ConnectionManager.initialize( "testdb/" );
+    @Test
+    public void query_test() throws Throwable {
+        TraceBuilder builder = TraceBuilder.
+                build(new Neo4jMarshallerPlugin()).
+                setMethod(DatabaseQuery.class);
 
-        new DatabaseQuery().query();
+        builder.add(GraphDatabaseService.class, Transaction.class, Node.class, IndexManager.class).
+                add(Index.class, null, Node.class, null, null, null, GraphDatabaseService.class, IndexManager.class).
+                add(Index.class, IndexHits.class, 1);
 
-        // shutdown the database
-        ConnectionManager.graphDb().shutdown();
-
-        // now re-run without database
-        Trace trace = callback.getTrace();
-        Marshaller marshaller = new Marshaller(new Neo4jMarshallerPlugin());
-        System.out.println(marshaller.marshal(trace));
-
-        DejaVuTrace.run(trace);
-    } */
+        builder.run();
+    }
 
     /*@Test
     public void queryPages() throws Throwable {
@@ -98,7 +86,7 @@ public class Neo4jAutoImpureTest {
     } */
 
     @Test
-    public void queryPages() throws Throwable {
+    public void query_paginate() throws Throwable {
         TraceBuilder builder = TraceBuilder.
                 build(new Neo4jMarshallerPlugin()).
                 setMethod(DatabasePagesQuery.class);

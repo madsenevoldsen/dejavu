@@ -45,6 +45,7 @@ class SimpleTypeMarshaller implements MarshallerPlugin  {
 
     @Override
     public String marshalObject(Object value) {
+        if (value == null ) return "null";
         if ( value instanceof Long ) {
             return value + "L";
         } else if ( value instanceof Float ) {
@@ -58,6 +59,7 @@ class SimpleTypeMarshaller implements MarshallerPlugin  {
 
     @Override
     public String asTraceBuilderArgument(TraceElement element ) {
+        if ( element.getValue() == null ) return "null";
         if ( element.getValue() instanceof String ) return "String.class, \""+element.getValue()+"\"";
         return marshalObject( element.getValue() );
     }

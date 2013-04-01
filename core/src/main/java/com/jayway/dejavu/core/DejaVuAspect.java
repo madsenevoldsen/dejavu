@@ -1,8 +1,11 @@
 package com.jayway.dejavu.core;
 
 import com.jayway.dejavu.core.annotation.Impure;
+import com.jayway.dejavu.core.chainer.ChainBuilder;
 import com.jayway.dejavu.core.exception.CircuitOpenException;
 import com.jayway.dejavu.core.repository.TraceCallback;
+import com.jayway.dejavu.core.typeinference.DefaultInference;
+import com.jayway.dejavu.core.typeinference.ExceptionInference;
 import com.jayway.dejavu.core.typeinference.TypeInference;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -31,10 +34,16 @@ public class DejaVuAspect {
     private static Map<String, RunningTrace> runningTraces = new HashMap<String, RunningTrace>();
     private static Map<String, CircuitBreaker> circuitBreakers;
     private static List<TypeInference> typeHelpers = new ArrayList<TypeInference>();
+    private static TypeInference typeInference;
 
     public static void initialize( TraceCallback cb ) {
         callback = cb;
         circuitBreakers = new HashMap<String, CircuitBreaker>();
+        ChainBuilder<TypeInference> builder = ChainBuilder.chain(TypeInference.class).add(new ExceptionInference());
+        for (TypeInference typeHelper : typeHelpers) {
+            builder.add( typeHelper );
+        }
+        typeInference = builder.add( new DefaultInference() ).build();
     }
 
     protected static void addTypeHelper( TypeInference typeInference ) {
@@ -126,28 +135,7 @@ public class DejaVuAspect {
                 result = new ThrownThrowable( t );
                 throw t;
             } finally {
-                if ( result instanceof ThrownThrowable ) {
-                    // an exception was thrown so save its type
-                    // TODO save correct exception type
-                    add( trace, result, ThrownThrowable.class );
-                } else {
-                    // infer type of produced value
-                    // if return type equals instance type is it ok?
-                    // consider performance
-                    Class<?> typeClass = null;
-                    if ( proceed.getSignature() instanceof MethodSignature && typeHelpers != null ) {
-                        for (TypeInference typeHelper : typeHelpers) {
-                            typeClass = typeHelper.inferType( result, (MethodSignature) proceed.getSignature());
-                            if ( typeClass != null ) {
-                                break;
-                            }
-                        }
-                        if ( typeClass == null ) {
-                            typeClass = ((MethodSignature) proceed.getSignature()).getReturnType();
-                        }
-                    }
-                    add( trace, result, typeClass );
-                }
+                add( trace, result, typeInference.inferType( result, (MethodSignature) proceed.getSignature() ) );
                 if ( handler != null ) {
                     if ( result instanceof ThrownThrowable ) {
                         handler.exceptionOccurred(((ThrownThrowable) result).getThrowable());

@@ -2,27 +2,35 @@ package com.jayway.dejavu.core.marshaller;
 
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.TraceElement;
+import com.jayway.dejavu.core.chainer.ChainBuilder;
 
 import java.util.*;
 
 public class Marshaller {
 
-    private final MarshallerChain chain;
+    private final MarshallerPlugin pluginChain;
+    private MarshallerPlugin[] plugins;
 
     public Marshaller( MarshallerPlugin... plugins) {
-        this.chain = MarshallerChain.build( plugins );
+        ChainBuilder<MarshallerPlugin> builder = ChainBuilder.chain(MarshallerPlugin.class);
+        builder.add(new SimpleTypeMarshaller());
+        if ( plugins != null ) {
+            this.plugins = plugins;
+            builder.add(plugins);
+        }
+        pluginChain = builder.add( new JacksonMarshallerPlugin() ).build();
     }
 
     public Object unmarshal( Class<?> clazz, String marshaled ) {
-        return chain.unmarshal( clazz, marshaled );
+        return pluginChain.unmarshal( clazz, marshaled );
     }
 
     public String marshalObject( Object value ) {
-        return chain.marshalObject( value );
+        return pluginChain.marshalObject( value );
     }
 
     protected String asTraceBuilderArgument( TraceElement element ) {
-        return chain.asTraceBuilderArgument( element );
+        return pluginChain.asTraceBuilderArgument( element );
     }
 
     public String marshal( final Trace trace ) {
@@ -46,7 +54,12 @@ public class Marshaller {
         for (Object arg : trace.getStartArguments()) {
             addImport( sb, imports, arg );
         }
-        List<Class> classes = chain.getClasses(new ArrayList<Class>());
+        List<Class> classes = new ArrayList<Class>();
+        if ( plugins != null ) {
+            for (MarshallerPlugin plugin : plugins) {
+                classes.add( plugin.getClass() );
+            }
+        }
         addImport(sb, classes.toArray(new Class[classes.size()]));
         String marshallerArgs = join(classes,new Join<Class>() {
             public String element(Class aClass) {

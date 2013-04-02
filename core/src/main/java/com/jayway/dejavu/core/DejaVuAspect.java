@@ -92,15 +92,14 @@ public class DejaVuAspect {
     }
 
     private static Trace trace( ProceedingJoinPoint proceed ) {
-        if ( traceMode ) {
-            MethodSignature signature = (MethodSignature) proceed.getSignature();
-            setIgnore(true);
-            String id = UUID.randomUUID().toString();
-            setIgnore(false);
-            return new Trace(id, signature.getMethod(), proceed.getArgs() );
-        } else {
+        if (!traceMode) {
             return DejaVuTrace.getTrace();
         }
+        MethodSignature signature = (MethodSignature) proceed.getSignature();
+        setIgnore(true);
+        String id = UUID.randomUUID().toString();
+        setIgnore(false);
+        return new Trace(id, signature.getMethod(), proceed.getArgs() );
     }
 
     @Around("execution(@com.jayway.dejavu.core.annotation.Impure * *(..)) && @annotation(impure)")
@@ -150,10 +149,7 @@ public class DejaVuAspect {
             // trace this call
             return true;
         }
-        if ( threadLocalIgnore.get() != null && threadLocalIgnore.get() ) {
-            return true;
-        }
-        return false;
+        return threadLocalIgnore.get() != null && threadLocalIgnore.get();
     }
 
     protected static void setIgnore( boolean ignore ) {
@@ -177,16 +173,15 @@ public class DejaVuAspect {
     }
 
     private static String getChildThreadId() {
-        if ( traceMode ) {
-            // generate id for new thread that will begin this runnable
-            setIgnore(true);
-            String id = UUID.randomUUID().toString();
-            setIgnore(false);
-            return threadId.get() + "." + id;
-        } else {
+        if (!traceMode) {
             // when in deja vu mode threadId is already set
             return DejaVuTrace.nextChildThreadId( threadId.get() );
         }
+        // generate id for new thread that will begin this runnable
+        setIgnore(true);
+        String id = UUID.randomUUID().toString();
+        setIgnore(false);
+        return threadId.get() + "." + id;
     }
 
     protected static void patch(Object[] args) {

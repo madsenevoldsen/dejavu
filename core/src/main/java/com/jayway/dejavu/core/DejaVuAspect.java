@@ -2,16 +2,13 @@ package com.jayway.dejavu.core;
 
 import com.jayway.dejavu.core.annotation.Impure;
 import com.jayway.dejavu.core.chainer.ChainBuilder;
-import com.jayway.dejavu.core.exception.CircuitOpenException;
 import com.jayway.dejavu.core.repository.TraceCallback;
 import com.jayway.dejavu.core.typeinference.DefaultInference;
 import com.jayway.dejavu.core.typeinference.ExceptionInference;
 import com.jayway.dejavu.core.typeinference.TypeInference;
-import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
 
 import java.util.*;
@@ -72,26 +69,25 @@ public class DejaVuAspect {
 
     @Around("execution(@com.jayway.dejavu.core.annotation.Traced * *(..))")
     public Object traced( ProceedingJoinPoint proceed ) throws Throwable {
-        if ( traceId.get() == null ) {
-            Trace trace = trace( proceed );
-
-            traceId.set( trace.getId() );
-            threadId.set( trace.getId() );
-            runningTraces.put(trace.getId(), new RunningTrace(trace));
-
-            threadLocalInImpure.set(false);
-            try {
-                Object result = proceed.proceed();
-                callbackIfFinished(trace, null);
-                return result;
-            } catch ( Throwable t) {
-                runningTraces.get( trace.getId() ).setThrowable( t );
-                callbackIfFinished(trace, t);
-                throw t;
-            }
-        } else {
+        if (traceId.get() != null) {
             // setup already done just proceed
             return proceed.proceed();
+        }
+
+        Trace trace = trace( proceed );
+        traceId.set( trace.getId() );
+        threadId.set( trace.getId() );
+        runningTraces.put(trace.getId(), new RunningTrace(trace));
+
+        threadLocalInImpure.set(false);
+        try {
+            Object result = proceed.proceed();
+            callbackIfFinished(trace, null);
+            return result;
+        } catch ( Throwable t) {
+            runningTraces.get( trace.getId() ).setThrowable( t );
+            callbackIfFinished(trace, t);
+            throw t;
         }
     }
 
@@ -116,37 +112,25 @@ public class DejaVuAspect {
     }
 
     public static Object handle(ProceedingJoinPoint proceed, String integrationPoint) throws Throwable {
-        Trace trace = runningTraces.get( traceId.get() ).getTrace();
-        if ( traceMode ) {
-            CircuitBreaker handler = null;
-            Object result = null;
-            try {
-                threadLocalInImpure.set(true);
-                if ( !integrationPoint.isEmpty() ) {
-                    // a circuit breaker is guarding this call
-                    handler = getCircuitBreaker( integrationPoint );
-                    if ( handler.isOpen() ) {
-                        throw new CircuitOpenException( "Circuit breaker '"+integrationPoint+"' is open");
-                    }
-                }
-                result = proceed.proceed();
-                return result;
-            } catch (Throwable t ) {
-                result = new ThrownThrowable( t );
-                throw t;
-            } finally {
-                add( trace, result, typeInference.inferType( result, (MethodSignature) proceed.getSignature() ) );
-                if ( handler != null ) {
-                    if ( result instanceof ThrownThrowable ) {
-                        handler.exceptionOccurred(((ThrownThrowable) result).getThrowable());
-                    } else {
-                        handler.success();
-                    }
-                }
-                threadLocalInImpure.set(false);
-            }
-        } else {
+        if (!traceMode) {
             return DejaVuTrace.nextValue(threadId.get());
+        }
+
+        CircuitBreakerWrapper circuitBreaker = new CircuitBreakerWrapper( integrationPoint );
+        Object result = null;
+        try {
+            threadLocalInImpure.set(true);
+            circuitBreaker.verify();
+            result = proceed.proceed();
+            return result;
+        } catch ( Throwable t ) {
+            result = new ThrownThrowable( t );
+            throw t;
+        } finally {
+            Trace trace = runningTraces.get( traceId.get() ).getTrace();
+            add( trace, result, typeInference.inferType( result, (MethodSignature) proceed.getSignature() ) );
+            circuitBreaker.result( result );
+            threadLocalInImpure.set(false);
         }
     }
 
@@ -176,7 +160,7 @@ public class DejaVuAspect {
         threadLocalIgnore.set( ignore );
     }
 
-    private static CircuitBreaker getCircuitBreaker( String integrationPoint ) {
+    static CircuitBreaker getCircuitBreaker( String integrationPoint ) {
         if (!circuitBreakers.containsKey(integrationPoint)) {
             circuitBreakers.put( integrationPoint, new CircuitBreaker(integrationPoint, timeout, exceptionThreshold));
         }

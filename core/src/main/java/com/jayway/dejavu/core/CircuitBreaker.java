@@ -12,7 +12,7 @@ import java.util.Date;
  *
  * Example:
  *
- * @Impure( integrationPoint = "mySql" )
+ * \@Impure( integrationPoint = "mySql" )
  * public void connect() {
  *     // setup connection to database
  * }

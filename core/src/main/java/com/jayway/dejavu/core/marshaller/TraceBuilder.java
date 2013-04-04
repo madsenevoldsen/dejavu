@@ -62,7 +62,7 @@ public class TraceBuilder {
     }
 
     public TraceBuilder setMethod( Class<?> target, String name, Class<?>... arguments ) throws NoSuchMethodException {
-        trace.setStartPoint( target.getDeclaredMethod(name, arguments));
+        trace.setStartPoint(target.getDeclaredMethod(name, arguments));
         return this;
     }
 
@@ -72,35 +72,24 @@ public class TraceBuilder {
             return this;
         }
         List<Object> args = new ArrayList<Object>();
-        for ( int i=0; i<arguments.length; i++) {
-            Object argument = arguments[i];
-            if ( argument == null ) {
-                args.add(null);
-            } else if ( argument instanceof Class ) {
-                // peek next element
-                if ( i+1 < arguments.length && arguments[i + 1] instanceof String) {
-                    // this must be a serialized version
-                    String next = (String) arguments[i + 1];
-                    args.add(marshaller.unmarshal((Class<?>) argument, next));
-                    i++;
-                } else {
-                    args.add( marshaller.unmarshal((Class<?>) argument, ""));
-                }
-            } else {
-                args.add( argument );
-            }
+        for (Object argument : arguments) {
+            args.add( unmarshalArgument( argument ));
         }
         trace.setStartArguments(args.toArray(new Object[args.size()]));
         return this;
     }
 
-    private TraceBuilder add( int threadIdx, Class<?> clazz ) {
-        return add( threadIdx, clazz, "");
-    }
-
-    private TraceBuilder add( int threadIdx, Class<?> clazz, String marshaled ) {
-        trace.getValues().add(new TraceElement(threadIds.get(threadIdx), marshaller.unmarshal(clazz, marshaled)));
-        return this;
+    private Object unmarshalArgument( Object argument ) {
+        if (argument instanceof Value) {
+            Value value = (Value) argument;
+            return marshaller.unmarshal(value.getClazz(), value.getSerialValue());
+        } else if (argument instanceof Class ) {
+            // TODO what about a method argument of type Class??? Add test for this
+            return marshaller.unmarshal((Class<?>) argument, "");
+        } else {
+            // fall through means simple type
+            return argument;
+        }
     }
 
     public TraceBuilder add( Object... arguments ) {
@@ -108,50 +97,17 @@ public class TraceBuilder {
     }
 
     /**
-     * helper method for adding arguments. Arguments comes in
-     * pairs of Class, "serialized", where Class denotes the
-     * type of the serialized string. There is only a Class argument
-     * with no corresponding string the empty string will be added as serialized
-     * version.
-     * <p></p>
-     * Nulls will be treated like calling <code>.addNull()</code>
-     * <p></p>
-     * Simple argument types, i.e. Integer, Long, Double, Float,
-     * Boolean is added as e.g. Boolean.class, true
+     * helper method for adding arguments. Nulls will be treated like calling <code>.addNull()</code>
      *
      * @return this TraceBuilder instance to make a fluent API
      */
     public TraceBuilder addT( int threadIdx, Object... arguments ) {
         if ( arguments == null ) {
-            addNull( threadIdx );
-            return this;
+            return addNull( threadIdx );
         }
-        for ( int i=0; i<arguments.length; i++) {
-            Object argument = arguments[i];
-            if ( argument == null ) {
-                addNull();
-            } else if ( argument instanceof Class ) {
-                // peek next element
-                if ( i+1 < arguments.length && arguments[i + 1] instanceof String) {
-                    // this must be a serialized version
-                    String next = (String) arguments[i + 1];
-                    add( threadIdx, (Class)argument, next);
-                    i++;
-                } else {
-                    // throw exception
-                    add( threadIdx, (Class) argument );
-                }
-            } else {
-                // argument that can be handled without type
-                trace.getValues().add( new TraceElement(threadIds.get( threadIdx), argument ));
-                //trace.getValues().add( new TraceElement(threadIds.get( threadIdx), argument ));
-            }
+        for (Object argument : arguments) {
+            trace.getValues().add( new TraceElement(threadIds.get(threadIdx), unmarshalArgument(argument)));
         }
-        return this;
-    }
-
-    public TraceBuilder addNull() {
-        trace.getValues().add(new TraceElement(threadIds.get( 0 ), null));
         return this;
     }
 
@@ -163,5 +119,4 @@ public class TraceBuilder {
     public Object run() throws Throwable {
         return DejaVuTrace.run( trace );
     }
-
 }

@@ -8,6 +8,7 @@ public class Trace {
     private String id;
     private List<TraceElement> values;
     private Method startPoint;
+    // TODO Modify to contain list instead of array.
     private Object[] startArguments;
     private List<ThreadThrowable> threadThrowables;
 

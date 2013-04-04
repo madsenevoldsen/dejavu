@@ -46,10 +46,15 @@ public class JacksonMarshallerPlugin implements MarshallerPlugin {
 
     @Override
     public String asTraceBuilderArgument( TraceElement element ) {
+        String className;
+        String value;
         if ( element.getType() == null ) {
-            return element.getValue().getClass().getSimpleName() + ".class, " + marshalObject( element.getValue() );
+            className = element.getValue().getClass().getSimpleName() + ".class";
+            value = marshalObject( element.getValue() );
         } else {
-            return element.getType().getSimpleName() + ".class, " + marshalObject( element.getValue() );
+            className = element.getType().getSimpleName() + ".class";
+            value = marshalObject( element.getValue() );
         }
+        return String.format( "new Value(%s, %s)",className,value);
     }
 }

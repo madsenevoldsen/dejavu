@@ -49,7 +49,7 @@ public class Neo4jAutoImpureTest {
         builder.addMethodArguments("First node");
 
         builder.add(GraphDatabaseService.class, Transaction.class, Node.class, null, 415L, null, null).
-                add(GraphDatabaseService.class, Node.class).add("First node");
+                add(GraphDatabaseService.class, Node.class, "First node");
 
         builder.run();
     }
@@ -95,8 +95,8 @@ public class Neo4jAutoImpureTest {
                 add(Node.class, null, null, Node.class, null, null, Node.class, null, null, Node.class).
                 add(null, null, Node.class, null, null, Node.class, null, null, Node.class, null, null).
                 add(Node.class, null, null, null, null, GraphDatabaseService.class, IndexManager.class).
-                add(Index.class, IndexHits.class, 0, Node.class).add("indexed dd", Node.class).
-                add("indexed gg", Node.class).add("indexed rr", false);
+                add(Index.class, IndexHits.class, 0, Node.class, "indexed dd", Node.class).
+                add("indexed gg", Node.class, "indexed rr", false);
 
         builder.run();
     }

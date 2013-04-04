@@ -70,9 +70,9 @@ public class ProxiedTest {
         // now read the file in test mode where it only produces one line
         TraceBuilder builder = TraceBuilder.build()
                 .setMethod(FileReading.class)
-                .addMethodArguments( String.class, "not a filename");
+                .addMethodArguments( "not a filename");
 
-        builder.add(String.class, "ONLY LINE", null);
+        builder.add("ONLY LINE", null);
 
         List<String> lines = (List<String>) builder.run();
 
@@ -85,7 +85,7 @@ public class ProxiedTest {
         // now read the file in test mode where it only produces one line
         TraceBuilder builder = TraceBuilder.build(new SimpleExceptionMarshaller())
                 .setMethod(FileReading.class)
-                .addMethodArguments( String.class, "nonexisting.xyz");
+                .addMethodArguments( "nonexisting.xyz");
 
         // reading the first line of the Buffered reader
         // will produce a ConcurrentModificationException

@@ -40,4 +40,18 @@ public class ChainerTest {
 
         }
     }
+
+    @Test
+    public void returningNull() {
+        Handle handle = ChainBuilder.chain(Handle.class).add(new ReturnNullHandler()).build();
+
+        Assert.assertEquals( "integer type", handle.name( Integer.class ) );
+        Assert.assertNull( handle.name( String.class ));
+        try {
+            handle.name( Boolean.class );
+            Assert.fail();
+        } catch (CouldNotHandleException e  ) {
+
+        }
+    }
 }

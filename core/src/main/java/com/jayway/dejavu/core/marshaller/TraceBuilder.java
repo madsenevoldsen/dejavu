@@ -8,7 +8,6 @@ import com.jayway.dejavu.core.annotation.Traced;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class TraceBuilder {
@@ -87,8 +86,7 @@ public class TraceBuilder {
                 } else {
                     args.add( marshaller.unmarshal((Class<?>) argument, ""));
                 }
-            } else if ( argument instanceof Boolean || argument instanceof Integer || argument instanceof Double
-                    || argument instanceof Long || argument instanceof Float ) {
+            } else {
                 args.add( argument );
             }
         }
@@ -140,11 +138,13 @@ public class TraceBuilder {
                     add( threadIdx, (Class)argument, next);
                     i++;
                 } else {
+                    // throw exception
                     add( threadIdx, (Class) argument );
                 }
-            } else if ( argument instanceof Boolean || argument instanceof Integer || argument instanceof Double
-                    || argument instanceof Long || argument instanceof Float ) {
+            } else {
+                // argument that can be handled without type
                 trace.getValues().add( new TraceElement(threadIds.get( threadIdx), argument ));
+                //trace.getValues().add( new TraceElement(threadIds.get( threadIdx), argument ));
             }
         }
         return this;

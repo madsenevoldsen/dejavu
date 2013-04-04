@@ -1,7 +1,8 @@
 package com.jayway.dejavu.core;
 
 /**
- * Class used how throwable that was thrown in a trace
+ * Class used to indicate that a throwable was thrown in a trace.
+ * This is to be able to distinguish from returned throwables
  */
 public class ThrownThrowable {
     private Throwable throwable;

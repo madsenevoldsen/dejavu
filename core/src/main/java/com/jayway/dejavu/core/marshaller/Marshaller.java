@@ -22,15 +22,7 @@ public class Marshaller {
     }
 
     public Object unmarshal( Class<?> clazz, String marshaled ) {
-        return pluginChain.unmarshal( clazz, marshaled );
-    }
-
-    public String marshalObject( Object value ) {
-        return pluginChain.marshalObject( value );
-    }
-
-    protected String asTraceBuilderArgument( TraceElement element ) {
-        return pluginChain.asTraceBuilderArgument( element );
+        return pluginChain.unmarshal(clazz, marshaled);
     }
 
     public String marshal( final Trace trace ) {
@@ -97,7 +89,7 @@ public class Marshaller {
         if (trace.getStartPoint().getParameterTypes().length > 0 ) {
             String params = join(new Join<Object>() {
                 public String element(Object element ) {
-                return asTraceBuilderArgument( new TraceElement("0", element) );
+                return pluginChain.asTraceBuilderArgument(new TraceElement("0", element));
                 }
             },trace.getStartArguments());
             add(sb, "builder.addMethodArguments("+params+");", 2);
@@ -170,7 +162,16 @@ public class Marshaller {
                 valueRows.get( valueRows.size()-1 ).append( ", ");
             }
             current = valueRows.get( valueRows.size()-1 );
-            current.append(asTraceBuilderArgument(element));
+            String str = pluginChain.asTraceBuilderArgument(element);
+            current.append(str);
+            if ( str.trim().endsWith( ".class" ) ) {
+                // when we add types with only class we must have
+                // a newline in case the next element is a string
+                // because: 'AClass.class, "a string"' is interpreted
+                // as "a string" being the serialized version of AClass
+                // this should be cleaned up somehow...
+                preferNewLine = true;
+            }
             if ( current.length() > 80 ) {
                 preferNewLine = true;
             }

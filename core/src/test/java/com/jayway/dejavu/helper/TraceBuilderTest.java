@@ -26,7 +26,7 @@ public class TraceBuilderTest {
     public void builder() throws Throwable {
         TraceBuilder builder = TraceBuilder.build().setMethod(ExampleTrace.class);
 
-        builder.add( 349013193767909L, String.class, "d09c2893-2835-4cbe-8c8e-4c790c268ed0", 349013194166199L);
+        builder.add( 349013193767909L, "d09c2893-2835-4cbe-8c8e-4c790c268ed0", 349013194166199L);
 
         try {
             builder.run();
@@ -74,7 +74,7 @@ public class TraceBuilderTest {
     public void simple_types_test() throws Throwable {
         TraceBuilder builder = TraceBuilder.build().setMethod(AllSimpleTypes.class);
 
-        builder.add( String.class, "string", 1.1F, true, 2.2, 1L, 1 );
+        builder.add( "string", 1.1F, true, 2.2, 1L, 1 );
 
         String result = (String) builder.run();
 

@@ -41,13 +41,21 @@ public class ChainBuilder<T> implements MethodInterceptor {
 
     @Override
     public Object intercept(Object o, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
-        if ( !method.getReturnType().equals( Void.class ) ) {
-            for (T instance : instances) {
-                Object result = method.invoke(instance, args);
-                if ( result != null ) return result;
+        finished.set( false );
+        for (T instance : instances) {
+            Object result = method.invoke(instance, args);
+            if ( result != null || finished.get() ) {
+                return result;
             }
         }
+
         // TODO better error message
         throw new CouldNotHandleException();
     }
+
+    public static void finished() {
+        finished.set( true );
+    }
+
+    private static ThreadLocal<Boolean> finished = new ThreadLocal<Boolean>();
 }

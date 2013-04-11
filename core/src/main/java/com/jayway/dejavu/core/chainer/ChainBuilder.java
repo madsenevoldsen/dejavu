@@ -50,7 +50,21 @@ public class ChainBuilder<T> implements MethodInterceptor {
         }
 
         // TODO better error message
-        throw new CouldNotHandleException();
+        StringBuilder sb = new StringBuilder("Argument(s): ");
+        boolean first = true;
+        for (Object arg : args) {
+            if ( first ) {
+                first = false;
+            } else {
+                sb.append(", ");
+            }
+            if ( arg != null ) {
+                sb.append("[").append(arg.getClass()).append(" : ").append(arg.toString()).append("]");
+            } else {
+                sb.append("null");
+            }
+        }
+        throw new CouldNotHandleException(sb.toString());
     }
 
     public static void finished() {

@@ -1,18 +1,27 @@
 package com.jayway.dejavu.core;
 
+import com.jayway.dejavu.core.impl.ZipFileEnumeration;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.lang.reflect.Modifier;
+import java.util.Enumeration;
 import java.util.Random;
+import java.util.zip.ZipFile;
 
 import static org.easymock.EasyMock.createMock;
 
 @Aspect
 public class AutoImpure {
+
+    static {
+        // install this as a type helper
+        DejaVuAspect.addTypeHelper( new AutoImpureTypeInference() );
+    }
 
     /*@Around("call(* java.util.concurrent.ExecutorService.invoke*(..))")
     public Object threadPoolInvoke( ProceedingJoinPoint join ) throws Throwable {
@@ -60,6 +69,11 @@ public class AutoImpure {
         return impureMethod(proceed);
     }
 
+    @Around("call(java.io.InputStreamReader.new(..))")
+    public InputStreamReader inputStreamReader(ProceedingJoinPoint proceed ) throws Throwable {
+        return impureConstruction(proceed, InputStreamReader.class);
+    }
+
     @Around("call(* java.util.UUID.*(..))")
     public Object uuid( ProceedingJoinPoint proceed ) throws Throwable {
         if (Modifier.isStatic( proceed.getSignature().getModifiers() )) {
@@ -67,6 +81,26 @@ public class AutoImpure {
         }
         return impureMethod(proceed);
     }
+
+    @Around("call(java.util.zip.ZipFile.new(..))")
+    public ZipFile zipFile( ProceedingJoinPoint proceed ) throws Throwable {
+        return impureConstruction( proceed, ZipFile.class );
+    }
+
+    @Around("call(* java.util.zip.ZipFile.*(..))")
+    public Object zipFileMethods( ProceedingJoinPoint proceed ) throws Throwable {
+        if ( proceed.getSignature().getName().equals("entries") ) {
+            Enumeration enumeration = (Enumeration) proceed.proceed();
+            return new ZipFileEnumeration( enumeration );
+        }
+        return impureMethod(proceed);
+    }
+
+    @Around("call(* java.util.zip.ZipEntry.*(..))")
+    public Object zipEntryMethods( ProceedingJoinPoint proceed ) throws Throwable {
+        return impureMethod(proceed);
+    }
+
 
     private Object impureMethod(ProceedingJoinPoint proceed) throws Throwable {
         // if already inside an @impure just proceed

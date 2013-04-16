@@ -42,10 +42,10 @@ public class ProxiedTest {
 
         String test = new Marshaller().marshal(trace);
         System.out.println( test );
-        int result2 = DejaVuTrace.run(trace);
+        Integer result2 = DejaVuTrace.run(trace);
 
         System.out.println( result + " and " +result2 );
-        Assert.assertEquals( result, result2);
+        Assert.assertEquals( result, result2.intValue());
     }
 
     /*@Test

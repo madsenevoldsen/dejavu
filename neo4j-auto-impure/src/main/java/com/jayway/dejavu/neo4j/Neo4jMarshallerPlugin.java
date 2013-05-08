@@ -1,5 +1,6 @@
 package com.jayway.dejavu.neo4j;
 
+import com.jayway.dejavu.core.Neo4jIterator;
 import com.jayway.dejavu.core.TraceElement;
 import com.jayway.dejavu.core.marshaller.MarshallerPlugin;
 import org.neo4j.graphdb.GraphDatabaseService;

@@ -1,5 +1,6 @@
 package com.jayway.dejavu.core.marshaller;
 
+import com.jayway.dejavu.core.ThrownThrowable;
 import com.jayway.dejavu.core.TraceElement;
 import com.jayway.dejavu.core.chainer.ChainBuilder;
 
@@ -66,6 +67,7 @@ class SimpleTypeMarshaller implements MarshallerPlugin  {
         if ( value instanceof Double || value instanceof Integer || value instanceof Boolean || value instanceof String ) {
             return value.toString();
         }
+
         return null;
     }
 

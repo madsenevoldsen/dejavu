@@ -22,6 +22,8 @@ public class Neo4jTypeInference implements TypeInference {
                 if ( instance instanceof Relationship ) {
                     return Relationship.class;
                 }
+                // other types are defined by runtime type
+                return instance.getClass();
             }
         }
         return null;

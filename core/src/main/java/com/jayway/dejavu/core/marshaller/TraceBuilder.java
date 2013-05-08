@@ -84,7 +84,6 @@ public class TraceBuilder {
             Value value = (Value) argument;
             return marshaller.unmarshal(value.getClazz(), value.getSerialValue());
         } else if (argument instanceof Class ) {
-            // TODO what about a method argument of type Class??? Add test for this
             return marshaller.unmarshal((Class<?>) argument, "");
         } else {
             // fall through means simple type

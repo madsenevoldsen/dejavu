@@ -4,7 +4,7 @@ import com.jayway.dejavu.core.annotation.Impure;
 
 import java.util.Iterator;
 
-public class Neo4jIterator implements Iterator {
+public class Neo4jIterator implements Iterator, Iterable {
 
     private Iterator iterator;
 
@@ -28,5 +28,10 @@ public class Neo4jIterator implements Iterator {
     @Impure( integrationPoint = "neo4j" )
     public void remove() {
         iterator.remove();
+    }
+
+    @Override
+    public Iterator iterator() {
+        return this;
     }
 }

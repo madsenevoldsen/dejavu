@@ -2,6 +2,7 @@ package com.jayway.dejavu.core.marshaller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.dejavu.core.ThrownThrowable;
 import com.jayway.dejavu.core.TraceElement;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -23,6 +24,9 @@ public class JacksonMarshallerPlugin implements MarshallerPlugin {
         // try all plugins first or try
         if ( jsonValue == null ) return null;
 
+        if ( clazz instanceof Class<?> && !ThrownThrowable.class.isAssignableFrom( clazz )) {
+            return clazz;
+        }
 
         ObjectMapper mapper = new ObjectMapper();
         try {
@@ -36,6 +40,10 @@ public class JacksonMarshallerPlugin implements MarshallerPlugin {
     @Override
     public String marshalObject( Object value ) {
         ObjectMapper mapper = new ObjectMapper();
+        if ( value instanceof Class ) {
+            return ((Class) value).getSimpleName() + ".class";
+        }
+
         try {
             return "\""+ StringEscapeUtils.escapeJava( mapper.writeValueAsString(value) ) + "\"";
         } catch (JsonProcessingException e) {
@@ -48,6 +56,9 @@ public class JacksonMarshallerPlugin implements MarshallerPlugin {
     public String asTraceBuilderArgument( TraceElement element ) {
         String className;
         String value;
+        if ( element.getValue() instanceof Class ) {
+            return ((Class) element.getValue()).getSimpleName() + ".class";
+        }
         if ( element.getType() == null ) {
             className = element.getValue().getClass().getSimpleName() + ".class";
             value = marshalObject( element.getValue() );

@@ -1,8 +1,13 @@
 package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.DejaVuAspect;
+import com.jayway.dejavu.core.DejaVuTrace;
+import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.marshaller.Marshaller;
+import com.jayway.dejavu.core.marshaller.TraceBuilder;
+import com.jayway.dejavu.impl.ClassArguments;
 import com.jayway.dejavu.impl.ExampleFailingIntegrationPoint;
+import com.jayway.dejavu.impl.RecurseAndExcept;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
 import junit.framework.Assert;
 import org.abstractmeta.toolbox.compilation.compiler.JavaSourceCompiler;
@@ -30,12 +35,7 @@ public class ExampleFromSerializedTest {
             String test = new Marshaller().marshal( callback.getTrace() );
             System.out.println( test );
 
-            JavaSourceCompiler compiler = new JavaSourceCompilerImpl();
-            JavaSourceCompiler.CompilationUnit compilationUnit = compiler.createCompilationUnit();
-            compilationUnit.addJavaSource("com.jayway.dejavu.impl.ExampleFailingIntegrationPointTest", test );
-            ClassLoader classLoader = compiler.compile(compilationUnit);
-            Class testClass = classLoader.loadClass("com.jayway.dejavu.impl.ExampleFailingIntegrationPointTest");
-
+            Class testClass = compileAndClassLoad("com.jayway.dejavu.impl.ExampleFailingIntegrationPointTest", test);
             Object o = testClass.newInstance();
 
             try {
@@ -49,4 +49,47 @@ public class ExampleFromSerializedTest {
             }
         }
     }
+
+    private Class compileAndClassLoad( String className, String sourceCode ) throws ClassNotFoundException {
+        JavaSourceCompiler compiler = new JavaSourceCompilerImpl();
+        JavaSourceCompiler.CompilationUnit compilationUnit = compiler.createCompilationUnit();
+        compilationUnit.addJavaSource(className, sourceCode );
+        ClassLoader classLoader = compiler.compile(compilationUnit);
+        return classLoader.loadClass(className);
+    }
+
+
+    @Test
+    public void properly_exception_trace_in_rerun() throws Throwable {
+        try {
+            new RecurseAndExcept().recurse( 0 );
+        } catch (RuntimeException e ) {
+            String test = new Marshaller().marshal( callback.getTrace() );
+            System.out.println(test);
+
+            Class testClass = compileAndClassLoad("com.jayway.dejavu.impl.RecurseAndExceptTest", test);
+            Object o = testClass.newInstance();
+
+            //Method method = testClass.getDeclaredMethod("recurseandexcepttest");
+            //method.invoke( o );
+        }
+    }
+
+    @Test
+    public void class_arguments() throws Throwable {
+        ClassArguments obj = new ClassArguments();
+        obj.withClass( ClassArguments.class );
+
+        Trace trace = callback.getTrace();
+        String test = new Marshaller().marshal( trace );
+        System.out.println( test );
+
+        DejaVuTrace.run( trace );
+        Class testClass = compileAndClassLoad("com.jayway.dejavu.impl.ClassArgumentsTest", test);
+        Object o = testClass.newInstance();
+
+        Method method = testClass.getDeclaredMethod("classargumentstest");
+        method.invoke( o );
+    }
+
 }

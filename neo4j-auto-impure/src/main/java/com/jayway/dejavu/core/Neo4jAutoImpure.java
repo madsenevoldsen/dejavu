@@ -5,11 +5,9 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.neo4j.helpers.collection.PagingIterator;
 
-import java.io.BufferedReader;
 import java.util.Iterator;
 
 import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.resetToNice;
 
 @Aspect
 public class Neo4jAutoImpure {
@@ -26,6 +24,10 @@ public class Neo4jAutoImpure {
 
     @Around("call(* org.neo4j.graphdb.Node.*(..))")
     public Object node(ProceedingJoinPoint proceed ) throws Throwable {
+        if ( proceed.getSignature().getName().equals("getPropertyKeys") ) {
+            Iterator iterator = ((Iterable) proceed.proceed()).iterator();
+            return new Neo4jIterator( iterator );
+        }
         return impureMethod(proceed);
     }
 

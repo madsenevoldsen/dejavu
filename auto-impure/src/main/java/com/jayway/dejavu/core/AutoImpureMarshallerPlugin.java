@@ -12,41 +12,36 @@ import static org.easymock.EasyMock.createMock;
 
 public class AutoImpureMarshallerPlugin implements MarshallerPlugin  {
 
-    private static final Set<Class<?>> autoImpureClasses;
+    private static final Set<String> autoImpureClasses;
 
     static {
-        Set<Class<?>> classes = new HashSet<Class<?>>();
+        Set<String> classes = new HashSet<String>();
         // so far these are the supported classes
-        classes.add( ZipEntry.class );
-        classes.add( InputStream.class );
+        classes.add( ZipEntry.class.getName() );
+        classes.add( InputStream.class.getName() );
 
         autoImpureClasses = Collections.unmodifiableSet( classes );
     }
 
     @Override
     public Object unmarshal(Class<?> clazz, String marshalValue ) {
-        if ( autoImpureClasses.contains( clazz )) {
+        if ( clazz == Class.class && autoImpureClasses.contains( marshalValue )) {
             // create mock instance
-            return createMock( clazz );
+            try {
+                return createMock( Class.forName(marshalValue) );
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException("Could not create class: "+marshalValue);
+            }
         }
         return null;
     }
 
     @Override
     public String marshalObject(Object value) {
-        if ( autoImpureClasses.contains( value.getClass()) ) {
+        if ( autoImpureClasses.contains( value.getClass().getName()) ) {
             // serialize to default value
-            return "";
+            return value.getClass().getSimpleName() + ".class";
         }
         return null;
-    }
-
-    @Override
-    public String asTraceBuilderArgument(TraceElement element ) {
-        if ( element.getType() == null ) {
-            return element.getValue().getClass().getSimpleName() + ".class";
-        } else {
-            return element.getType().getSimpleName() + ".class";
-        }
     }
 }

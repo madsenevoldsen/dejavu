@@ -89,7 +89,7 @@ public class Marshaller {
         if (trace.getStartPoint().getParameterTypes().length > 0 ) {
             String params = join(new Join<Object>() {
                 public String element(Object element ) {
-                return pluginChain.asTraceBuilderArgument(new TraceElement("0", element));
+                return pluginChain.marshalObject(element);
                 }
             },trace.getStartArguments());
             add(sb, "builder.addMethodArguments("+params+");", 2);
@@ -162,7 +162,7 @@ public class Marshaller {
                 valueRows.get( valueRows.size()-1 ).append( ", ");
             }
             current = valueRows.get( valueRows.size()-1 );
-            String str = pluginChain.asTraceBuilderArgument(element);
+            String str = pluginChain.marshalObject(element.getValue());
             current.append(str);
             if ( current.length() > 80 ) {
                 preferNewLine = true;

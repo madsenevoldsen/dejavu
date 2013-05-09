@@ -13,12 +13,15 @@ public class SimpleExceptionMarshaller implements MarshallerPlugin  {
 
     @Override
     public Object unmarshal(Class<?> clazz, String marshalValue) {
-        if ( Exception.class.isAssignableFrom( clazz ) && marshalValue.isEmpty() ) {
-            // try instantiating it
+        if ( clazz == Class.class ) {
             try {
-                ThrownThrowable throwable = new ThrownThrowable();
-                throwable.setThrowable((Throwable) clazz.newInstance());
-                return throwable;
+                Class<?> aClass = Class.forName(marshalValue);
+                if (Exception.class.isAssignableFrom( aClass )) {
+                    // try instantiating it
+                    ThrownThrowable throwable = new ThrownThrowable();
+                    throwable.setThrowable((Throwable) aClass.newInstance());
+                    return throwable;
+                }
             } catch (Exception e) {
                 return null;
             }
@@ -32,10 +35,5 @@ public class SimpleExceptionMarshaller implements MarshallerPlugin  {
             return value.getClass().getSimpleName() + ".class";
         }
         return null;
-    }
-
-    @Override
-    public String asTraceBuilderArgument(TraceElement element ) {
-        return marshalObject(element.getValue());
     }
 }

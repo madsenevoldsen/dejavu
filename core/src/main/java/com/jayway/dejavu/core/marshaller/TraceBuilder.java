@@ -84,7 +84,8 @@ public class TraceBuilder {
             Value value = (Value) argument;
             return marshaller.unmarshal(value.getClazz(), value.getSerialValue());
         } else if (argument instanceof Class ) {
-            return marshaller.unmarshal((Class<?>) argument, "");
+            return marshaller.unmarshal(Class.class, ((Class) argument).getName());
+            //return marshaller.unmarshal((Class<?>) argument, "");
         } else {
             // fall through means simple type
             return argument;

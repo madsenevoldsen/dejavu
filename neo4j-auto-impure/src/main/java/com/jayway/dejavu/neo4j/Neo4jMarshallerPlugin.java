@@ -1,7 +1,5 @@
 package com.jayway.dejavu.neo4j;
 
-import com.jayway.dejavu.core.Neo4jIterator;
-import com.jayway.dejavu.core.TraceElement;
 import com.jayway.dejavu.core.marshaller.MarshallerPlugin;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -19,46 +17,42 @@ import static org.easymock.EasyMock.createMock;
 
 public class Neo4jMarshallerPlugin implements MarshallerPlugin  {
 
-    private static final Set<Class<?>> neo4jClasses;
+    private static final Set<String> neo4jClasses;
 
     static {
-        Set<Class<?>> classes = new HashSet<Class<?>>();
+        Set<String> classes = new HashSet<String>();
         // so far these are the supported classes
-        classes.add( GraphDatabaseService.class );
-        classes.add( Transaction.class );
-        classes.add( Node.class);
-        classes.add( IndexManager.class);
-        classes.add( Index.class);
-        classes.add( IndexHits.class);
-        classes.add( PagingIterator.class);
+        classes.add( GraphDatabaseService.class.getName() );
+        classes.add( Transaction.class.getName() );
+        classes.add( Node.class.getName() );
+        classes.add( IndexManager.class.getName() );
+        classes.add( Index.class.getName() );
+        classes.add( IndexHits.class.getName());
+        classes.add( PagingIterator.class.getName());
 
         neo4jClasses = Collections.unmodifiableSet( classes );
     }
 
     @Override
     public Object unmarshal(Class<?> clazz, String marshalValue ) {
-        if ( neo4jClasses.contains( clazz )) {
+        if ( clazz == Class.class && neo4jClasses.contains( marshalValue )) {
             // create mock instance
-            return createMock( clazz );
+            try {
+                return createMock( Class.forName(marshalValue) );
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException("Could not find class: "+marshalValue);
+            }
         }
         return null;
     }
 
     @Override
     public String marshalObject(Object value) {
-        if ( neo4jClasses.contains( value.getClass()) ) {
+        if ( neo4jClasses.contains( value.getClass().getName()) ) {
             // all neo4j classes serializes to the default value
-            return "";
+            return value.getClass().getSimpleName() + ".class";
         }
         return null;
     }
 
-    @Override
-    public String asTraceBuilderArgument(TraceElement element ) {
-        if ( element.getType() == null ) {
-            return element.getValue().getClass().getSimpleName() + ".class";
-        } else {
-            return element.getType().getSimpleName() + ".class";
-        }
-    }
 }

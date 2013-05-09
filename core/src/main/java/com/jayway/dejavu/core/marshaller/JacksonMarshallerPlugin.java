@@ -2,8 +2,6 @@ package com.jayway.dejavu.core.marshaller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.dejavu.core.ThrownThrowable;
-import com.jayway.dejavu.core.TraceElement;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +22,16 @@ public class JacksonMarshallerPlugin implements MarshallerPlugin {
         // try all plugins first or try
         if ( jsonValue == null ) return null;
 
-        if ( clazz instanceof Class<?> && !ThrownThrowable.class.isAssignableFrom( clazz )) {
-            return clazz;
+        if ( clazz == Class.class ) {
+            try {
+                return Class.forName(jsonValue);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException("Could not find class: "+e.getMessage());
+            }
         }
+        /*if ( clazz instanceof Class<?> && !ThrownThrowable.class.isAssignableFrom( clazz )) {
+            return clazz;
+        }*/
 
         ObjectMapper mapper = new ObjectMapper();
         try {
@@ -44,28 +49,14 @@ public class JacksonMarshallerPlugin implements MarshallerPlugin {
             return ((Class) value).getSimpleName() + ".class";
         }
 
+        String className = value.getClass().getSimpleName() + ".class";
+        String serial;
         try {
-            return "\""+ StringEscapeUtils.escapeJava( mapper.writeValueAsString(value) ) + "\"";
+            serial =  "\""+ StringEscapeUtils.escapeJava( mapper.writeValueAsString(value) ) + "\"";
         } catch (JsonProcessingException e) {
             log.error("could not marshal", e);
             return null;
         }
-    }
-
-    @Override
-    public String asTraceBuilderArgument( TraceElement element ) {
-        String className;
-        String value;
-        if ( element.getValue() instanceof Class ) {
-            return ((Class) element.getValue()).getSimpleName() + ".class";
-        }
-        if ( element.getType() == null ) {
-            className = element.getValue().getClass().getSimpleName() + ".class";
-            value = marshalObject( element.getValue() );
-        } else {
-            className = element.getType().getSimpleName() + ".class";
-            value = marshalObject( element.getValue() );
-        }
-        return String.format( "new Value(%s, %s)",className,value);
+        return String.format( "new Value(%s, %s)",className,serial);
     }
 }

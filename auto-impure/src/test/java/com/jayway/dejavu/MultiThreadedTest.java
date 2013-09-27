@@ -1,7 +1,7 @@
 package com.jayway.dejavu;
 
-import com.jayway.dejavu.core.DejaVuAspect;
-import com.jayway.dejavu.core.DejaVuTrace;
+import com.jayway.dejavu.core.DejaVuPolicy;
+import com.jayway.dejavu.core.RunningTrace;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.TraceElement;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
@@ -22,8 +22,8 @@ public class MultiThreadedTest {
     @Before
     public void setup() {
         callback = new TraceCallbackImpl();
-        DejaVuAspect.initialize(callback);
-        DejaVuTrace.setBeforeRunCallback(null);
+        DejaVuPolicy.initialize(callback);
+        DejaVuPolicy.setBeforeRunCallback(null);
     }
 
     @Test
@@ -37,12 +37,12 @@ public class MultiThreadedTest {
         Trace trace = callback.getTrace();
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        DejaVuTrace.setNextValueCallback(new DejaVuTrace.NextValueCallback() {
+        RunningTrace.setNextValueCallback(new RunningTrace.NextValueCallback() {
             public void nextValue(Object value) {
                 values.add(new TraceElement(Thread.currentThread().getName(), value));
             }
         });
-        DejaVuTrace.run(trace);
+        DejaVuPolicy.replay(trace);
 
         Map<String, String> threadNameMap = new HashMap<String, String>();
         for (int i=0; i<trace.getValues().size(); i++ ) {

@@ -5,25 +5,25 @@ import java.util.concurrent.Callable;
 class AttachedCallable implements Callable {
 
     private final Callable callable;
-    private final String traceId;
+    private final RunningTrace trace;
     private final String threadId;
 
-    public AttachedCallable(Callable callable, String traceId, String threadId) {
+    public AttachedCallable(Callable callable, RunningTrace trace, String threadId) {
         this.callable = callable;
-        this.traceId = traceId;
+        this.trace = trace;
         this.threadId = threadId;
     }
 
     @Override
     public Object call() throws Exception {
-        DejaVuAspect.threadStarted( threadId, traceId );
+        trace.threadStarted( threadId );
         try {
             return callable.call();
         } catch( Exception exception ) {
-            DejaVuAspect.threadThrowable( exception );
+            trace.threadThrowable( exception );
             throw exception;
         } finally {
-            DejaVuAspect.threadCompleted();
+            trace.threadCompleted();
         }
     }
 }

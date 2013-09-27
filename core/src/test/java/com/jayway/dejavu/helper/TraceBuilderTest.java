@@ -1,10 +1,9 @@
 package com.jayway.dejavu.helper;
 
-import com.jayway.dejavu.core.DejaVuAspect;
-import com.jayway.dejavu.core.DejaVuTrace;
+import com.jayway.dejavu.core.DejaVuPolicy;
 import com.jayway.dejavu.core.Trace;
-import com.jayway.dejavu.core.marshaller.TraceBuilder;
 import com.jayway.dejavu.core.marshaller.Marshaller;
+import com.jayway.dejavu.core.marshaller.TraceBuilder;
 import com.jayway.dejavu.impl.ExampleTrace;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
 import junit.framework.Assert;
@@ -19,7 +18,7 @@ public class TraceBuilderTest {
 
     @Before
     public void setup() {
-        DejaVuTrace.setBeforeRunCallback(null);
+        DejaVuPolicy.setBeforeRunCallback(null);
     }
 
     @Test
@@ -40,7 +39,7 @@ public class TraceBuilderTest {
     @Test
     public void verify_generated_test() throws Throwable {
         TraceCallbackImpl callback = new TraceCallbackImpl();
-        DejaVuAspect.initialize( callback );
+        DejaVuPolicy.initialize( callback );
 
         final Integer origResult = new WithSimpleTypes().simple();
 
@@ -56,7 +55,7 @@ public class TraceBuilderTest {
         Object o = testClass.newInstance();
         Method method = testClass.getDeclaredMethod("withsimpletypestest");
 
-        DejaVuTrace.setBeforeRunCallback( new DejaVuTrace.BeforeRunCallback() {
+        DejaVuPolicy.setBeforeRunCallback( new DejaVuPolicy.BeforeRunCallback() {
             public void beforeRun(Trace trace) {
                 int loop = (Integer) trace.getValues().get(0).getValue();
                 Assert.assertEquals( loop+1, trace.getValues().size() );

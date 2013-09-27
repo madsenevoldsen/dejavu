@@ -8,9 +8,9 @@ import java.util.concurrent.Executors;
 
 public class WithThreads {
 
-    private static ExecutorService executorService;
+    private ExecutorService executorService;
 
-    public static void initialize() {
+    public void initialize() {
         executorService = Executors.newCachedThreadPool();
     }
 

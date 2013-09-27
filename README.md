@@ -8,6 +8,8 @@ It works by annotating the code you want traced and uses aspectj for weaving in 
 Traces consists of runnable code (a unit test) and such tests can also manually be constructed which means Deja vu can be seen as a test framework
 as well.
 
+Watch a presentation (JavaZone 2013): http://jz13.java.no/presentation.html?id=20bc29da
+
 
 ## Run/Re-run
 The idea is that once a traced method has been run it is possible, by using the framework, to re-run it with the exact same execution path as the

@@ -20,7 +20,7 @@ public class AutoImpure {
 
     static {
         // install this as a type helper
-        DejaVuAspect.addTypeHelper( new AutoImpureTypeInference() );
+        DejaVuPolicy.addTypeHelper(new AutoImpureTypeInference());
     }
 
     /*@Around("call(* java.util.concurrent.ExecutorService.invoke*(..))")
@@ -35,7 +35,7 @@ public class AutoImpure {
     @Around("call(* java.util.concurrent.ExecutorService.submit(..))")
     public Object threadPoolSubmit( ProceedingJoinPoint join ) throws Throwable {
         Object[] args = join.getArgs();
-        DejaVuAspect.patch(args);
+        new DejaVuPolicy().patch(args);
         return join.proceed( args );
     }
 
@@ -104,21 +104,23 @@ public class AutoImpure {
 
     private Object impureMethod(ProceedingJoinPoint proceed) throws Throwable {
         // if already inside an @impure just proceed
-        if ( DejaVuAspect.fallThrough() ) {
+        DejaVuPolicy policy = new DejaVuPolicy();
+        if ( policy.justProceed() ) {
             return proceed.proceed();
         }
-        return DejaVuAspect.handle(proceed, "");
+        return policy.handle(new AspectJInterception( proceed), "");
     }
 
     private <T> T impureConstruction( ProceedingJoinPoint proceed, Class<T> clazz ) throws Throwable {
         // if already inside an @impure just proceed
-        if ( DejaVuAspect.fallThrough() ) {
+        DejaVuPolicy policy = new DejaVuPolicy();
+        if ( policy.justProceed() ) {
             return (T) proceed.proceed();
         }
-        if ( DejaVuAspect.isTraceMode() ) {
-            DejaVuAspect.setIgnore(true);
+        if ( policy.isRecording() ) {
+            policy.setIgnore(true);
             T t  = (T) proceed.proceed();
-            DejaVuAspect.setIgnore(false);
+            policy.setIgnore(false);
             return t;
         } else {
             // if test mode we have to mock the object, because constructing

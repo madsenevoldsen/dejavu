@@ -14,7 +14,7 @@ public class Neo4jAutoImpure {
 
     static {
         // install this as a type helper
-        DejaVuAspect.addTypeHelper( new Neo4jTypeInference() );
+        DejaVuPolicy.addTypeHelper( new Neo4jTypeInference() );
     }
 
     @Around("call(* org.neo4j.graphdb.GraphDatabaseService.*(..))")
@@ -67,25 +67,28 @@ public class Neo4jAutoImpure {
 
     private Object impureMethod(ProceedingJoinPoint proceed) throws Throwable {
         // if already inside an @impure just proceed
-        if ( DejaVuAspect.fallThrough() ) {
+        DejaVuPolicy policy = new DejaVuPolicy();
+        if ( policy.justProceed() ) {
             return proceed.proceed();
         }
-        return DejaVuAspect.handle(proceed, "neo4j");
+        return policy.handle(new AspectJInterception( proceed), "neo4j");
     }
 
     private <T> T impureConstruction( ProceedingJoinPoint proceed, Class<T> clazz ) throws Throwable {
         // if already inside an @impure just proceed
-        if ( DejaVuAspect.fallThrough() ) {
+        DejaVuPolicy policy = new DejaVuPolicy();
+        if ( policy.justProceed()) {
             return (T) proceed.proceed();
         }
-        if ( DejaVuAspect.isTraceMode() ) {
-            DejaVuAspect.setIgnore(true);
+        if ( policy.isRecording() ) {
+
+            policy.setIgnore(true);
             T t  = (T) proceed.proceed();
-            DejaVuAspect.setIgnore(false);
+            policy.setIgnore(false);
             return t;
         } else {
             // if test mode we have to mock the object, because constructing
-            // the object might now be possible
+            // the object might not be possible
             return createMock(clazz);
         }
     }

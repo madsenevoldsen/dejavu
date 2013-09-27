@@ -1,8 +1,7 @@
 package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.CircuitBreaker;
-import com.jayway.dejavu.core.DejaVuAspect;
-import com.jayway.dejavu.core.DejaVuTrace;
+import com.jayway.dejavu.core.DejaVuPolicy;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.exception.CircuitOpenException;
 import com.jayway.dejavu.core.marshaller.Marshaller;
@@ -22,7 +21,7 @@ public class TracerTest {
     @Before
     public void setup() {
         callback = new TraceCallbackImpl();
-        DejaVuAspect.initialize( callback );
+        DejaVuPolicy.initialize( callback );
     }
 
     @Test
@@ -30,7 +29,7 @@ public class TracerTest {
         HowItShouldBe real = new HowItShouldBe();
         String result = real.myStartPoint("From a real call");
 
-        String dejaVuRun = DejaVuTrace.run(callback.getTrace());
+        String dejaVuRun = DejaVuPolicy.replay(callback.getTrace());
 
         Assert.assertEquals(result, dejaVuRun);
     }
@@ -45,7 +44,7 @@ public class TracerTest {
         } catch (ArithmeticException e) {
             try {
                 log.info("==== Deja vu ====");
-                DejaVuTrace.run(callback.getTrace());
+                DejaVuPolicy.replay(callback.getTrace());
                 Assert.fail("Must throw ArithmeticException again");
             } catch (ArithmeticException ee ) {
             }
@@ -60,7 +59,7 @@ public class TracerTest {
             Assert.fail("Must throw MyOwnException");
         } catch (MyOwnException e ) {
             try {
-                DejaVuTrace.run(callback.getTrace());
+                DejaVuPolicy.replay(callback.getTrace());
                 Assert.fail("Must throw MyOwnException again");
             } catch (MyOwnException ee ) {
             }
@@ -70,7 +69,7 @@ public class TracerTest {
     @Test
     public void with_circuit_breaker() throws Throwable {
         // exactly as before but with a circuit breaker
-        DejaVuAspect.addCircuitBreaker( "cb1", 500, 1);
+        DejaVuPolicy.addCircuitBreaker( "cb1", 500, 1);
         WithIntegrationPoint example = new WithIntegrationPoint();
         try {
             example.run(1);
@@ -80,7 +79,7 @@ public class TracerTest {
                 example.run(1);
             } catch (CircuitOpenException ee ) {
                 try {
-                    DejaVuTrace.run(callback.getTrace());
+                    DejaVuPolicy.replay(callback.getTrace());
                     Assert.fail("Must throw CircuitOpenException");
                 } catch (CircuitOpenException eee ) {
 
@@ -92,7 +91,7 @@ public class TracerTest {
     @Test
     public void exceed_threshold() {
         CircuitBreaker breaker = new CircuitBreaker("cb1", 500, 2);
-        DejaVuAspect.addCircuitBreaker( breaker );
+        DejaVuPolicy.addCircuitBreaker( breaker );
         WithIntegrationPoint example = new WithIntegrationPoint();
         try {
             Assert.assertTrue( breaker.isClosed());
@@ -131,7 +130,7 @@ public class TracerTest {
         MultiTrace multiTrace = new MultiTrace();
         String result = multiTrace.first();
         log.info("==== Deja vu ====");
-        String reRun = DejaVuTrace.run(callback.getTrace());
+        String reRun = DejaVuPolicy.replay(callback.getTrace());
 
         Assert.assertEquals( result, reRun );
         System.out.println( result );
@@ -144,7 +143,7 @@ public class TracerTest {
         Trace trace = callback.getTrace();
         Assert.assertEquals( 1, trace.getValues().size() );
 
-        Long second = DejaVuTrace.run(trace);
+        Long second = DejaVuPolicy.replay(trace);
         Assert.assertEquals( time, second );
     }
 
@@ -154,7 +153,7 @@ public class TracerTest {
         try {
             AlmostWorking useCase = new AlmostWorking();
             while ( true ) {
-                useCase.run();
+                useCase.getLucky();
             }
         } catch (Exception e ) {
             // this is an uncommon exception

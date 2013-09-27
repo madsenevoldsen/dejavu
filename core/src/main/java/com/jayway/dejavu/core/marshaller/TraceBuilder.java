@@ -1,6 +1,6 @@
 package com.jayway.dejavu.core.marshaller;
 
-import com.jayway.dejavu.core.DejaVuTrace;
+import com.jayway.dejavu.core.DejaVuPolicy;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.TraceElement;
 import com.jayway.dejavu.core.annotation.Traced;
@@ -117,6 +117,6 @@ public class TraceBuilder {
     }
 
     public Object run() throws Throwable {
-        return DejaVuTrace.run( trace );
+        return DejaVuPolicy.replay(trace);
     }
 }

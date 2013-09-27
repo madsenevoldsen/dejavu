@@ -1,10 +1,8 @@
 package com.jayway.dejavu;
 
-import com.jayway.dejavu.core.DejaVuAspect;
-import com.jayway.dejavu.core.DejaVuTrace;
+import com.jayway.dejavu.core.DejaVuPolicy;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.marshaller.Marshaller;
-import com.jayway.dejavu.core.marshaller.TraceBuilder;
 import com.jayway.dejavu.impl.ClassArguments;
 import com.jayway.dejavu.impl.ExampleFailingIntegrationPoint;
 import com.jayway.dejavu.impl.RecurseAndExcept;
@@ -24,7 +22,7 @@ public class ExampleFromSerializedTest {
     @Before
     public void setup(){
         callback = new TraceCallbackImpl();
-        DejaVuAspect.initialize(callback);
+        DejaVuPolicy.initialize(callback);
     }
 
     @Test
@@ -84,7 +82,7 @@ public class ExampleFromSerializedTest {
         String test = new Marshaller().marshal( trace );
         System.out.println( test );
 
-        DejaVuTrace.run( trace );
+        DejaVuPolicy.replay(trace);
         Class testClass = compileAndClassLoad("com.jayway.dejavu.impl.ClassArgumentsTest", test);
         Object o = testClass.newInstance();
 

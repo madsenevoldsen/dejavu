@@ -14,7 +14,7 @@ class CircuitBreakerWrapper {
     void verify() {
         if ( !integrationPoint.isEmpty() ) {
             // a circuit breaker is guarding this call
-            breaker = DejaVuAspect.getCircuitBreaker(integrationPoint);
+            breaker = DejaVuPolicy.getCircuitBreaker(integrationPoint);
             if ( breaker.isOpen() ) {
                 throw new CircuitOpenException( "Circuit breaker '"+integrationPoint+"' is open");
             }

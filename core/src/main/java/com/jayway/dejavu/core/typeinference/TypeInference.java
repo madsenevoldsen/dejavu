@@ -1,5 +1,6 @@
 package com.jayway.dejavu.core.typeinference;
 
+import com.jayway.dejavu.core.DejaVuInterception;
 import org.aspectj.lang.reflect.MethodSignature;
 
 /**
@@ -8,5 +9,5 @@ import org.aspectj.lang.reflect.MethodSignature;
  * requires specific knowledge because of erasure
  */
 public interface TypeInference {
-    Class<?> inferType( Object instance, MethodSignature signature );
+    Class<?> inferType( Object instance, DejaVuInterception interception );
 }

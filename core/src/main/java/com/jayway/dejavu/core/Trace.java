@@ -17,9 +17,8 @@ public class Trace {
         threadThrowables = new ArrayList<ThreadThrowable>();
     }
 
-    public Trace( String id, Method startPoint, Object[] startArguments ) {
+    public Trace( Method startPoint, Object[] startArguments ) {
         this();
-        this.id = id;
         this.startPoint = startPoint;
         this.startArguments = startArguments;
     }

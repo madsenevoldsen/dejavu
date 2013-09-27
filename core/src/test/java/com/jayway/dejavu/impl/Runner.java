@@ -1,6 +1,8 @@
 package com.jayway.dejavu.impl;
 
 import com.jayway.dejavu.core.annotation.Impure;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Random;
 import java.util.UUID;
@@ -24,6 +26,6 @@ public class Runner implements Runnable {
 
     @Impure
     public Long randomLong() {
-        return Long.valueOf(new Random().nextInt(1000));
+        return (long) new Random().nextInt(1000);
     }
 }

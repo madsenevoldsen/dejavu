@@ -7,13 +7,11 @@ import org.slf4j.LoggerFactory;
 
 public class AlmostWorking {
 
-    private Logger log = LoggerFactory.getLogger( AlmostWorking.class);
-
     @Traced
-    public void run() {
+    public void getLucky() {
         Long value = timeStamp();
         Long luckyNumber = 2304432 / ( value % 1001 );
-        //log.info( "My lucky number is: "+luckyNumber);
+        System.out.println( "My lucky number is: "+luckyNumber);
     }
 
     @Impure

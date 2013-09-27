@@ -1,7 +1,6 @@
 package com.jayway.dejavu;
 
-import com.jayway.dejavu.core.DejaVuAspect;
-import com.jayway.dejavu.core.DejaVuTrace;
+import com.jayway.dejavu.core.DejaVuPolicy;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.marshaller.Marshaller;
 import com.jayway.dejavu.core.marshaller.SimpleExceptionMarshaller;
@@ -15,7 +14,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 
@@ -28,7 +26,7 @@ public class ProxiedTest {
     @Before
     public void setup() {
         callback = new TraceCallbackImpl();
-        DejaVuAspect.initialize(callback);
+        DejaVuPolicy.initialize(callback);
     }
 
     @Test
@@ -42,7 +40,7 @@ public class ProxiedTest {
 
         String test = new Marshaller().marshal(trace);
         System.out.println( test );
-        Integer result2 = DejaVuTrace.run(trace);
+        Integer result2 = DejaVuPolicy.replay(trace);
 
         System.out.println( result + " and " +result2 );
         Assert.assertEquals( result, result2.intValue());

@@ -1,9 +1,6 @@
 package com.jayway.dejavu;
 
-import com.jayway.dejavu.core.DejaVuAspect;
-import com.jayway.dejavu.core.DejaVuTrace;
-import com.jayway.dejavu.core.Trace;
-import com.jayway.dejavu.core.TraceElement;
+import com.jayway.dejavu.core.*;
 import com.jayway.dejavu.core.marshaller.Marshaller;
 import com.jayway.dejavu.core.marshaller.TraceBuilder;
 import com.jayway.dejavu.impl.FailingWithThreads;
@@ -16,7 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MultiThreadedTracerTest {
 
@@ -27,8 +27,8 @@ public class MultiThreadedTracerTest {
     @Before
     public void setup() {
         callback = new TraceCallbackImpl();
-        DejaVuAspect.initialize( callback );
-        DejaVuTrace.setBeforeRunCallback(null);
+        DejaVuPolicy.initialize(callback);
+        DejaVuPolicy.setBeforeRunCallback(null);
     }
 
     @Test
@@ -42,12 +42,12 @@ public class MultiThreadedTracerTest {
         Trace trace = callback.getTrace();
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        DejaVuTrace.setNextValueCallback( new DejaVuTrace.NextValueCallback() {
+        RunningTrace.setNextValueCallback( new RunningTrace.NextValueCallback() {
             public void nextValue(Object value) {
                 values.add( new TraceElement( Thread.currentThread().getName(), value));
             }
         });
-        DejaVuTrace.run(trace);
+        DejaVuPolicy.replay(trace);
 
         Map<String, String> threadNameMap = new HashMap<String, String>();
         for (int i=0; i<trace.getValues().size(); i++ ) {
@@ -74,12 +74,12 @@ public class MultiThreadedTracerTest {
         Trace trace = callback.getTrace();
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        DejaVuTrace.setNextValueCallback( new DejaVuTrace.NextValueCallback() {
+        RunningTrace.setNextValueCallback(new RunningTrace.NextValueCallback() {
             public void nextValue(Object value) {
-                values.add( new TraceElement( Thread.currentThread().getName(), value));
+                values.add(new TraceElement(Thread.currentThread().getName(), value));
             }
         });
-        DejaVuTrace.run(trace);
+        DejaVuPolicy.replay(trace);
 
         Map<String, String> threadNameMap = new HashMap<String, String>();
         for (int i=0; i<trace.getValues().size(); i++ ) {
@@ -139,7 +139,7 @@ public class MultiThreadedTracerTest {
 
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        DejaVuTrace.setNextValueCallback( new DejaVuTrace.NextValueCallback() {
+        RunningTrace.setNextValueCallback( new RunningTrace.NextValueCallback() {
             public void nextValue(Object value) {
                 values.add( new TraceElement( Thread.currentThread().getName(), value));
             }

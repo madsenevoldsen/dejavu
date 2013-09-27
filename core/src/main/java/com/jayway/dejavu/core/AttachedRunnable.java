@@ -3,24 +3,24 @@ package com.jayway.dejavu.core;
 class AttachedRunnable implements Runnable {
 
     private final Runnable runnable;
-    private final String traceId;
+    private final RunningTrace trace;
     private final String threadId;
 
-    public AttachedRunnable( Runnable runnable, String traceId, String threadId ) {
+    public AttachedRunnable( Runnable runnable, RunningTrace trace, String threadId ) {
         this.runnable = runnable;
-        this.traceId = traceId;
+        this.trace = trace;
         this.threadId = threadId;
     }
 
     @Override
     public void run() {
-        DejaVuAspect.threadStarted( threadId, traceId );
+        trace.threadStarted(threadId);
         try {
             runnable.run();
         } catch( Throwable throwable) {
-            DejaVuAspect.threadThrowable( throwable );
+            trace.threadThrowable( throwable );
         } finally {
-            DejaVuAspect.threadCompleted();
+            trace.threadCompleted();
         }
     }
 }

@@ -1,7 +1,6 @@
 package com.jayway.dejavu.neo4j;
 
-import com.jayway.dejavu.core.DejaVuAspect;
-import com.jayway.dejavu.core.DejaVuTrace;
+import com.jayway.dejavu.core.DejaVuPolicy;
 import com.jayway.dejavu.core.marshaller.TraceBuilder;
 import com.jayway.dejavu.neo4j.impl.DatabaseInteraction;
 import com.jayway.dejavu.neo4j.impl.DatabasePagesQuery;
@@ -23,7 +22,7 @@ public class Neo4jAutoImpureTest {
     @Before
     public void before(){
         callback = new TraceCallbackImpl();
-        DejaVuAspect.initialize( callback );
+        DejaVuPolicy.initialize( callback );
     }
 
     @Test
@@ -38,7 +37,7 @@ public class Neo4jAutoImpureTest {
         ConnectionManager.graphDb().shutdown();
 
         // now re-run without database
-        DejaVuTrace.run( callback.getTrace() );
+        DejaVuPolicy.replay(callback.getTrace());
     }
 
     @Test
@@ -82,7 +81,7 @@ public class Neo4jAutoImpureTest {
         Marshaller marshaller = new Marshaller(new Neo4jMarshallerPlugin());
         System.out.println(marshaller.marshal(trace));
 
-        DejaVuTrace.run(trace);
+        DejaVuPolicy.replay(trace);
     } */
 
     @Test

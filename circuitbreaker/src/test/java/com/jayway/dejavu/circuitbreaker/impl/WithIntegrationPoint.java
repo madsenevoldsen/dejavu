@@ -1,4 +1,4 @@
-package com.jayway.dejavu.impl;
+package com.jayway.dejavu.circuitbreaker.impl;
 
 import com.jayway.dejavu.core.annotation.Impure;
 import com.jayway.dejavu.core.annotation.Traced;

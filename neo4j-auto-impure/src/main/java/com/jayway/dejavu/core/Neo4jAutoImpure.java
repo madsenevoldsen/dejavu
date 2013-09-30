@@ -66,12 +66,8 @@ public class Neo4jAutoImpure {
     }
 
     private Object impureMethod(ProceedingJoinPoint proceed) throws Throwable {
-        // if already inside an @impure just proceed
         DejaVuPolicy policy = new DejaVuPolicy();
-        if ( policy.justProceed() ) {
-            return proceed.proceed();
-        }
-        return policy.handle(new AspectJInterception( proceed), "neo4j");
+        return policy.aroundImpure(new AspectJInterception( proceed), "neo4j");
     }
 
     private <T> T impureConstruction( ProceedingJoinPoint proceed, Class<T> clazz ) throws Throwable {

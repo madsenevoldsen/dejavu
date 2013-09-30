@@ -1,12 +1,13 @@
 package com.jayway.dejavu.core;
 
+import com.jayway.dejavu.core.chainer.ChainBuilder;
 import com.jayway.dejavu.core.exception.TraceEndedException;
 import com.jayway.dejavu.core.repository.TraceCallback;
 
 import java.util.*;
 import java.util.concurrent.Callable;
 
-public class RunningTrace {
+public class RunningTrace implements ImpureHandler {
 
     private static ThreadLocal<String> threadId = new ThreadLocal<String>();
     private static ThreadLocal<Boolean> threadLocalIgnore = new ThreadLocal<Boolean>();
@@ -17,18 +18,24 @@ public class RunningTrace {
     private Throwable throwable;
     private Set<String> attachedThreads;
     private Set<String> completedThreads;
+    private ImpureHandler impureHandler;
 
     public RunningTrace( Trace trace, boolean recording ) {
         this.trace = trace;
         this.recording = recording;
         if ( recording ) {
             setIgnore(true);
-            trace.setId( UUID.randomUUID().toString() );
+            trace.setId(UUID.randomUUID().toString());
             threadId.set( trace.getId() );
             setIgnore(false);
             attachedThreads = new HashSet<String>();
             completedThreads = new HashSet<String>();
             exitImpure();
+            ChainBuilder<ImpureHandler> builder = ChainBuilder.chain(ImpureHandler.class);
+            for (ImpureHandler impureHandler : impureHandlers) {
+                builder.add( impureHandler );
+            }
+            impureHandler = builder.build();
         } else {
             threadId.set( trace.getId() );
             values = trace.getValues();
@@ -51,6 +58,15 @@ public class RunningTrace {
         }
     }
 
+    private static List<ImpureHandler> impureHandlers = new ArrayList<ImpureHandler>();
+
+    public static void addImpureHandler( ImpureHandler handler ) {
+        impureHandlers.add( handler );
+    }
+
+    static {
+        addImpureHandler(new DejaVuImpureHandler());
+    }
 
     public synchronized void threadAttached( String id ) {
         if ( attachedThreads == null ) {
@@ -130,6 +146,21 @@ public class RunningTrace {
         RunningTrace.cb = cb;
     }
 
+    @Override
+    public void before(RunningTrace runningTrace, String integrationPoint) {
+        if ( impureHandler != null ) impureHandler.before( runningTrace, integrationPoint);
+    }
+
+    @Override
+    public void success(RunningTrace runningTrace, Object result, Class returnType) {
+        if ( impureHandler != null ) impureHandler.success(runningTrace, result, returnType);
+    }
+
+    @Override
+    public void failure(RunningTrace runningTrace, Throwable t) {
+        if ( impureHandler != null ) impureHandler.failure(runningTrace, t);
+    }
+
     public interface NextValueCallback {
         void nextValue( Object value );
     }
@@ -161,14 +192,6 @@ public class RunningTrace {
             }
         }
     }
-
-    /*private synchronized boolean done( String traceId ) {
-        if ( DejaVuAspect.traceCompleted( traceId ) ) {
-            return true;
-        }
-        Deja Vu Trace.class.notifyAll();
-        return false;
-    } */
 
     public String getChildThreadId() {
         if (!isRecording()) {

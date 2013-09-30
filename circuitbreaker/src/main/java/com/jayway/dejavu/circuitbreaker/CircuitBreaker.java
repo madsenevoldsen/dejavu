@@ -1,4 +1,4 @@
-package com.jayway.dejavu.core;
+package com.jayway.dejavu.circuitbreaker;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

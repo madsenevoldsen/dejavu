@@ -4,6 +4,7 @@ import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,12 +43,19 @@ public class ChainBuilder<T> implements MethodInterceptor {
     @Override
     public Object intercept(Object o, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
         finished.set( false );
+        boolean isVoid = method.getReturnType().equals( Void.TYPE );
         for (T instance : instances) {
-            Object result = method.invoke(instance, args);
-            if ( result != null || finished.get() ) {
-                return result;
+            try {
+                Object result = method.invoke(instance, args);
+                if (isVoid) continue;
+                if (result != null || finished.get() ) {
+                    return result;
+                }
+            } catch (InvocationTargetException e ) {
+                throw e.getCause();
             }
         }
+        if ( isVoid ) return null;
 
         // TODO better error message
         StringBuilder sb = new StringBuilder("Argument(s): ");

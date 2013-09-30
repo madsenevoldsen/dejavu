@@ -1,6 +1,4 @@
-package com.jayway.dejavu.core;
-
-import com.jayway.dejavu.core.exception.CircuitOpenException;
+package com.jayway.dejavu.circuitbreaker;
 
 class CircuitBreakerWrapper {
 
@@ -14,21 +12,22 @@ class CircuitBreakerWrapper {
     void verify() {
         if ( !integrationPoint.isEmpty() ) {
             // a circuit breaker is guarding this call
-            breaker = DejaVuPolicy.getCircuitBreaker(integrationPoint);
+            breaker = CircuitBreakerPolicy.getCircuitBreaker(integrationPoint);
             if ( breaker.isOpen() ) {
                 throw new CircuitOpenException( "Circuit breaker '"+integrationPoint+"' is open");
             }
         }
     }
 
-
-    public void result(Object result) {
+    public void success() {
         if ( breaker != null ) {
-            if ( result instanceof ThrownThrowable ) {
-                breaker.exceptionOccurred(((ThrownThrowable) result).getThrowable());
-            } else {
-                breaker.success();
-            }
+            breaker.success();
+        }
+    }
+
+    public void failure(Throwable t) {
+        if ( breaker != null ) {
+            breaker.exceptionOccurred(t);
         }
     }
 }

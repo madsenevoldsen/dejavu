@@ -9,6 +9,7 @@
     <url>http://github.com/madsenevoldsen/dejavu</url>
     <modules>
         <module>core</module>
+        <module>circuitbreaker</module>
         <module>neo4j-auto-impure</module>
         <module>auto-impure</module>
     </modules>

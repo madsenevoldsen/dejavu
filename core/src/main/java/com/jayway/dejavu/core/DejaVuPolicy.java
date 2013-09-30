@@ -1,6 +1,5 @@
 package com.jayway.dejavu.core;
 
-import com.jayway.dejavu.core.annotation.Impure;
 import com.jayway.dejavu.core.chainer.ChainBuilder;
 import com.jayway.dejavu.core.exception.TraceEndedException;
 import com.jayway.dejavu.core.repository.TraceCallback;
@@ -11,25 +10,19 @@ import com.jayway.dejavu.core.typeinference.TypeInference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class DejaVuPolicy {
 
     protected static ThreadLocal<RunningTrace> runningTrace = new ThreadLocal<RunningTrace>();
     private static TraceCallback callback;
 
-    private static int timeout = 10 * 60 * 1000; // ten minutes
-    private static int exceptionThreshold = 10;
 
-    private static Map<String, CircuitBreaker> circuitBreakers;
     private static List<TypeInference> typeHelpers = new ArrayList<TypeInference>();
     private static TypeInference typeInference;
 
     public static void initialize( TraceCallback cb ) {
         callback = cb;
-        circuitBreakers = new HashMap<String, CircuitBreaker>();
         ChainBuilder<TypeInference> builder = ChainBuilder.chain(TypeInference.class).add(new ExceptionInference());
         for (TypeInference typeHelper : typeHelpers) {
             builder.add( typeHelper );
@@ -81,19 +74,6 @@ public class DejaVuPolicy {
 
     public static void destroy() {
         callback = null;
-        circuitBreakers = null;
-    }
-
-    public static void addCircuitBreaker( CircuitBreaker handler ) {
-        circuitBreakers.put(handler.getName(), handler);
-    }
-    public static void addCircuitBreaker( String name, int timeout, int exceptionThreshold ) {
-        circuitBreakers.put(name, new CircuitBreaker(name, timeout, exceptionThreshold));
-    }
-
-    public static void setDefaultCircuitBreakerSettings( int timeoutMillis, int exceptionThreshold) {
-        timeout = timeoutMillis;
-        DejaVuPolicy.exceptionThreshold = exceptionThreshold;
     }
 
     public Object aroundTraced( DejaVuInterception interception ) throws Throwable {
@@ -123,36 +103,23 @@ public class DejaVuPolicy {
         }
     }
 
-    public Object aroundImpure(DejaVuInterception interception, Impure impure) throws Throwable {
+    public Object aroundImpure(DejaVuInterception interception, String integrationPoint) throws Throwable {
         if ( justProceed() ) {
             return interception.proceed();
         }
 
-        return handle( interception, impure.integrationPoint() );
-    }
-
-    protected Object handle(DejaVuInterception interception, String integrationPoint ) throws Throwable {
         RunningTrace running = runningTrace.get();
         if (!running.isRecording()) {
             return running.nextValue();
         }
-
-        CircuitBreakerWrapper circuitBreaker = new CircuitBreakerWrapper( integrationPoint );
-        Object result = null;
         try {
-            running.enterImpure();
-            circuitBreaker.verify();
-            result = interception.proceed();
+            running.before( running, integrationPoint );
+            Object result = interception.proceed();
+            running.success( running, result, typeInference.inferType(result, interception));
             return result;
-        } catch ( Throwable t ) {
-            result = new ThrownThrowable( t );
-            throw t;
-        } finally {
-            running.add( result, typeInference.inferType( result, interception ));
-            //Trace trace = runningTraces.get( traceId.get() ).getTrace();
-            //add( trace, result, typeInference.inferType( result, interception ) );
-            circuitBreaker.result(result);
-            running.exitImpure();
+        } catch (Throwable throwable) {
+            running.failure(running, throwable);
+            throw throwable;
         }
     }
 
@@ -169,13 +136,6 @@ public class DejaVuPolicy {
             return true;
         }
         return running.ignore();
-    }
-
-    static CircuitBreaker getCircuitBreaker( String integrationPoint ) {
-        if (!circuitBreakers.containsKey(integrationPoint)) {
-            circuitBreakers.put( integrationPoint, new CircuitBreaker(integrationPoint, timeout, exceptionThreshold));
-        }
-        return circuitBreakers.get( integrationPoint );
     }
 
     public void attachThread( DejaVuInterception interception) throws Throwable {

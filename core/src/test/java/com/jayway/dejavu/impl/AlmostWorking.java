@@ -11,7 +11,7 @@ public class AlmostWorking {
     public void getLucky() {
         Long value = timeStamp();
         Long luckyNumber = 2304432 / ( value % 1001 );
-        System.out.println( "My lucky number is: "+luckyNumber);
+        //System.out.println( "My lucky number is: "+luckyNumber);
     }
 
     @Impure

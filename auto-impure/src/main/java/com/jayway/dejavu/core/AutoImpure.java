@@ -1,5 +1,6 @@
 package com.jayway.dejavu.core;
 
+import com.jayway.dejavu.core.annotation.Impure;
 import com.jayway.dejavu.core.impl.ZipFileEnumeration;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -8,6 +9,7 @@ import org.aspectj.lang.annotation.Aspect;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.InputStreamReader;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.util.Enumeration;
 import java.util.Random;
@@ -105,10 +107,7 @@ public class AutoImpure {
     private Object impureMethod(ProceedingJoinPoint proceed) throws Throwable {
         // if already inside an @impure just proceed
         DejaVuPolicy policy = new DejaVuPolicy();
-        if ( policy.justProceed() ) {
-            return proceed.proceed();
-        }
-        return policy.handle(new AspectJInterception( proceed), "");
+        return policy.aroundImpure( new AspectJInterception(proceed), "" );
     }
 
     private <T> T impureConstruction( ProceedingJoinPoint proceed, Class<T> clazz ) throws Throwable {

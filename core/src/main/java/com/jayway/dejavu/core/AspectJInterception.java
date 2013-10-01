@@ -1,8 +1,11 @@
 package com.jayway.dejavu.core;
 
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
+import org.aspectj.lang.reflect.ConstructorSignature;
 import org.aspectj.lang.reflect.MethodSignature;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
 public class AspectJInterception implements DejaVuInterception {
@@ -15,12 +18,26 @@ public class AspectJInterception implements DejaVuInterception {
 
     @Override
     public Method getMethod() {
-        return ((MethodSignature)proceedingJoinPoint.getSignature()).getMethod();
+        /*Signature signature = proceedingJoinPoint.getSignature();
+        if ( signature instanceof MethodSignature ) {
+            return ((MethodSignature) signature).getMethod();
+        } else if ( signature instanceof ConstructorSignature ) {
+            Constructor constructor = ((ConstructorSignature) signature).getConstructor();
+
+        }
+
+        return signature.getDeclaringType();
+
+        //*/return ((MethodSignature)proceedingJoinPoint.getSignature()).getMethod();
     }
 
     @Override
     public Class getReturnType() {
-        return ((MethodSignature)proceedingJoinPoint.getSignature()).getReturnType();
+        Signature signature = proceedingJoinPoint.getSignature();
+        if ( signature instanceof MethodSignature ) {
+            return ((MethodSignature)proceedingJoinPoint.getSignature()).getReturnType();
+        }
+        return signature.getDeclaringType();
     }
 
     @Override

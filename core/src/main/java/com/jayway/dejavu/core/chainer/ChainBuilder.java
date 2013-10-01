@@ -7,6 +7,7 @@ import net.sf.cglib.proxy.MethodProxy;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -14,6 +15,7 @@ public class ChainBuilder<T> implements MethodInterceptor {
 
     private Class<T> clazz;
     private List<T> instances;
+    private boolean all;
 
     public static <T> ChainBuilder<T> chain( Class<T> clazz ) {
         return new ChainBuilder<T>(clazz);
@@ -25,7 +27,14 @@ public class ChainBuilder<T> implements MethodInterceptor {
     }
 
     public ChainBuilder<T> add( T t ) {
-        instances.add( t );
+        instances.add(t);
+        return this;
+    }
+
+    public ChainBuilder<T> add(Collection<T> collection ) {
+        for (T t : collection) {
+            instances.add(t);
+        }
         return this;
     }
 
@@ -34,8 +43,13 @@ public class ChainBuilder<T> implements MethodInterceptor {
         return this;
     }
 
-    public T build() {
-        if ( instances.isEmpty() ) throw new BuildException();
+    public T build(){
+        return build(false);
+    }
+
+    public T build(boolean all) {
+        //if ( instances.isEmpty() ) throw new BuildException();
+        this.all = all;
         // proxy handling delegating for each non-void method
         return (T) Enhancer.create( clazz, this );
     }
@@ -43,11 +57,12 @@ public class ChainBuilder<T> implements MethodInterceptor {
     @Override
     public Object intercept(Object o, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
         finished.set( false );
-        boolean isVoid = method.getReturnType().equals( Void.TYPE );
+        Object lastResult = null;
         for (T instance : instances) {
             try {
                 Object result = method.invoke(instance, args);
-                if (isVoid) continue;
+                lastResult = result;
+                if (all) continue;
                 if (result != null || finished.get() ) {
                     return result;
                 }
@@ -55,7 +70,7 @@ public class ChainBuilder<T> implements MethodInterceptor {
                 throw e.getCause();
             }
         }
-        if ( isVoid ) return null;
+        if ( all ) return lastResult;
 
         // TODO better error message
         StringBuilder sb = new StringBuilder("Argument(s): ");

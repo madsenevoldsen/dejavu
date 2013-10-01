@@ -56,6 +56,10 @@ class SimpleTypeMarshaller implements MarshallerPlugin  {
 
     @Override
     public String marshalObject(Object value) {
+        if (value instanceof Enum) {
+            return value.getClass().getSimpleName() + "." + value.toString();
+        }
+
         if (value == null ) return "null";
         if ( value instanceof Long ) {
             return value + "L";

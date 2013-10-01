@@ -4,7 +4,7 @@ public interface ImpureHandler {
 
     void before(RunningTrace runningTrace, String integrationPoint);
 
-    void success(RunningTrace runningTrace, Object result, Class returnType);
+    Object success(RunningTrace runningTrace, Object result);
 
-    void failure(RunningTrace runningTrace, Throwable t);
+    Throwable failure(RunningTrace runningTrace, Throwable t);
 }

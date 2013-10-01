@@ -31,7 +31,7 @@ public class ChainerTest {
         }
     }
 
-    @Test
+    /*@Test
     public void constructError() {
         try {
             ChainBuilder.chain(Handle.class).build();
@@ -39,7 +39,7 @@ public class ChainerTest {
         } catch (BuildException e) {
 
         }
-    }
+    } */
 
     @Test
     public void returningNull() {

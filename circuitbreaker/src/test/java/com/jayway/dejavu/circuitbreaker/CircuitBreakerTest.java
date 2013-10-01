@@ -16,6 +16,7 @@ public class CircuitBreakerTest {
     public void setup() {
         callback = new TraceCallbackImpl();
         DejaVuPolicy.initialize(callback);
+        //CircuitBreakerPolicy.initialize();
     }
 
     @Test
@@ -42,6 +43,7 @@ public class CircuitBreakerTest {
 
     @Test
     public void exceed_threshold() {
+
         CircuitBreaker breaker = new CircuitBreaker("cb1", 500, 2);
         CircuitBreakerPolicy.addCircuitBreaker(breaker);
         WithIntegrationPoint example = new WithIntegrationPoint();
@@ -50,7 +52,7 @@ public class CircuitBreakerTest {
             example.run(1);
             Assert.fail("first crash");
         } catch (MyOwnException e ) {
-            Assert.assertTrue( breaker.isClosed());
+            Assert.assertTrue( "breaker must still be closed", breaker.isClosed());
             try {
                 example.run(1);
                 Assert.fail("second crash");

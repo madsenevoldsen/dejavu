@@ -1,9 +1,7 @@
 package com.jayway.dejavu;
 
-import com.jayway.dejavu.core.DejaVuPolicy;
-import com.jayway.dejavu.core.RunningTrace;
-import com.jayway.dejavu.core.Trace;
-import com.jayway.dejavu.core.TraceElement;
+import com.jayway.dejavu.core.*;
+import com.jayway.dejavu.core.marshaller.Marshaller;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
 import com.jayway.dejavu.impl.WithThreads;
 import junit.framework.Assert;
@@ -24,10 +22,12 @@ public class MultiThreadedTest {
         callback = new TraceCallbackImpl();
         DejaVuPolicy.initialize(callback);
         DejaVuPolicy.setBeforeRunCallback(null);
+        AutoImpure.initialize();
     }
 
     @Test
     public void with_three_child_threads() throws Throwable {
+        //AutoImpure.initialize();
         WithThreads withThreads = new WithThreads();
         int threads = 5;
         withThreads.begin( threads );
@@ -35,6 +35,7 @@ public class MultiThreadedTest {
 
 
         Trace trace = callback.getTrace();
+        System.out.println(new Marshaller().marshal(trace));
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
         RunningTrace.setNextValueCallback(new RunningTrace.NextValueCallback() {
@@ -45,10 +46,13 @@ public class MultiThreadedTest {
         DejaVuPolicy.replay(trace);
 
         Map<String, String> threadNameMap = new HashMap<String, String>();
+        Assert.assertEquals("Trace and replay must have same amount of values", trace.getValues().size(), values.size());
         for (int i=0; i<trace.getValues().size(); i++ ) {
             TraceElement element = trace.getValues().get(i);
             TraceElement rerunElement = values.get(i);
-            Assert.assertEquals(element.getValue(), rerunElement.getValue());
+            if ( !(element.getValue() instanceof Pure) ) {
+                Assert.assertEquals(element.getValue(), rerunElement.getValue());
+            }
             if ( threadNameMap.containsKey(element.getThreadId()) ) {
                 Assert.assertEquals( threadNameMap.get( element.getThreadId()), rerunElement.getThreadId());
             } else {

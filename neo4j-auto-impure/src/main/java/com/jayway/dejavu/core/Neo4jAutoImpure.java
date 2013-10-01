@@ -1,5 +1,6 @@
 package com.jayway.dejavu.core;
 
+import com.jayway.dejavu.neo4j.Neo4jTraceValueHandler;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -7,14 +8,11 @@ import org.neo4j.helpers.collection.PagingIterator;
 
 import java.util.Iterator;
 
-import static org.easymock.EasyMock.createMock;
-
 @Aspect
 public class Neo4jAutoImpure {
 
-    static {
-        // install this as a type helper
-        DejaVuPolicy.addTypeHelper( new Neo4jTypeInference() );
+    public static void initialize() {
+        RunningTrace.addTraceHandler(new Neo4jTraceValueHandler());
     }
 
     @Around("call(* org.neo4j.graphdb.GraphDatabaseService.*(..))")
@@ -73,20 +71,7 @@ public class Neo4jAutoImpure {
     private <T> T impureConstruction( ProceedingJoinPoint proceed, Class<T> clazz ) throws Throwable {
         // if already inside an @impure just proceed
         DejaVuPolicy policy = new DejaVuPolicy();
-        if ( policy.justProceed()) {
-            return (T) proceed.proceed();
-        }
-        if ( policy.isRecording() ) {
-
-            policy.setIgnore(true);
-            T t  = (T) proceed.proceed();
-            policy.setIgnore(false);
-            return t;
-        } else {
-            // if test mode we have to mock the object, because constructing
-            // the object might not be possible
-            return createMock(clazz);
-        }
+        return (T) policy.aroundImpure(new AspectJInterception(proceed), "neo4j");
     }
 
 }

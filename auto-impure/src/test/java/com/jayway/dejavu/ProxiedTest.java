@@ -1,6 +1,8 @@
 package com.jayway.dejavu;
 
+import com.jayway.dejavu.core.AutoImpure;
 import com.jayway.dejavu.core.DejaVuPolicy;
+import com.jayway.dejavu.core.Pure;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.marshaller.Marshaller;
 import com.jayway.dejavu.core.marshaller.SimpleExceptionMarshaller;
@@ -27,6 +29,7 @@ public class ProxiedTest {
     public void setup() {
         callback = new TraceCallbackImpl();
         DejaVuPolicy.initialize(callback);
+        AutoImpure.initialize();
     }
 
     @Test
@@ -42,35 +45,18 @@ public class ProxiedTest {
         System.out.println( test );
         Integer result2 = DejaVuPolicy.replay(trace);
 
-        System.out.println( result + " and " +result2 );
-        Assert.assertEquals( result, result2.intValue());
+        System.out.println(result + " and " + result2);
+        Assert.assertEquals(result, result2.intValue());
     }
-
-    /*@Test
-    public void fileReading() throws Throwable {
-        FileReading reading = new FileReading();
-
-        List<String> list = reading.readFile("src/test/resources/example.txt");
-
-        Assert.assertEquals( list.size(), 4);
-        Assert.assertEquals( "first line", list.get(0));
-        Assert.assertEquals( "second line", list.get(1));
-        Assert.assertEquals( "third line", list.get(2));
-        Assert.assertEquals( "done!", list.get(3));
-
-        Trace trace = callback.getTrace();
-        String test = new Marshaller().marshal(trace);
-        System.out.println(test );
-    } */
 
     @Test
     public void notReadingFile() throws Throwable {
         // now read the file in test mode where it only produces one line
         TraceBuilder builder = TraceBuilder.build()
                 .setMethod(FileReading.class)
-                .addMethodArguments( "not a filename");
+                .addMethodArguments("not a filename");
 
-        builder.add("ONLY LINE", null);
+        builder.add(Pure.PureFileReader, Pure.PureBufferedReader, "ONLY LINE", null);
 
         List<String> lines = (List<String>) builder.run();
 

@@ -1,6 +1,5 @@
 package com.jayway.dejavu.core;
 
-import com.jayway.dejavu.core.annotation.Impure;
 import com.jayway.dejavu.core.impl.ZipFileEnumeration;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -9,20 +8,16 @@ import org.aspectj.lang.annotation.Aspect;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.InputStreamReader;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.util.Enumeration;
 import java.util.Random;
 import java.util.zip.ZipFile;
 
-import static org.easymock.EasyMock.createMock;
-
 @Aspect
 public class AutoImpure {
 
-    static {
-        // install this as a type helper
-        DejaVuPolicy.addTypeHelper(new AutoImpureTypeInference());
+    public static void initialize() {
+        RunningTrace.addTraceHandler( new AutoImpureTraceValueHandler());
     }
 
     /*@Around("call(* java.util.concurrent.ExecutorService.invoke*(..))")
@@ -37,7 +32,7 @@ public class AutoImpure {
     @Around("call(* java.util.concurrent.ExecutorService.submit(..))")
     public Object threadPoolSubmit( ProceedingJoinPoint join ) throws Throwable {
         Object[] args = join.getArgs();
-        new DejaVuPolicy().patch(args);
+        DejaVuPolicy.patchForAttachThread(args);
         return join.proceed( args );
     }
 
@@ -113,18 +108,6 @@ public class AutoImpure {
     private <T> T impureConstruction( ProceedingJoinPoint proceed, Class<T> clazz ) throws Throwable {
         // if already inside an @impure just proceed
         DejaVuPolicy policy = new DejaVuPolicy();
-        if ( policy.justProceed() ) {
-            return (T) proceed.proceed();
-        }
-        if ( policy.isRecording() ) {
-            policy.setIgnore(true);
-            T t  = (T) proceed.proceed();
-            policy.setIgnore(false);
-            return t;
-        } else {
-            // if test mode we have to mock the object, because constructing
-            // the object might now be possible
-            return createMock(clazz);
-        }
+        return (T) policy.aroundImpure(new AspectJInterception(proceed), "");
     }
 }

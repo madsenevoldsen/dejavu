@@ -1,33 +1,18 @@
 package com.jayway.dejavu.core;
 
-import com.jayway.dejavu.core.chainer.ChainBuilder;
 import com.jayway.dejavu.core.exception.TraceEndedException;
 import com.jayway.dejavu.core.repository.TraceCallback;
-import com.jayway.dejavu.core.typeinference.DefaultInference;
-import com.jayway.dejavu.core.typeinference.ExceptionInference;
-import com.jayway.dejavu.core.typeinference.TypeInference;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
 public class DejaVuPolicy {
 
     protected static ThreadLocal<RunningTrace> runningTrace = new ThreadLocal<RunningTrace>();
     private static TraceCallback callback;
 
-
-    private static List<TypeInference> typeHelpers = new ArrayList<TypeInference>();
-    private static TypeInference typeInference;
-
     public static void initialize( TraceCallback cb ) {
         callback = cb;
-        ChainBuilder<TypeInference> builder = ChainBuilder.chain(TypeInference.class).add(new ExceptionInference());
-        for (TypeInference typeHelper : typeHelpers) {
-            builder.add( typeHelper );
-        }
-        typeInference = builder.add( new DefaultInference() ).build();
     }
 
 
@@ -66,10 +51,6 @@ public class DejaVuPolicy {
                 Thread.sleep(500);
             }
         }
-    }
-
-    protected static void addTypeHelper( TypeInference typeInference ) {
-        typeHelpers.add( typeInference );
     }
 
     public static void destroy() {
@@ -113,13 +94,17 @@ public class DejaVuPolicy {
             return running.nextValue();
         }
         try {
+            running.enterImpure();
             running.before( running, integrationPoint );
             Object result = interception.proceed();
-            running.success( running, result, typeInference.inferType(result, interception));
+            running.add(running.success(running, result) /*, typeInference.inferType(result, interception)*/);
             return result;
         } catch (Throwable throwable) {
-            running.failure(running, throwable);
-            throw throwable;
+            Throwable failure = running.failure(running, throwable);
+            running.add( new ThrownThrowable(failure) /*, ThrownThrowable.class*/);
+            throw failure;
+        } finally {
+            running.exitImpure();
         }
     }
 
@@ -153,21 +138,7 @@ public class DejaVuPolicy {
         callback.traced(trace, t);
     }
 
-
-    public boolean isRecording() {
-        RunningTrace trace = runningTrace.get();
-        if ( trace == null ) return false;
-        return trace.isRecording();
-    }
-
-    public void setIgnore( boolean ignore ) {
-        RunningTrace trace = runningTrace.get();
-        if ( trace != null ) {
-            trace.setIgnore( ignore );
-        }
-    }
-
-    public void patch(Object[] args) {
+    public static void patchForAttachThread(Object[] args) {
         RunningTrace trace = runningTrace.get();
         if ( trace != null ) {
             trace.patch(args);

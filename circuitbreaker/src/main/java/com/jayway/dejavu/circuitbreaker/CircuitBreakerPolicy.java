@@ -9,12 +9,13 @@ public class CircuitBreakerPolicy {
 
     static {
         RunningTrace.addImpureHandler(new CircuitBreakerImpureHandler());
+        circuitBreakers = new HashMap<String, CircuitBreaker>();
     }
 
     private static int timeout = 10 * 60 * 1000; // ten minutes
     private static int exceptionThreshold = 10;
 
-    private static Map<String, CircuitBreaker> circuitBreakers = new HashMap<String, CircuitBreaker>();;
+    private static Map<String, CircuitBreaker> circuitBreakers;
 
     public static void addCircuitBreaker( CircuitBreaker handler ) {
         circuitBreakers.put(handler.getName(), handler);

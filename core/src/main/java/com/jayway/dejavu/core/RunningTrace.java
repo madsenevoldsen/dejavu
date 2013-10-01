@@ -18,11 +18,39 @@ public class RunningTrace implements ImpureHandler {
     private Throwable throwable;
     private Set<String> attachedThreads;
     private Set<String> completedThreads;
+    private TraceValueHandler traceValueHandler;
+    private TraceValueHandler defaultTraceValueHandler = new TraceValueHandler() {
+        @Override
+        public Object record(Object value) {
+            return value;
+        }
+
+        @Override
+        public Object replay(Object value) {
+            return value;
+        }
+    };
     private ImpureHandler impureHandler;
+    private ImpureHandler defaultImpureHandler = new ImpureHandler() {
+        @Override
+        public void before(RunningTrace runningTrace, String integrationPoint) {
+        }
+
+        @Override
+        public Object success(RunningTrace runningTrace, Object result) {
+            return result;
+        }
+
+        @Override
+        public Throwable failure(RunningTrace runningTrace, Throwable t) {
+            return t;
+        }
+    };
 
     public RunningTrace( Trace trace, boolean recording ) {
         this.trace = trace;
         this.recording = recording;
+        traceValueHandler = ChainBuilder.chain(TraceValueHandler.class).add(defaultTraceValueHandler).add( traceValueHandlers ).build(true);
         if ( recording ) {
             setIgnore(true);
             trace.setId(UUID.randomUUID().toString());
@@ -31,13 +59,9 @@ public class RunningTrace implements ImpureHandler {
             attachedThreads = new HashSet<String>();
             completedThreads = new HashSet<String>();
             exitImpure();
-            ChainBuilder<ImpureHandler> builder = ChainBuilder.chain(ImpureHandler.class);
-            for (ImpureHandler impureHandler : impureHandlers) {
-                builder.add( impureHandler );
-            }
-            impureHandler = builder.build();
+            impureHandler = ChainBuilder.chain(ImpureHandler.class).add(defaultImpureHandler).add( impureHandlers).build(true);
         } else {
-            threadId.set( trace.getId() );
+            threadId.set(trace.getId());
             values = trace.getValues();
             index = 0;
             childThreads = new HashMap<String, LinkedList<String>>();
@@ -59,13 +83,14 @@ public class RunningTrace implements ImpureHandler {
     }
 
     private static List<ImpureHandler> impureHandlers = new ArrayList<ImpureHandler>();
+    private static List<TraceValueHandler> traceValueHandlers = new ArrayList<TraceValueHandler>();
 
     public static void addImpureHandler( ImpureHandler handler ) {
         impureHandlers.add( handler );
     }
 
-    static {
-        addImpureHandler(new DejaVuImpureHandler());
+    public static void addTraceHandler( TraceValueHandler handler ) {
+        traceValueHandlers.add( handler );
     }
 
     public synchronized void threadAttached( String id ) {
@@ -126,43 +151,43 @@ public class RunningTrace implements ImpureHandler {
         return recording;
     }
 
-    public void add( Object value, Class<?> type ) {
-        synchronized (trace) {
-            TraceElement element = new TraceElement(threadId.get(), value, type);
-            trace.addValue(element);
-        }
-    }
-
     public String threadId() {
         return threadId.get();
     }
 
     private List<TraceElement> values;
+
     private int index;
     private Map<String, LinkedList<String>> childThreads;
-
     private static NextValueCallback cb;
+
     public static void setNextValueCallback( NextValueCallback cb ) {
         RunningTrace.cb = cb;
     }
-
     @Override
     public void before(RunningTrace runningTrace, String integrationPoint) {
-        if ( impureHandler != null ) impureHandler.before( runningTrace, integrationPoint);
+        impureHandler.before(runningTrace, integrationPoint);
     }
 
     @Override
-    public void success(RunningTrace runningTrace, Object result, Class returnType) {
-        if ( impureHandler != null ) impureHandler.success(runningTrace, result, returnType);
+    public Object success(RunningTrace runningTrace, Object result) {
+        return impureHandler.success(runningTrace, result);
     }
 
     @Override
-    public void failure(RunningTrace runningTrace, Throwable t) {
-        if ( impureHandler != null ) impureHandler.failure(runningTrace, t);
+    public Throwable failure(RunningTrace runningTrace, Throwable t) {
+        return impureHandler.failure(runningTrace, t);
     }
 
     public interface NextValueCallback {
         void nextValue( Object value );
+    }
+
+    public void add( Object value/*, Class<?> type*/ ) {
+        synchronized (trace) {
+            TraceElement element = new TraceElement(threadId.get(), traceValueHandler.record(value));
+            trace.addValue(element);
+        }
     }
 
     public synchronized Object nextValue() throws Throwable {
@@ -177,7 +202,7 @@ public class RunningTrace implements ImpureHandler {
                 if ( result.getValue() instanceof ThrownThrowable ) {
                     throw ((ThrownThrowable) result.getValue()).getThrowable();
                 }
-                Object value = result.getValue();
+                Object value = traceValueHandler.replay(result.getValue());
                 if ( cb != null ) {
                     cb.nextValue( value );
                 }

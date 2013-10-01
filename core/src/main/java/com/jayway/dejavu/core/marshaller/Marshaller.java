@@ -41,7 +41,9 @@ public class Marshaller {
         Set<String> threads = new LinkedHashSet<String>();
         for (TraceElement element : trace.getValues()) {
             threads.add( element.getThreadId() );
-            addImport( sb, imports, element.getType() );
+            if ( element.getValue() != null ) {
+                addImport( sb, imports, element.getValue().getClass() );
+            }
         }
         for (Object arg : trace.getStartArguments()) {
             addImport( sb, imports, arg );

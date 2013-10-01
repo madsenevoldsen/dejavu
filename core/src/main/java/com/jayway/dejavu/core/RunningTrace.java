@@ -20,30 +20,25 @@ public class RunningTrace implements ImpureHandler {
     private Set<String> completedThreads;
     private TraceValueHandler traceValueHandler;
     private TraceValueHandler defaultTraceValueHandler = new TraceValueHandler() {
-        @Override
         public Object record(Object value) {
             return value;
         }
-
-        @Override
         public Object replay(Object value) {
             return value;
         }
     };
     private ImpureHandler impureHandler;
     private ImpureHandler defaultImpureHandler = new ImpureHandler() {
-        @Override
         public void before(RunningTrace runningTrace, String integrationPoint) {
+            enterImpure();
         }
-
-        @Override
-        public Object success(RunningTrace runningTrace, Object result) {
-            return result;
+        public void success(RunningTrace runningTrace, Object result) {
+            add(result);
+            exitImpure();
         }
-
-        @Override
-        public Throwable failure(RunningTrace runningTrace, Throwable t) {
-            return t;
+        public void failure(RunningTrace runningTrace, Throwable t) {
+            add( new ThrownThrowable(t));
+            exitImpure();
         }
     };
 
@@ -113,7 +108,7 @@ public class RunningTrace implements ImpureHandler {
             if ( isRecording() ) callback.traced(trace, t);
         }
         threadId.remove();
-        //threadLocalInImpure.remove();
+        threadLocalInImpure.remove();
     }
 
     public void threadStarted( String threadId ) {
@@ -151,10 +146,6 @@ public class RunningTrace implements ImpureHandler {
         return recording;
     }
 
-    public String threadId() {
-        return threadId.get();
-    }
-
     private List<TraceElement> values;
 
     private int index;
@@ -170,20 +161,20 @@ public class RunningTrace implements ImpureHandler {
     }
 
     @Override
-    public Object success(RunningTrace runningTrace, Object result) {
-        return impureHandler.success(runningTrace, result);
+    public void success(RunningTrace runningTrace, Object result) {
+        impureHandler.success(runningTrace, result);
     }
 
     @Override
-    public Throwable failure(RunningTrace runningTrace, Throwable t) {
-        return impureHandler.failure(runningTrace, t);
+    public void failure(RunningTrace runningTrace, Throwable t) {
+        impureHandler.failure(runningTrace, t);
     }
 
     public interface NextValueCallback {
         void nextValue( Object value );
     }
 
-    public void add( Object value/*, Class<?> type*/ ) {
+    public void add( Object value ) {
         synchronized (trace) {
             TraceElement element = new TraceElement(threadId.get(), traceValueHandler.record(value));
             trace.addValue(element);
@@ -249,23 +240,23 @@ public class RunningTrace implements ImpureHandler {
         }
     }
 
-    protected void setIgnore( boolean ignore ) {
-        threadLocalIgnore.set( ignore );
-    }
-
     public boolean ignore() {
         return threadLocalIgnore.get() != null && threadLocalIgnore.get();
     }
 
-    public void enterImpure() {
+    public boolean inImpure() {
+        return threadLocalInImpure.get() == null ? false : threadLocalInImpure.get();
+    }
+
+    private void setIgnore( boolean ignore ) {
+        threadLocalIgnore.set( ignore );
+    }
+
+    private void enterImpure() {
         threadLocalInImpure.set(true);
     }
 
-    public void exitImpure() {
+    private void exitImpure() {
         threadLocalInImpure.set(false);
-    }
-
-    public boolean inImpure() {
-        return threadLocalInImpure.get() == null ? false : threadLocalInImpure.get();
     }
 }

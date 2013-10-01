@@ -94,17 +94,13 @@ public class DejaVuPolicy {
             return running.nextValue();
         }
         try {
-            running.enterImpure();
             running.before( running, integrationPoint );
             Object result = interception.proceed();
-            running.add(running.success(running, result) /*, typeInference.inferType(result, interception)*/);
+            running.success(running, result);
             return result;
         } catch (Throwable throwable) {
-            Throwable failure = running.failure(running, throwable);
-            running.add( new ThrownThrowable(failure) /*, ThrownThrowable.class*/);
-            throw failure;
-        } finally {
-            running.exitImpure();
+            running.failure(running, throwable);
+            throw throwable;
         }
     }
 

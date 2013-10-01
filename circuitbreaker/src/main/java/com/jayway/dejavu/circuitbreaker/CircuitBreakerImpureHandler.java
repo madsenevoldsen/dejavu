@@ -15,16 +15,14 @@ public class CircuitBreakerImpureHandler implements ImpureHandler {
     }
 
     @Override
-    public Object success(RunningTrace runningTrace, Object result) {
+    public void success(RunningTrace runningTrace, Object result) {
         threadLocal.get().success();
         threadLocal.remove();
-        return result;
     }
 
     @Override
-    public Throwable failure(RunningTrace runningTrace, Throwable t) {
+    public void failure(RunningTrace runningTrace, Throwable t) {
         threadLocal.get().failure(t);
         threadLocal.remove();
-        return t;
     }
 }

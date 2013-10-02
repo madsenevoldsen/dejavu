@@ -11,25 +11,11 @@ public class DejaVuPolicy {
     protected static ThreadLocal<RunningTrace> runningTrace = new ThreadLocal<RunningTrace>();
     private static TraceCallback callback;
 
-    public static void initialize( TraceCallback cb ) {
-        callback = cb;
-    }
-
-
-    private static BeforeRunCallback beforeRunCallback;
-
-    public static void setBeforeRunCallback( BeforeRunCallback beforeRunCallback ) {
-        DejaVuPolicy.beforeRunCallback = beforeRunCallback;
-    }
-
-    public interface BeforeRunCallback {
-        void beforeRun( Trace trace );
+    public static void initialize( TraceCallback callback ) {
+        DejaVuPolicy.callback = callback;
     }
 
     public static <T> T replay( Trace trace ) throws Throwable {
-        if ( beforeRunCallback != null ) {
-            beforeRunCallback.beforeRun( trace );
-        }
         RunningTrace running = new RunningTrace(trace, false);
         runningTrace.set(running);
         Method method = trace.getStartPoint();
@@ -53,10 +39,6 @@ public class DejaVuPolicy {
         }
     }
 
-    public static void destroy() {
-        callback = null;
-    }
-
     public Object aroundTraced( DejaVuInterception interception ) throws Throwable {
         RunningTrace trace = runningTrace.get();
         if ( trace != null && trace.isRecording()) {
@@ -73,11 +55,11 @@ public class DejaVuPolicy {
 
         try {
             Object result = interception.proceed();
-            trace.callbackIfFinished(DejaVuPolicy.callback, trace.getTrace(), null);
+            trace.callbackIfFinished(trace.getTrace(), null);
             return result;
         } catch ( Throwable t) {
             trace.setThrowable( t );
-            trace.callbackIfFinished(DejaVuPolicy.callback, trace.getTrace(), t);
+            trace.callbackIfFinished(trace.getTrace(), t);
             throw t;
         } finally {
             runningTrace.remove();
@@ -104,7 +86,7 @@ public class DejaVuPolicy {
         }
     }
 
-    protected boolean justProceed() throws Throwable {
+    private boolean justProceed() throws Throwable {
         if ( runningTrace.get() == null ) {
             // we are outside of a trace so call the method normally
             return true;

@@ -1,6 +1,5 @@
 package com.jayway.dejavu.chainer;
 
-import com.jayway.dejavu.core.chainer.BuildException;
 import com.jayway.dejavu.core.chainer.ChainBuilder;
 import com.jayway.dejavu.core.chainer.CouldNotHandleException;
 import junit.framework.Assert;
@@ -10,7 +9,7 @@ public class ChainerTest {
 
     @Test
     public void testChain() {
-        Handle handle = ChainBuilder.chain(Handle.class).add(new StringHandler(), new ExceptionHandle()).build();
+        Handle handle = ChainBuilder.handle(Handle.class).add(new StringHandler(), new ExceptionHandle()).build();
 
         Assert.assertEquals("Exception", handle.name(RuntimeException.class));
         Assert.assertEquals("String class", handle.name(String.class));
@@ -18,7 +17,7 @@ public class ChainerTest {
 
     @Test
     public void testError() {
-        Handle handle = ChainBuilder.chain(Handle.class).add(new StringHandler(), new ExceptionHandle()).build();
+        Handle handle = ChainBuilder.handle(Handle.class).add(new StringHandler(), new ExceptionHandle()).build();
 
         Assert.assertEquals("Exception", handle.name(RuntimeException.class));
         Assert.assertEquals("String class", handle.name(String.class));
@@ -34,7 +33,7 @@ public class ChainerTest {
     /*@Test
     public void constructError() {
         try {
-            ChainBuilder.chain(Handle.class).build();
+            ChainBuilder.chain(Handle.class).handle();
             Assert.fail();
         } catch (BuildException e) {
 
@@ -43,7 +42,7 @@ public class ChainerTest {
 
     @Test
     public void returningNull() {
-        Handle handle = ChainBuilder.chain(Handle.class).add(new ReturnNullHandler()).build();
+        Handle handle = ChainBuilder.handle(Handle.class).add(new ReturnNullHandler()).build();
 
         Assert.assertEquals( "integer type", handle.name( Integer.class ) );
         Assert.assertNull( handle.name( String.class ));

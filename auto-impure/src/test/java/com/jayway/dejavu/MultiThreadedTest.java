@@ -21,13 +21,12 @@ public class MultiThreadedTest {
     public void setup() {
         callback = new TraceCallbackImpl();
         DejaVuPolicy.initialize(callback);
-        DejaVuPolicy.setBeforeRunCallback(null);
+        RunningTrace.initialize();
         AutoImpure.initialize();
     }
 
     @Test
     public void with_three_child_threads() throws Throwable {
-        //AutoImpure.initialize();
         WithThreads withThreads = new WithThreads();
         int threads = 5;
         withThreads.begin( threads );
@@ -38,9 +37,10 @@ public class MultiThreadedTest {
         System.out.println(new Marshaller().marshal(trace));
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        RunningTrace.setNextValueCallback(new RunningTrace.NextValueCallback() {
-            public void nextValue(Object value) {
+        RunningTrace.addTraceHandler(new TraceValueHandlerAdapter() {
+            public Object replay(Object value) {
                 values.add(new TraceElement(Thread.currentThread().getName(), value));
+                return value;
             }
         });
         DejaVuPolicy.replay(trace);

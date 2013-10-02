@@ -1,7 +1,6 @@
 package com.jayway.dejavu.helper;
 
-import com.jayway.dejavu.core.DejaVuPolicy;
-import com.jayway.dejavu.core.Trace;
+import com.jayway.dejavu.core.*;
 import com.jayway.dejavu.core.marshaller.Marshaller;
 import com.jayway.dejavu.core.marshaller.TraceBuilder;
 import com.jayway.dejavu.impl.ExampleTrace;
@@ -9,17 +8,11 @@ import com.jayway.dejavu.impl.TraceCallbackImpl;
 import junit.framework.Assert;
 import org.abstractmeta.toolbox.compilation.compiler.JavaSourceCompiler;
 import org.abstractmeta.toolbox.compilation.compiler.impl.JavaSourceCompilerImpl;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.lang.reflect.Method;
 
 public class TraceBuilderTest {
-
-    @Before
-    public void setup() {
-        DejaVuPolicy.setBeforeRunCallback(null);
-    }
 
     @Test
     public void builder() throws Throwable {
@@ -34,7 +27,6 @@ public class TraceBuilderTest {
 
         }
     }
-
 
     @Test
     public void verify_generated_test() throws Throwable {
@@ -55,18 +47,23 @@ public class TraceBuilderTest {
         Object o = testClass.newInstance();
         Method method = testClass.getDeclaredMethod("withsimpletypestest");
 
-        DejaVuPolicy.setBeforeRunCallback( new DejaVuPolicy.BeforeRunCallback() {
-            public void beforeRun(Trace trace) {
-                int loop = (Integer) trace.getValues().get(0).getValue();
-                Assert.assertEquals( loop+1, trace.getValues().size() );
-                int result = 1;
-                for ( int i=1; i<loop+1; i++ ) {
-                    result *= (Integer) trace.getValues().get( i ).getValue();
-                }
-                Assert.assertEquals( origResult.intValue(), result );
+        final Trace trace = new Trace();
+        RunningTrace.addTraceHandler(new TraceValueHandlerAdapter() {
+            public Object replay(Object value) {
+                trace.getValues().add( new TraceElement("?", value));
+                return value;
             }
         });
         method.invoke( o );
+        // validate trace
+        int loop = (Integer) trace.getValues().get(0).getValue();
+        Assert.assertEquals( loop+1, trace.getValues().size() );
+        int result = 1;
+        for ( int i=1; i<loop+1; i++ ) {
+            result *= (Integer) trace.getValues().get( i ).getValue();
+        }
+        Assert.assertEquals( origResult.intValue(), result );
+
     }
 
     @Test

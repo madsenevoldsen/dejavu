@@ -12,7 +12,7 @@ public class Marshaller {
     private MarshallerPlugin[] plugins;
 
     public Marshaller( MarshallerPlugin... plugins) {
-        ChainBuilder<MarshallerPlugin> builder = ChainBuilder.chain(MarshallerPlugin.class);
+        ChainBuilder<MarshallerPlugin> builder = ChainBuilder.handle(MarshallerPlugin.class);
         builder.add(new SimpleTypeMarshaller());
         if ( plugins != null ) {
             this.plugins = plugins;

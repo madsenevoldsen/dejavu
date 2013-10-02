@@ -28,7 +28,7 @@ public class MultiThreadedTracerTest {
     public void setup() {
         callback = new TraceCallbackImpl();
         DejaVuPolicy.initialize(callback);
-        DejaVuPolicy.setBeforeRunCallback(null);
+        RunningTrace.initialize();
     }
 
     @Test
@@ -42,9 +42,10 @@ public class MultiThreadedTracerTest {
         Trace trace = callback.getTrace();
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        RunningTrace.setNextValueCallback( new RunningTrace.NextValueCallback() {
-            public void nextValue(Object value) {
+        RunningTrace.addTraceHandler(new TraceValueHandlerAdapter() {
+            public Object replay(Object value) {
                 values.add( new TraceElement( Thread.currentThread().getName(), value));
+                return value;
             }
         });
         DejaVuPolicy.replay(trace);
@@ -74,9 +75,10 @@ public class MultiThreadedTracerTest {
         Trace trace = callback.getTrace();
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        RunningTrace.setNextValueCallback(new RunningTrace.NextValueCallback() {
-            public void nextValue(Object value) {
+        RunningTrace.addTraceHandler(new TraceValueHandlerAdapter() {
+            public Object replay(Object value) {
                 values.add(new TraceElement(Thread.currentThread().getName(), value));
+                return value;
             }
         });
         DejaVuPolicy.replay(trace);
@@ -139,9 +141,10 @@ public class MultiThreadedTracerTest {
 
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        RunningTrace.setNextValueCallback( new RunningTrace.NextValueCallback() {
-            public void nextValue(Object value) {
+        RunningTrace.addTraceHandler(new TraceValueHandlerAdapter() {
+            public Object replay(Object value) {
                 values.add( new TraceElement( Thread.currentThread().getName(), value));
+                return value;
             }
         });
         builder.run();

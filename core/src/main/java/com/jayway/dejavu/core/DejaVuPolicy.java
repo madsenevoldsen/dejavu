@@ -16,7 +16,7 @@ public class DejaVuPolicy {
     }
 
     public static <T> T replay( Trace trace ) throws Throwable {
-        RunningTrace running = new RunningTrace(trace, false);
+        RunningTrace running = new RunningTrace(trace, callback, false);
         runningTrace.set(running);
         Method method = trace.getStartPoint();
         Class<?> aClass = method.getDeclaringClass();
@@ -32,7 +32,7 @@ public class DejaVuPolicy {
         } catch (InvocationTargetException ee ) {
             throw ee.getTargetException();
         } finally {
-            while (!running.completed()) {
+            while (!running.attachedThreadsCompleted()) {
                 // wait until finished
                 Thread.sleep(500);
             }
@@ -49,17 +49,16 @@ public class DejaVuPolicy {
         if ( trace == null ) {
             // a @Traced method has been called and there is no
             // RunningTrace so create one
-            trace = new RunningTrace(new Trace(interception.getMethod(), interception.getArguments() ), true);
+            trace = new RunningTrace(new Trace(interception.getMethod(), interception.getArguments() ),callback, true);
             runningTrace.set( trace );
         }
 
         try {
             Object result = interception.proceed();
-            trace.callbackIfFinished(trace.getTrace(), null);
+            trace.callbackIfFinished(null);
             return result;
         } catch ( Throwable t) {
-            trace.setThrowable( t );
-            trace.callbackIfFinished(trace.getTrace(), t);
+            trace.callbackIfFinished(t);
             throw t;
         } finally {
             runningTrace.remove();
@@ -110,10 +109,6 @@ public class DejaVuPolicy {
             trace.patch(args);
             interception.proceed(args);
         }
-    }
-
-    public static void callback(Trace trace, Throwable t) {
-        callback.traced(trace, t);
     }
 
     public static void patchForAttachThread(Object[] args) {

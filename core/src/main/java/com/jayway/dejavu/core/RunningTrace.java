@@ -12,42 +12,45 @@ public class RunningTrace implements ImpureHandler {
     private static ThreadLocal<String> threadId = new ThreadLocal<String>();
     private static ThreadLocal<Boolean> threadLocalIgnore = new ThreadLocal<Boolean>();
     private static ThreadLocal<Boolean> threadLocalInImpure = new ThreadLocal<Boolean>();
+    private static List<ImpureHandler> impureHandlers = new ArrayList<ImpureHandler>();
+    private static List<TraceValueHandler> traceValueHandlers = new ArrayList<TraceValueHandler>();
 
+    private TraceCallback callback;
     private boolean recording;
     private final Trace trace;
     private Throwable throwable;
     private Set<String> attachedThreads;
     private Set<String> completedThreads;
     private TraceValueHandler traceValueHandler;
-
     private ImpureHandler impureHandler;
-    private ImpureHandler defaultImpureHandler = new ImpureHandler() {
-        public void before(RunningTrace runningTrace, String integrationPoint) {
-            enterImpure();
-        }
-        public void success(RunningTrace runningTrace, Object result) {
-            add(result);
-            exitImpure();
-        }
-        public void failure(RunningTrace runningTrace, Throwable t) {
-            add(new ThrownThrowable(t));
-            exitImpure();
-        }
-    };
+    private List<TraceElement> values;
+    private int index;
+    private Map<String, LinkedList<String>> childThreads;
 
-    protected RunningTrace( Trace trace, boolean recording ) {
+    protected RunningTrace( Trace trace, TraceCallback callback, boolean recording ) {
         this.trace = trace;
+        this.callback = callback;
         this.recording = recording;
         traceValueHandler = ChainBuilder.compose(TraceValueHandler.class).add(new TraceValueHandlerAdapter()).add( traceValueHandlers ).build();
         if ( recording ) {
-            setIgnore(true);
-            trace.setId(UUID.randomUUID().toString());
-            threadId.set( trace.getId() );
-            setIgnore(false);
+            trace.setId(generateId());
+            threadId.set(trace.getId());
             attachedThreads = new HashSet<String>();
             completedThreads = new HashSet<String>();
-            exitImpure();
-            impureHandler = ChainBuilder.all(ImpureHandler.class).add(defaultImpureHandler).add( impureHandlers).build();
+            setInImpure(false);
+            impureHandler = ChainBuilder.all(ImpureHandler.class).add(new ImpureHandler() {
+                public void before(RunningTrace runningTrace, String integrationPoint) {
+                    setInImpure(true);
+                }
+                public void success(RunningTrace runningTrace, Object result) {
+                    add(result);
+                    setInImpure(false);
+                }
+                public void failure(RunningTrace runningTrace, Throwable t) {
+                    add(new ThrownThrowable(t));
+                    setInImpure(false);
+                }
+            }).add( impureHandlers).build();
         } else {
             threadId.set(trace.getId());
             values = trace.getValues();
@@ -70,20 +73,17 @@ public class RunningTrace implements ImpureHandler {
         }
     }
 
-    private static List<ImpureHandler> impureHandlers = new ArrayList<ImpureHandler>();
-    private static List<TraceValueHandler> traceValueHandlers = new ArrayList<TraceValueHandler>();
-
     public static void initialize() {
         impureHandlers.clear();
         traceValueHandlers.clear();
     }
 
     public static void addImpureHandler( ImpureHandler handler ) {
-        impureHandlers.add( handler );
+        impureHandlers.add(handler);
     }
 
     public static void addTraceHandler( TraceValueHandler handler ) {
-        traceValueHandlers.add( handler );
+        traceValueHandlers.add(handler);
     }
 
     public synchronized void threadAttached( String id ) {
@@ -91,17 +91,18 @@ public class RunningTrace implements ImpureHandler {
             attachedThreads = new HashSet<String>();
             completedThreads = new HashSet<String>();
         }
-        attachedThreads.add( id );
+        attachedThreads.add(id);
     }
 
     public synchronized void threadCompleted() {
-        completedThreads.add( threadId.get() );
-        callbackIfFinished(getTrace(), getThrowable());
+        completedThreads.add(threadId.get());
+        callbackIfFinished(throwable);
     }
 
-    public void callbackIfFinished(Trace trace, Throwable t) {
-        if ( completed() && isRecording() ) {
-            DejaVuPolicy.callback(trace, t);
+    public void callbackIfFinished(Throwable t) {
+        throwable = t;
+        if ( attachedThreadsCompleted() && isRecording() ) {
+            callback.traced(trace, t);
         }
         threadId.remove();
         threadLocalInImpure.remove();
@@ -120,30 +121,13 @@ public class RunningTrace implements ImpureHandler {
         }
     }
 
-    public synchronized boolean completed() {
-        // AND if the main @Traced has completed
+    protected synchronized boolean attachedThreadsCompleted() {
         return attachedThreads == null || attachedThreads.size() == completedThreads.size();
-    }
-
-    public Trace getTrace() {
-        return trace;
-    }
-
-    public Throwable getThrowable() {
-        return throwable;
-    }
-
-    public void setThrowable(Throwable throwable) {
-        this.throwable = throwable;
     }
 
     public boolean isRecording() {
         return recording;
     }
-
-    private List<TraceElement> values;
-    private int index;
-    private Map<String, LinkedList<String>> childThreads;
 
     @Override
     public void before(RunningTrace runningTrace, String integrationPoint) {
@@ -160,14 +144,14 @@ public class RunningTrace implements ImpureHandler {
         impureHandler.failure(runningTrace, t);
     }
 
-    public void add( Object value ) {
+    private void add( Object value ) {
         synchronized (trace) {
             TraceElement element = new TraceElement(threadId.get(), traceValueHandler.record(value));
             trace.addValue(element);
         }
     }
 
-    public synchronized Object nextValue() throws Throwable {
+    protected synchronized Object nextValue() throws Throwable {
         while (true) {
             if (index >= values.size()) {
                 throw new TraceEndedException();
@@ -195,11 +179,8 @@ public class RunningTrace implements ImpureHandler {
         if (!isRecording()) {
             return childThreads.get(threadId.get()).removeFirst();
         }
-        // generate id for new thread that will begin this runnable
-        setIgnore(true);
-        String id = UUID.randomUUID().toString();
-        setIgnore(false);
-        return threadId.get() + "." + id;
+        // generate id for new thread included in trace
+        return threadId.get() + "." + generateId();
     }
 
     public void patch(Object[] args) {
@@ -230,15 +211,14 @@ public class RunningTrace implements ImpureHandler {
         return threadLocalInImpure.get() == null ? false : threadLocalInImpure.get();
     }
 
-    private void setIgnore( boolean ignore ) {
-        threadLocalIgnore.set( ignore );
+    private String generateId() {
+        threadLocalIgnore.set( true );
+        String id = UUID.randomUUID().toString();
+        threadLocalIgnore.set( false );
+        return id;
     }
 
-    private void enterImpure() {
-        threadLocalInImpure.set(true);
-    }
-
-    private void exitImpure() {
-        threadLocalInImpure.set(false);
+    private void setInImpure(boolean inImpure ) {
+        threadLocalInImpure.set(inImpure);
     }
 }

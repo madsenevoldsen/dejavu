@@ -97,7 +97,7 @@ public class MultiThreadedTracerTest {
             }
         }
 
-        Assert.assertEquals( trace.getThreadThrowables().size() +  threadCount, threadNameMap.size() );
+        Assert.assertEquals( callback.getThreadCauses().size() +  threadCount, threadNameMap.size() );
     }
 
     @Test

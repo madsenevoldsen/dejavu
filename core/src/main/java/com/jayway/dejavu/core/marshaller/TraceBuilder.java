@@ -5,6 +5,7 @@ import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.TraceElement;
 import com.jayway.dejavu.core.annotation.Traced;
 
+import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public class TraceBuilder {
     }
 
     private TraceBuilder( String traceId ) {
-        trace = new Trace();
+        trace = new Trace(null, null);
         trace.setId( traceId );
         trace.setValues( new ArrayList<TraceElement>() );
     }
@@ -116,6 +117,7 @@ public class TraceBuilder {
     }
 
     public Object run() throws Throwable {
+        //File.createTempFile("dejavu-", ".tmp");
         return DejaVuPolicy.replay(trace);
     }
 }

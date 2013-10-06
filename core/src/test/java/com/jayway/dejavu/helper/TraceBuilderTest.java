@@ -47,7 +47,7 @@ public class TraceBuilderTest {
         Object o = testClass.newInstance();
         Method method = testClass.getDeclaredMethod("withsimpletypestest");
 
-        final Trace trace = new Trace();
+        final Trace trace = new Trace(null, null);
         RunningTrace.addTraceHandler(new TraceValueHandlerAdapter() {
             public Object replay(Object value) {
                 trace.getValues().add( new TraceElement("?", value));

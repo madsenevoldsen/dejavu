@@ -1,10 +1,13 @@
 package com.jayway.dejavu.core;
 
 import com.jayway.dejavu.core.exception.TraceEndedException;
+import com.jayway.dejavu.core.repository.RecordingTracer;
+import com.jayway.dejavu.core.repository.ReplayTracer;
 import com.jayway.dejavu.core.repository.TraceCallback;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.concurrent.Callable;
 
 public class DejaVuPolicy {
 
@@ -16,7 +19,7 @@ public class DejaVuPolicy {
     }
 
     public static <T> T replay( Trace trace ) throws Throwable {
-        RunningTrace running = new RunningTrace(trace, callback, false);
+        RunningTrace running = new RunningTrace( new ReplayTracer(trace), callback);
         runningTrace.set(running);
         Method method = trace.getStartPoint();
         Class<?> aClass = method.getDeclaringClass();
@@ -49,7 +52,7 @@ public class DejaVuPolicy {
         if ( trace == null ) {
             // a @Traced method has been called and there is no
             // RunningTrace so create one
-            trace = new RunningTrace(new Trace(interception.getMethod(), interception.getArguments() ),callback, true);
+            trace = new RunningTrace(new RecordingTracer(new Trace(interception.getMethod(), interception.getArguments()) ),callback);
             runningTrace.set( trace );
         }
 
@@ -70,19 +73,7 @@ public class DejaVuPolicy {
             return interception.proceed();
         }
 
-        RunningTrace running = runningTrace.get();
-        if (!running.isRecording()) {
-            return running.nextValue();
-        }
-        try {
-            running.before( running, integrationPoint );
-            Object result = interception.proceed();
-            running.success(running, result);
-            return result;
-        } catch (Throwable throwable) {
-            running.failure(running, throwable);
-            throw throwable;
-        }
+        return runningTrace.get().aroundImpure( interception, integrationPoint);
     }
 
     private boolean justProceed() throws Throwable {
@@ -90,14 +81,7 @@ public class DejaVuPolicy {
             // we are outside of a trace so call the method normally
             return true;
         }
-        RunningTrace running = runningTrace.get();
-        if ( running.inImpure() ) {
-            // we are in a trace and in an impure call
-            // called from another impure call, so don't
-            // trace this call
-            return true;
-        }
-        return running.ignore();
+        return runningTrace.get().shouldProceed();
     }
 
     public void attachThread( DejaVuInterception interception) throws Throwable {
@@ -106,7 +90,7 @@ public class DejaVuPolicy {
             interception.proceed();
         } else {
             Object[] args = interception.getArguments();
-            trace.patch(args);
+            patch(trace, args);
             interception.proceed(args);
         }
     }
@@ -114,7 +98,18 @@ public class DejaVuPolicy {
     public static void patchForAttachThread(Object[] args) {
         RunningTrace trace = runningTrace.get();
         if ( trace != null ) {
-            trace.patch(args);
+            patch(trace, args);
+        }
+    }
+
+    private static void patch(RunningTrace trace, Object[] args){
+        for (int i=0; i<args.length; i++) {
+            Object arg = args[i];
+            if ( arg instanceof Runnable ) {
+                args[i] = trace.toBeAttached((Runnable) arg);
+            } else if ( arg instanceof Callable) {
+                args[i] = trace.toBeAttached((Callable) arg);
+            }
         }
     }
 }

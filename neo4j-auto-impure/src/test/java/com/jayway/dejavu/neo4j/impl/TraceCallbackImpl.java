@@ -4,12 +4,14 @@ import com.jayway.dejavu.core.ThreadThrowable;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.repository.TraceCallback;
 
+import java.util.List;
+
 public class TraceCallbackImpl implements TraceCallback {
 
     private Trace trace;
 
     @Override
-    public void traced(Trace trace, Throwable cause, ThreadThrowable... threadThrowables) {
+    public void traced(Trace trace, Throwable cause, List<ThreadThrowable> threadThrowables) {
         this.trace = trace;
     }
 

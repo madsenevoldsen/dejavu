@@ -10,15 +10,9 @@ public class Trace {
     private Method startPoint;
     // TODO Modify to contain list instead of array.
     private Object[] startArguments;
-    private List<ThreadThrowable> threadThrowables;
-
-    public Trace() {
-        values = new ArrayList<TraceElement>();
-        threadThrowables = new ArrayList<ThreadThrowable>();
-    }
 
     public Trace( Method startPoint, Object[] startArguments ) {
-        this();
+        values = new ArrayList<TraceElement>();
         this.startPoint = startPoint;
         this.startArguments = startArguments;
     }
@@ -57,17 +51,5 @@ public class Trace {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public List<ThreadThrowable> getThreadThrowables() {
-        return threadThrowables;
-    }
-
-    public void setThreadThrowables(List<ThreadThrowable> threadThrowables) {
-        this.threadThrowables = threadThrowables;
-    }
-
-    public void addThreadThrowable( ThreadThrowable threadThrowable ) {
-        threadThrowables.add( threadThrowable );
     }
 }

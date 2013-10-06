@@ -10,7 +10,7 @@ public class ThrownThrowable implements Serializable {
     private Throwable throwable;
 
     public ThrownThrowable () {}
-    ThrownThrowable( Throwable throwable ) {
+    public ThrownThrowable( Throwable throwable ) {
         this.throwable = throwable;
     }
 

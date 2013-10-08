@@ -4,8 +4,9 @@ import com.jayway.dejavu.circuitbreaker.impl.MyOwnException;
 import com.jayway.dejavu.circuitbreaker.impl.TraceCallbackImpl;
 import com.jayway.dejavu.circuitbreaker.impl.WithIntegrationPoint;
 import com.jayway.dejavu.core.DejaVuPolicy;
-import com.jayway.dejavu.core.RecordReplayFactory;
-import com.jayway.dejavu.core.RecordReplayer;
+import com.jayway.dejavu.core.RunningTrace;
+import com.jayway.dejavu.recordreplay.RecordReplayFactory;
+import com.jayway.dejavu.recordreplay.RecordReplayer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,8 +18,10 @@ public class CircuitBreakerTest {
     @Before
     public void setup() {
         callback = new TraceCallbackImpl();
-        RecordReplayer.initialize(callback);
+        DejaVuPolicy.initialize(callback);
         DejaVuPolicy.setFactory(new RecordReplayFactory());
+        RunningTrace.initialize();
+        CircuitBreakerPolicy.initialize();
     }
 
     @Test

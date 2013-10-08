@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>dejavu-neo4j-auto-impure</artifactId>
+    <artifactId>dejavu-core-aspectj-interception</artifactId>
     <packaging>jar</packaging>
     <parent>
-        <artifactId>dejavu</artifactId>
         <groupId>com.jayway.dejavu</groupId>
+        <artifactId>dejavu</artifactId>
         <version>0.1.0-SNAPSHOT</version>
     </parent>
 
@@ -18,28 +16,16 @@
             <artifactId>dejavu-core</artifactId>
             <version>0.1.0-SNAPSHOT</version>
         </dependency>
+        <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+        <!-- Logging dependencies            -->
+        <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
         <dependency>
-            <groupId>com.jayway.dejavu</groupId>
-            <artifactId>dejavu-record-replay</artifactId>
-            <version>0.1.0-SNAPSHOT</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.easymock</groupId>
-            <artifactId>easymock</artifactId>
-            <version>3.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j</artifactId>
-            <version>1.9.M04</version>
-        </dependency>
-        <dependency>
-            <groupId>com.jayway.dejavu</groupId>
-            <artifactId>dejavu-core-aspectj-interception</artifactId>
-            <version>0.1.0-SNAPSHOT</version>
-        </dependency>
-
-        <!-- TEST -->
+        <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+        <!-- Test dependencies            -->
+        <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -63,12 +49,6 @@
                 <artifactId>aspectj-maven-plugin</artifactId>
                 <version>1.4</version>
                 <configuration>
-                    <aspectLibraries>
-                        <aspectLibrary>
-                            <groupId>com.jayway.dejavu</groupId>
-                            <artifactId>dejavu-core-aspectj-interception</artifactId>
-                        </aspectLibrary>
-                    </aspectLibraries>
                     <source>1.6</source>
                     <target>1.6</target>
                     <encoding>utf-8</encoding>
@@ -85,5 +65,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

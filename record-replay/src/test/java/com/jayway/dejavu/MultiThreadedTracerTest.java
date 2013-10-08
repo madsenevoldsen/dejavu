@@ -2,10 +2,12 @@ package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.*;
 import com.jayway.dejavu.core.marshaller.Marshaller;
-import com.jayway.dejavu.core.marshaller.TraceBuilder;
+import com.jayway.dejavu.recordreplay.TraceBuilder;
 import com.jayway.dejavu.impl.FailingWithThreads;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
 import com.jayway.dejavu.impl.WithThreads;
+import com.jayway.dejavu.recordreplay.RecordReplayFactory;
+import com.jayway.dejavu.recordreplay.RecordReplayer;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;

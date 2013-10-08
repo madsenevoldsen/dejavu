@@ -1,6 +1,7 @@
-package com.jayway.dejavu.core.repository;
+package com.jayway.dejavu.recordreplay;
 
 import com.jayway.dejavu.core.*;
+import com.jayway.dejavu.core.repository.Tracer;
 
 public class RecordingTracer implements Tracer {
 

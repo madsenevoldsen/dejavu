@@ -1,4 +1,7 @@
-package com.jayway.dejavu.core;
+package com.jayway.dejavu.recordreplay;
+
+import com.jayway.dejavu.core.DejaVuPolicy;
+import com.jayway.dejavu.core.PolicyFactory;
 
 public class RecordReplayFactory implements PolicyFactory {
 

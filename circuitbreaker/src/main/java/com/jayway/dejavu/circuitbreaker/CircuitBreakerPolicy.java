@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class CircuitBreakerPolicy {
 
-    static {
+    public static void initialize() {
         RunningTrace.addImpureHandler(new CircuitBreakerImpureHandler());
         circuitBreakers = new HashMap<String, CircuitBreaker>();
     }

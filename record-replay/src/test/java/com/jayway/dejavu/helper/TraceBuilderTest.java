@@ -2,9 +2,11 @@ package com.jayway.dejavu.helper;
 
 import com.jayway.dejavu.core.*;
 import com.jayway.dejavu.core.marshaller.Marshaller;
-import com.jayway.dejavu.core.marshaller.TraceBuilder;
+import com.jayway.dejavu.recordreplay.TraceBuilder;
 import com.jayway.dejavu.impl.ExampleTrace;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
+import com.jayway.dejavu.recordreplay.RecordReplayFactory;
+import com.jayway.dejavu.recordreplay.RecordReplayer;
 import junit.framework.Assert;
 import org.abstractmeta.toolbox.compilation.compiler.JavaSourceCompiler;
 import org.abstractmeta.toolbox.compilation.compiler.impl.JavaSourceCompilerImpl;
@@ -37,7 +39,7 @@ public class TraceBuilderTest {
     @Test
     public void verify_generated_test() throws Throwable {
         TraceCallbackImpl callback = new TraceCallbackImpl();
-        RecordReplayer.initialize( callback );
+        RecordReplayer.initialize(callback);
 
         final Integer origResult = new WithSimpleTypes().simple();
 

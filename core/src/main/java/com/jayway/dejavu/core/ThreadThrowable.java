@@ -4,7 +4,6 @@ public class ThreadThrowable {
     private String threadId;
     private Throwable throwable;
 
-    public ThreadThrowable() {}
     public ThreadThrowable(String threadId, Throwable throwable) {
         this.threadId = threadId;
         this.throwable = throwable;

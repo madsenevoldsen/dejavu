@@ -1,13 +1,13 @@
 package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.DejaVuPolicy;
-import com.jayway.dejavu.core.RecordReplayer;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.marshaller.Marshaller;
 import com.jayway.dejavu.impl.ClassArguments;
 import com.jayway.dejavu.impl.ExampleFailingIntegrationPoint;
 import com.jayway.dejavu.impl.RecurseAndExcept;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
+import com.jayway.dejavu.recordreplay.RecordReplayer;
 import junit.framework.Assert;
 import org.abstractmeta.toolbox.compilation.compiler.JavaSourceCompiler;
 import org.abstractmeta.toolbox.compilation.compiler.impl.JavaSourceCompilerImpl;

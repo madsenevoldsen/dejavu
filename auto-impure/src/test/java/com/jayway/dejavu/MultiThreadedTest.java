@@ -4,6 +4,8 @@ import com.jayway.dejavu.core.*;
 import com.jayway.dejavu.core.marshaller.Marshaller;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
 import com.jayway.dejavu.impl.WithThreads;
+import com.jayway.dejavu.recordreplay.RecordReplayFactory;
+import com.jayway.dejavu.recordreplay.RecordReplayer;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,7 +24,7 @@ public class MultiThreadedTest {
         callback = new TraceCallbackImpl();
         DejaVuPolicy.initialize(callback);
         RunningTrace.initialize();
-        AutoImpure.initialize();
+        AutoImpureTraceValueHandler.initialize();
         DejaVuPolicy.setFactory(new RecordReplayFactory());
     }
 

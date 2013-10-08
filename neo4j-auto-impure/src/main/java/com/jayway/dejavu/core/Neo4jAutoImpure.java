@@ -1,6 +1,5 @@
 package com.jayway.dejavu.core;
 
-import com.jayway.dejavu.neo4j.Neo4jTraceValueHandler;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -10,10 +9,6 @@ import java.util.Iterator;
 
 @Aspect
 public class Neo4jAutoImpure {
-
-    public static void initialize() {
-        RunningTrace.addTraceHandler(new Neo4jTraceValueHandler());
-    }
 
     @Around("call(* org.neo4j.graphdb.GraphDatabaseService.*(..))")
     public Object dbService(ProceedingJoinPoint proceed ) throws Throwable {

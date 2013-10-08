@@ -1,14 +1,13 @@
 package com.jayway.dejavu.neo4j;
 
 import com.jayway.dejavu.core.DejaVuPolicy;
-import com.jayway.dejavu.core.Neo4jAutoImpure;
-import com.jayway.dejavu.core.RecordReplayFactory;
-import com.jayway.dejavu.core.RecordReplayer;
-import com.jayway.dejavu.core.marshaller.TraceBuilder;
 import com.jayway.dejavu.neo4j.impl.DatabaseInteraction;
 import com.jayway.dejavu.neo4j.impl.DatabasePagesQuery;
 import com.jayway.dejavu.neo4j.impl.DatabaseQuery;
 import com.jayway.dejavu.neo4j.impl.TraceCallbackImpl;
+import com.jayway.dejavu.recordreplay.RecordReplayFactory;
+import com.jayway.dejavu.recordreplay.RecordReplayer;
+import com.jayway.dejavu.recordreplay.TraceBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,8 +18,8 @@ public class Neo4jAutoImpureTest {
     @Before
     public void before(){
         callback = new TraceCallbackImpl();
-        RecordReplayer.initialize( callback );
-        Neo4jAutoImpure.initialize();
+        RecordReplayer.initialize(callback);
+        Neo4jTraceValueHandler.initialize();
         DejaVuPolicy.setFactory(new RecordReplayFactory());
     }
 

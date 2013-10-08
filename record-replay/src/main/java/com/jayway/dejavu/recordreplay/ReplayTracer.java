@@ -1,7 +1,7 @@
-package com.jayway.dejavu.core.repository;
+package com.jayway.dejavu.recordreplay;
 
 import com.jayway.dejavu.core.*;
-import com.jayway.dejavu.core.exception.TraceEndedException;
+import com.jayway.dejavu.core.repository.Tracer;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -37,7 +37,7 @@ public class ReplayTracer implements Tracer {
     public synchronized Object nextValue(String threadId, DejaVuInterception interception) throws Throwable{
         while (true) {
             if (current >= trace.getValues().size()) {
-                throw new TraceEndedException();
+                throw new RuntimeException("Trace ended!");
             }
             TraceElement result = trace.getValues().get(current);
             if ( threadId.equals(result.getThreadId()) ) {

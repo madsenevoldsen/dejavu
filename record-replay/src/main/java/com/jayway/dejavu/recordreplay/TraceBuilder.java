@@ -1,9 +1,11 @@
-package com.jayway.dejavu.core.marshaller;
+package com.jayway.dejavu.recordreplay;
 
-import com.jayway.dejavu.core.RecordReplayer;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.TraceElement;
 import com.jayway.dejavu.core.annotation.Traced;
+import com.jayway.dejavu.core.marshaller.Marshaller;
+import com.jayway.dejavu.core.marshaller.MarshallerPlugin;
+import com.jayway.dejavu.core.marshaller.Value;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;

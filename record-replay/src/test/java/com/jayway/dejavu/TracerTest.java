@@ -1,10 +1,9 @@
 package com.jayway.dejavu;
 
-import com.jayway.dejavu.core.DejaVuPolicy;
-import com.jayway.dejavu.core.RecordReplayer;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.marshaller.Marshaller;
 import com.jayway.dejavu.impl.*;
+import com.jayway.dejavu.recordreplay.RecordReplayer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +19,7 @@ public class TracerTest {
     @Before
     public void setup() {
         callback = new TraceCallbackImpl();
-        RecordReplayer.initialize( callback );
+        RecordReplayer.initialize(callback);
     }
 
     @Test

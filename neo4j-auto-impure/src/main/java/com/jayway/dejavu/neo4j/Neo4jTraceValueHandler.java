@@ -1,5 +1,6 @@
 package com.jayway.dejavu.neo4j;
 
+import com.jayway.dejavu.core.RunningTrace;
 import com.jayway.dejavu.core.TraceValueHandler;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -12,6 +13,11 @@ import org.neo4j.helpers.collection.PagingIterator;
 import static org.easymock.EasyMock.createMock;
 
 public class Neo4jTraceValueHandler implements TraceValueHandler {
+
+    public static void initialize() {
+        RunningTrace.addTraceHandler(new Neo4jTraceValueHandler());
+    }
+
 
     @Override
     public Object record(Object value) {

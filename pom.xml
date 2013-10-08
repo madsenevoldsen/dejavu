@@ -9,6 +9,8 @@
     <url>http://github.com/madsenevoldsen/dejavu</url>
     <modules>
         <module>core</module>
+        <module>core-aspectj-interception</module>
+        <module>record-replay</module>
         <module>circuitbreaker</module>
         <module>auto-impure</module>
         <module>neo4j-auto-impure</module>

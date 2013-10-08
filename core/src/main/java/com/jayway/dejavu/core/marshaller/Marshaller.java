@@ -34,7 +34,8 @@ public class Marshaller {
         StringBuilder sb = new StringBuilder();
         sb.append("package ").append(packageName).append(";\n\n");
         // imports
-        addImport(sb, Marshaller.class, Trace.class, TraceBuilder.class, Value.class, trace.getStartPoint().getDeclaringClass() );
+        addImport(sb, Marshaller.class, Trace.class, Value.class, trace.getStartPoint().getDeclaringClass() );
+        addImport(sb, "com.jayway.dejavu.recordreplay.TraceBuilder");
         addImport(sb, "org.junit.Test");
 
         Set<String> imports = new HashSet<String>();

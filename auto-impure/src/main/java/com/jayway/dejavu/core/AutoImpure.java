@@ -16,10 +16,6 @@ import java.util.zip.ZipFile;
 @Aspect
 public class AutoImpure {
 
-    public static void initialize() {
-        RunningTrace.addTraceHandler( new AutoImpureTraceValueHandler());
-    }
-
     /*@Around("call(* java.util.concurrent.ExecutorService.invoke*(..))")
     public Object threadPoolInvoke( ProceedingJoinPoint join ) throws Throwable {
         Collection<Callable> callables = (Collection<Callable>) join.getArgs()[0];

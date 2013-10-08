@@ -41,10 +41,6 @@ public class Trace {
         this.values = values;
     }
 
-    public void addValue( TraceElement element ) {
-        values.add( element );
-    }
-
     public String getId() {
         return id;
     }

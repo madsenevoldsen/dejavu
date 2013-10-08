@@ -1,7 +1,6 @@
-package com.jayway.dejavu.core;
+package com.jayway.dejavu.recordreplay;
 
-import com.jayway.dejavu.core.repository.RecordingTracer;
-import com.jayway.dejavu.core.repository.ReplayTracer;
+import com.jayway.dejavu.core.*;
 import com.jayway.dejavu.core.repository.Tracer;
 
 import java.lang.reflect.InvocationTargetException;

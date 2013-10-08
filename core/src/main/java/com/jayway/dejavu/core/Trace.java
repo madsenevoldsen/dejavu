@@ -1,51 +1,24 @@
 package com.jayway.dejavu.core;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
-public class Trace {
-    private String id;
-    private List<TraceElement> values;
-    private Method startPoint;
-    // TODO Modify to contain list instead of array.
-    private Object[] startArguments;
+public interface Trace extends Iterable<TraceElement> {
 
-    public Trace( Method startPoint, Object[] startArguments ) {
-        values = new ArrayList<TraceElement>();
-        this.startPoint = startPoint;
-        this.startArguments = startArguments;
-    }
+    public void setStartPoint(Method startPoint);
 
-    public Method getStartPoint() {
-        return startPoint;
-    }
+    public Method getStartPoint();
 
-    public void setStartPoint(Method startPoint) {
-        this.startPoint = startPoint;
-    }
+    public void setStartArguments(Object[] startArguments);
 
-    public Object[] getStartArguments() {
-        return startArguments;
-    }
+    public Object[] getStartArguments();
 
-    public void setStartArguments(Object[] startArguments) {
-        this.startArguments = startArguments;
-    }
+    public TraceElement get( int index );
 
-    public List<TraceElement> getValues() {
-        return values;
-    }
+    public void add( TraceElement element );
 
-    public void setValues(List<TraceElement> values) {
-        this.values = values;
-    }
+    public String getId();
 
-    public String getId() {
-        return id;
-    }
+    public void setId(String id);
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public int impureValueCount();
 }

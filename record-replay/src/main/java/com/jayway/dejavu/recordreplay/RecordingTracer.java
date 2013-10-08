@@ -17,10 +17,10 @@ public class RecordingTracer implements Tracer {
         synchronized (trace){
             try {
                 Object result = interception.proceed();
-                trace.getValues().add( new TraceElement(threadId, traceValueHandler.record(result)));
+                trace.add( new TraceElement(threadId, traceValueHandler.record(result)));
                 return result;
             } catch (Throwable t) {
-                trace.getValues().add( new TraceElement(threadId, traceValueHandler.record(new ThrownThrowable(t))));
+                trace.add( new TraceElement(threadId, traceValueHandler.record(new ThrownThrowable(t))));
                 throw t;
             }
         }

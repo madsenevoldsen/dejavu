@@ -40,7 +40,7 @@ public class Marshaller {
 
         Set<String> imports = new HashSet<String>();
         Set<String> threads = new LinkedHashSet<String>();
-        for (TraceElement element : trace.getValues()) {
+        for (TraceElement element : trace) {
             threads.add( element.getThreadId() );
             if ( element.getValue() != null ) {
                 addImport( sb, imports, element.getValue().getClass() );
@@ -143,7 +143,7 @@ public class Marshaller {
         List<StringBuilder> valueRows = new ArrayList<StringBuilder>();
         String thread = null;
         boolean preferNewLine = true;
-        for (TraceElement element : trace.getValues()) {
+        for (TraceElement element : trace) {
             StringBuilder current;
             if ( thread != null ) {
                 if ( !thread.equals( element.getThreadId()) ) {
@@ -171,7 +171,7 @@ public class Marshaller {
                 preferNewLine = true;
             }
         }
-        if ( trace.getValues().size() > 0 ) {
+        if ( trace.impureValueCount() > 0 ) {
             for (int i=0;i<valueRows.size(); i++) {
                 StringBuilder valueRow = valueRows.get(i);
                 String end = ".";

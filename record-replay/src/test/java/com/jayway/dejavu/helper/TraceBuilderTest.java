@@ -2,11 +2,12 @@ package com.jayway.dejavu.helper;
 
 import com.jayway.dejavu.core.*;
 import com.jayway.dejavu.core.marshaller.Marshaller;
-import com.jayway.dejavu.recordreplay.TraceBuilder;
 import com.jayway.dejavu.impl.ExampleTrace;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
+import com.jayway.dejavu.recordreplay.MemoryTrace;
 import com.jayway.dejavu.recordreplay.RecordReplayFactory;
 import com.jayway.dejavu.recordreplay.RecordReplayer;
+import com.jayway.dejavu.recordreplay.TraceBuilder;
 import junit.framework.Assert;
 import org.abstractmeta.toolbox.compilation.compiler.JavaSourceCompiler;
 import org.abstractmeta.toolbox.compilation.compiler.impl.JavaSourceCompilerImpl;
@@ -55,20 +56,20 @@ public class TraceBuilderTest {
         Object o = testClass.newInstance();
         Method method = testClass.getDeclaredMethod("withsimpletypestest");
 
-        final Trace trace = new Trace(null, null);
+        final Trace trace = new MemoryTrace(null, null);
         RunningTrace.addTraceHandler(new TraceValueHandlerAdapter() {
             public Object replay(Object value) {
-                trace.getValues().add( new TraceElement("?", value));
+                trace.add(new TraceElement("?", value));
                 return value;
             }
         });
         method.invoke( o );
         // validate trace
-        int loop = (Integer) trace.getValues().get(0).getValue();
-        Assert.assertEquals( loop+1, trace.getValues().size() );
+        int loop = (Integer) trace.get(0).getValue();
+        Assert.assertEquals( loop+1, trace.impureValueCount() );
         int result = 1;
         for ( int i=1; i<loop+1; i++ ) {
-            result *= (Integer) trace.getValues().get( i ).getValue();
+            result *= (Integer) trace.get(i).getValue();
         }
         Assert.assertEquals( origResult.intValue(), result );
 

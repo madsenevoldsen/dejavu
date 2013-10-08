@@ -31,9 +31,8 @@ public class TraceBuilder {
     }
 
     private TraceBuilder( String traceId ) {
-        trace = new Trace(null, null);
-        trace.setId( traceId );
-        trace.setValues( new ArrayList<TraceElement>() );
+        trace = new MemoryTrace(null, null);
+        trace.setId(traceId);
     }
 
     /**
@@ -107,13 +106,13 @@ public class TraceBuilder {
             return addNull( threadIdx );
         }
         for (Object argument : arguments) {
-            trace.getValues().add( new TraceElement(threadIds.get(threadIdx), unmarshalArgument(argument)));
+            trace.add(new TraceElement(threadIds.get(threadIdx), unmarshalArgument(argument)));
         }
         return this;
     }
 
     public TraceBuilder addNull( int threadIdx ) {
-        trace.getValues().add(new TraceElement(threadIds.get(threadIdx), null));
+        trace.add(new TraceElement(threadIds.get(threadIdx), null));
         return this;
     }
 

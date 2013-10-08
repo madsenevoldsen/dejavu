@@ -44,7 +44,7 @@ public class RecordReplayer extends DejaVuPolicy {
 
     @Override
     public Tracer createTracer(DejaVuInterception interception) {
-        Trace trace = new Trace(interception.getMethod(), interception.getArguments());
+        Trace trace = new MemoryTrace(interception.getMethod(), interception.getArguments());
         trace.setId( RunningTrace.generateId());
         return new RecordingTracer(trace);
     }

@@ -80,7 +80,7 @@ public class TracerTest {
     public void integration_point_calling_integration_point() throws Throwable {
         Long time = new IPCallingIP().getTime();
         Trace trace = callback.getTrace();
-        Assert.assertEquals( 1, trace.getValues().size() );
+        Assert.assertEquals( 1, trace.impureValueCount() );
 
         Long second = RecordReplayer.replay(trace);
         Assert.assertEquals( time, second );

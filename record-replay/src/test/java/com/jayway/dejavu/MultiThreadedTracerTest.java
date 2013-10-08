@@ -2,12 +2,12 @@ package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.*;
 import com.jayway.dejavu.core.marshaller.Marshaller;
-import com.jayway.dejavu.recordreplay.TraceBuilder;
 import com.jayway.dejavu.impl.FailingWithThreads;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
 import com.jayway.dejavu.impl.WithThreads;
 import com.jayway.dejavu.recordreplay.RecordReplayFactory;
 import com.jayway.dejavu.recordreplay.RecordReplayer;
+import com.jayway.dejavu.recordreplay.TraceBuilder;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,8 +54,8 @@ public class MultiThreadedTracerTest {
         RecordReplayer.replay(trace);
 
         Map<String, String> threadNameMap = new HashMap<String, String>();
-        for (int i=0; i<trace.getValues().size(); i++ ) {
-            TraceElement element = trace.getValues().get(i);
+        for (int i=0; i<trace.impureValueCount(); i++ ) {
+            TraceElement element = trace.get(i);
             TraceElement rerunElement = values.get(i);
             Assert.assertEquals(element.getValue(), rerunElement.getValue());
             if ( threadNameMap.containsKey(element.getThreadId()) ) {
@@ -87,8 +87,8 @@ public class MultiThreadedTracerTest {
         RecordReplayer.replay(trace);
 
         Map<String, String> threadNameMap = new HashMap<String, String>();
-        for (int i=0; i<trace.getValues().size(); i++ ) {
-            TraceElement element = trace.getValues().get(i);
+        for (int i=0; i<trace.impureValueCount(); i++ ) {
+            TraceElement element = trace.get(i);
             TraceElement rerunElement = values.get(i);
             //System.out.println(element.getValue() + " produced on thread " +element.getThreadId() );
             Assert.assertEquals(element.getValue(), rerunElement.getValue());
@@ -156,8 +156,8 @@ public class MultiThreadedTracerTest {
         field.setAccessible(true);
         Trace trace = (Trace) field.get( builder );
         Map<String, String> threadNameMap = new HashMap<String, String>();
-        for (int i=0; i<trace.getValues().size(); i++ ) {
-            TraceElement element = trace.getValues().get(i);
+        for (int i=0; i<trace.impureValueCount(); i++ ) {
+            TraceElement element = trace.get(i);
             TraceElement rerunElement = values.get(i);
             Assert.assertEquals(element.getValue(), rerunElement.getValue());
             if ( threadNameMap.containsKey(element.getThreadId()) ) {

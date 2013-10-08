@@ -49,9 +49,9 @@ public class MultiThreadedTest {
         RecordReplayer.replay(trace);
 
         Map<String, String> threadNameMap = new HashMap<String, String>();
-        Assert.assertEquals("Trace and replay must have same amount of values", trace.getValues().size(), values.size());
-        for (int i=0; i<trace.getValues().size(); i++ ) {
-            TraceElement element = trace.getValues().get(i);
+        Assert.assertEquals("Trace and replay must have same amount of values", trace.impureValueCount(), values.size());
+        for (int i=0; i<trace.impureValueCount(); i++ ) {
+            TraceElement element = trace.get(i);
             TraceElement rerunElement = values.get(i);
             if ( !(element.getValue() instanceof Pure) ) {
                 Assert.assertEquals(element.getValue(), rerunElement.getValue());

@@ -18,7 +18,7 @@ public class ReplayTracer implements Tracer {
         this.trace = trace;
         current = 0;
         childThreads = new HashMap<String, LinkedList<String>>();
-        for (TraceElement element : trace.getValues()) {
+        for (TraceElement element : trace) {
             String threadId = element.getThreadId();
             if ( threadId.contains(".") ) {
                 // this is from a child thread
@@ -36,10 +36,10 @@ public class ReplayTracer implements Tracer {
     @Override
     public synchronized Object nextValue(String threadId, DejaVuInterception interception) throws Throwable{
         while (true) {
-            if (current >= trace.getValues().size()) {
+            if (current >= trace.impureValueCount()) {
                 throw new RuntimeException("Trace ended!");
             }
-            TraceElement result = trace.getValues().get(current);
+            TraceElement result = trace.get(current);
             if ( threadId.equals(result.getThreadId()) ) {
                 current++;
                 notifyAll();

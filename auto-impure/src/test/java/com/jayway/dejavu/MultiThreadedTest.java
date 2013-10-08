@@ -23,6 +23,7 @@ public class MultiThreadedTest {
         DejaVuPolicy.initialize(callback);
         RunningTrace.initialize();
         AutoImpure.initialize();
+        DejaVuPolicy.setFactory(new RecordReplayFactory());
     }
 
     @Test
@@ -43,7 +44,7 @@ public class MultiThreadedTest {
                 return value;
             }
         });
-        DejaVuPolicy.replay(trace);
+        RecordReplayer.replay(trace);
 
         Map<String, String> threadNameMap = new HashMap<String, String>();
         Assert.assertEquals("Trace and replay must have same amount of values", trace.getValues().size(), values.size());

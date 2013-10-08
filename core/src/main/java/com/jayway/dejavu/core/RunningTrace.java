@@ -1,8 +1,6 @@
 package com.jayway.dejavu.core;
 
 import com.jayway.dejavu.core.chainer.ChainBuilder;
-import com.jayway.dejavu.core.repository.RecordingTracer;
-import com.jayway.dejavu.core.repository.TraceCallback;
 import com.jayway.dejavu.core.repository.Tracer;
 
 import java.util.*;
@@ -13,10 +11,11 @@ public class RunningTrace {
     private static ThreadLocal<String> threadId = new ThreadLocal<String>();
     private static ThreadLocal<Boolean> threadLocalIgnore = new ThreadLocal<Boolean>();
     private static ThreadLocal<Boolean> threadLocalInImpure = new ThreadLocal<Boolean>();
+
     private static List<ImpureHandler> impureHandlers = new ArrayList<ImpureHandler>();
     private static List<TraceValueHandler> traceValueHandlers = new ArrayList<TraceValueHandler>();
 
-    private TraceCallback callback;
+    private DejaVuPolicy policy;
     private ImpureHandler impureHandler;
     private Set<String> attachedThreads;
     private Set<String> completedThreads;
@@ -24,21 +23,18 @@ public class RunningTrace {
     private List<ThreadThrowable> threadThrowables;
     private Tracer tracer;
 
-    protected RunningTrace( Tracer tracer, TraceCallback callback ) {
-        this.callback = callback;
+    protected RunningTrace( DejaVuPolicy policy, Tracer tracer ) {
+        this.policy = policy;
         this.tracer = tracer;
         tracer.setTraceValueHandlerChain(ChainBuilder.compose(TraceValueHandler.class).add(new TraceValueHandlerAdapter()).add(traceValueHandlers).build());
-        if ( tracer.getTrace().getId() == null ) {
-            tracer.getTrace().setId(generateId());
-        }
         threadId.set(tracer.getTrace().getId());
 
         impureHandler = ChainBuilder.all(ImpureHandler.class).add(new ImpureHandler() {
             public void before(RunningTrace runningTrace, String integrationPoint) {
-                setInImpure(true);
+                threadLocalInImpure.set( true );
             }
             public void after(RunningTrace runningTrace, Object result) {
-                setInImpure(false);
+                threadLocalInImpure.set( false );
             }
         }).add( impureHandlers).build();
     }
@@ -64,27 +60,27 @@ public class RunningTrace {
         attachedThreads.add(id);
     }
 
+    public void callbackIfFinished() {
+        callbackIfFinished(null);
+    }
+
     public void callbackIfFinished(Throwable t) {
         throwable = t;
-        if ( attachedThreadsCompleted() && callback != null) {
-            callback.traced(tracer.getTrace(), t, threadThrowables);
+        if ( attachedThreadsCompleted() ) {
+            policy.completed(tracer.getTrace(), t, threadThrowables);
         }
         threadId.remove();
         threadLocalInImpure.remove();
     }
 
-    // TODO find a way to eliminate the need for this
-    public boolean isRecording() {
-        return tracer instanceof RecordingTracer;
-    }
-
     public void threadStarted( String threadId ) {
         RunningTrace.threadId.set(threadId);
-        DejaVuPolicy.runningTrace.set(this);
+        policy.setPolicyForCurrentThread();
     }
 
     public synchronized void threadCompleted() {
         completedThreads.add(threadId.get());
+        policy.removePolicyForCurrentThread();
         callbackIfFinished(throwable);
     }
 
@@ -144,9 +140,5 @@ public class RunningTrace {
         String id = UUID.randomUUID().toString();
         threadLocalIgnore.set( false );
         return id;
-    }
-
-    private void setInImpure(boolean inImpure ) {
-        threadLocalInImpure.set(inImpure);
     }
 }

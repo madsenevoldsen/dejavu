@@ -1,6 +1,7 @@
 package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.DejaVuPolicy;
+import com.jayway.dejavu.core.RecordReplayer;
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.marshaller.Marshaller;
 import com.jayway.dejavu.impl.ClassArguments;
@@ -82,7 +83,7 @@ public class ExampleFromSerializedTest {
         String test = new Marshaller().marshal( trace );
         System.out.println( test );
 
-        DejaVuPolicy.replay(trace);
+        RecordReplayer.replay(trace);
         Class testClass = compileAndClassLoad("com.jayway.dejavu.impl.ClassArgumentsTest", test);
         Object o = testClass.newInstance();
 

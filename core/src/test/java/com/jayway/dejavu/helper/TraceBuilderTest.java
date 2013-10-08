@@ -8,11 +8,17 @@ import com.jayway.dejavu.impl.TraceCallbackImpl;
 import junit.framework.Assert;
 import org.abstractmeta.toolbox.compilation.compiler.JavaSourceCompiler;
 import org.abstractmeta.toolbox.compilation.compiler.impl.JavaSourceCompilerImpl;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.lang.reflect.Method;
 
 public class TraceBuilderTest {
+
+    @Before
+    public void setup() {
+        DejaVuPolicy.setFactory( new RecordReplayFactory());
+    }
 
     @Test
     public void builder() throws Throwable {
@@ -31,7 +37,7 @@ public class TraceBuilderTest {
     @Test
     public void verify_generated_test() throws Throwable {
         TraceCallbackImpl callback = new TraceCallbackImpl();
-        DejaVuPolicy.initialize( callback );
+        RecordReplayer.initialize( callback );
 
         final Integer origResult = new WithSimpleTypes().simple();
 

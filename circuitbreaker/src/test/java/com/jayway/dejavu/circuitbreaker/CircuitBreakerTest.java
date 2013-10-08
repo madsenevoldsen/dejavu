@@ -1,9 +1,11 @@
 package com.jayway.dejavu.circuitbreaker;
 
-import com.jayway.dejavu.core.DejaVuPolicy;
 import com.jayway.dejavu.circuitbreaker.impl.MyOwnException;
 import com.jayway.dejavu.circuitbreaker.impl.TraceCallbackImpl;
 import com.jayway.dejavu.circuitbreaker.impl.WithIntegrationPoint;
+import com.jayway.dejavu.core.DejaVuPolicy;
+import com.jayway.dejavu.core.RecordReplayFactory;
+import com.jayway.dejavu.core.RecordReplayer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,8 +17,8 @@ public class CircuitBreakerTest {
     @Before
     public void setup() {
         callback = new TraceCallbackImpl();
-        DejaVuPolicy.initialize(callback);
-        //CircuitBreakerPolicy.initialize();
+        RecordReplayer.initialize(callback);
+        DejaVuPolicy.setFactory(new RecordReplayFactory());
     }
 
     @Test
@@ -32,7 +34,7 @@ public class CircuitBreakerTest {
                 example.run(1);
             } catch (CircuitOpenException ee ) {
                 try {
-                    DejaVuPolicy.replay(callback.getTrace());
+                    RecordReplayer.replay(callback.getTrace());
                     Assert.fail("Must throw CircuitOpenException");
                 } catch (CircuitOpenException eee ) {
 

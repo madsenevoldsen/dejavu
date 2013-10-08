@@ -2,6 +2,8 @@ package com.jayway.dejavu.neo4j;
 
 import com.jayway.dejavu.core.DejaVuPolicy;
 import com.jayway.dejavu.core.Neo4jAutoImpure;
+import com.jayway.dejavu.core.RecordReplayFactory;
+import com.jayway.dejavu.core.RecordReplayer;
 import com.jayway.dejavu.core.marshaller.TraceBuilder;
 import com.jayway.dejavu.neo4j.impl.DatabaseInteraction;
 import com.jayway.dejavu.neo4j.impl.DatabasePagesQuery;
@@ -17,8 +19,9 @@ public class Neo4jAutoImpureTest {
     @Before
     public void before(){
         callback = new TraceCallbackImpl();
-        DejaVuPolicy.initialize( callback );
+        RecordReplayer.initialize( callback );
         Neo4jAutoImpure.initialize();
+        DejaVuPolicy.setFactory(new RecordReplayFactory());
     }
 
     @Test
@@ -33,7 +36,7 @@ public class Neo4jAutoImpureTest {
         ConnectionManager.graphDb().shutdown();
 
         // now re-run without database
-        DejaVuPolicy.replay(callback.getTrace());
+        RecordReplayer.replay(callback.getTrace());
     }
 
     @Test

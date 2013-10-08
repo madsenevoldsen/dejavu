@@ -27,8 +27,9 @@ public class MultiThreadedTracerTest {
     @Before
     public void setup() {
         callback = new TraceCallbackImpl();
-        DejaVuPolicy.initialize(callback);
+        RecordReplayer.initialize(callback);
         RunningTrace.initialize();
+        DejaVuPolicy.setFactory( new RecordReplayFactory());
     }
 
     @Test
@@ -48,7 +49,7 @@ public class MultiThreadedTracerTest {
                 return value;
             }
         });
-        DejaVuPolicy.replay(trace);
+        RecordReplayer.replay(trace);
 
         Map<String, String> threadNameMap = new HashMap<String, String>();
         for (int i=0; i<trace.getValues().size(); i++ ) {
@@ -81,7 +82,7 @@ public class MultiThreadedTracerTest {
                 return value;
             }
         });
-        DejaVuPolicy.replay(trace);
+        RecordReplayer.replay(trace);
 
         Map<String, String> threadNameMap = new HashMap<String, String>();
         for (int i=0; i<trace.getValues().size(); i++ ) {

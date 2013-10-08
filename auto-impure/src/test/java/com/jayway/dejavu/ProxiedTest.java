@@ -1,9 +1,6 @@
 package com.jayway.dejavu;
 
-import com.jayway.dejavu.core.AutoImpure;
-import com.jayway.dejavu.core.DejaVuPolicy;
-import com.jayway.dejavu.core.Pure;
-import com.jayway.dejavu.core.Trace;
+import com.jayway.dejavu.core.*;
 import com.jayway.dejavu.core.marshaller.Marshaller;
 import com.jayway.dejavu.core.marshaller.SimpleExceptionMarshaller;
 import com.jayway.dejavu.core.marshaller.TraceBuilder;
@@ -43,7 +40,7 @@ public class ProxiedTest {
 
         String test = new Marshaller().marshal(trace);
         System.out.println( test );
-        Integer result2 = DejaVuPolicy.replay(trace);
+        Integer result2 = RecordReplayer.replay(trace);
 
         System.out.println(result + " and " + result2);
         Assert.assertEquals(result, result2.intValue());

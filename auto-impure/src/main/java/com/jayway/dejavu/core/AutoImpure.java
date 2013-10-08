@@ -32,8 +32,13 @@ public class AutoImpure {
     @Around("call(* java.util.concurrent.ExecutorService.submit(..))")
     public Object threadPoolSubmit( ProceedingJoinPoint join ) throws Throwable {
         Object[] args = join.getArgs();
-        DejaVuPolicy.patchForAttachThread(args);
-        return join.proceed( args );
+        DejaVuPolicy policy = DejaVuPolicy.getPolicyForCurrentThread();
+        if ( policy != null ) {
+            policy.patchForAttachThread(args);
+            return join.proceed( args );
+        } else {
+            return join.proceed();
+        }
     }
 
     @Around("call(java.util.Random.new(..))")
@@ -101,13 +106,11 @@ public class AutoImpure {
 
     private Object impureMethod(ProceedingJoinPoint proceed) throws Throwable {
         // if already inside an @impure just proceed
-        DejaVuPolicy policy = new DejaVuPolicy();
-        return policy.aroundImpure( new AspectJInterception(proceed), "" );
+        return DejaVuPolicy.impure( new AspectJInterception(proceed), "" );
     }
 
     private <T> T impureConstruction( ProceedingJoinPoint proceed, Class<T> clazz ) throws Throwable {
         // if already inside an @impure just proceed
-        DejaVuPolicy policy = new DejaVuPolicy();
-        return (T) policy.aroundImpure(new AspectJInterception(proceed), "");
+        return (T) DejaVuPolicy.impure(new AspectJInterception(proceed), "");
     }
 }

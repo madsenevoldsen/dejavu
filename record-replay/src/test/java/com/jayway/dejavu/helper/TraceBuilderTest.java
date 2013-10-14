@@ -25,12 +25,12 @@ public class TraceBuilderTest {
 
     @Test
     public void builder() throws Throwable {
-        TraceBuilder builder = TraceBuilder.build().setMethod(ExampleTrace.class);
+        TraceBuilder builder = TraceBuilder.builder().setMethod(ExampleTrace.class);
 
         builder.add( 349013193767909L, "d09c2893-2835-4cbe-8c8e-4c790c268ed0", 349013194166199L);
 
         try {
-            builder.run();
+            RecordReplayer.replay( builder.build() );
             Assert.fail();
         } catch (ArithmeticException e) {
 
@@ -78,11 +78,11 @@ public class TraceBuilderTest {
 
     @Test
     public void simple_types_test() throws Throwable {
-        TraceBuilder builder = TraceBuilder.build().setMethod(AllSimpleTypes.class);
+        TraceBuilder builder = TraceBuilder.builder().setMethod(AllSimpleTypes.class);
 
         builder.add( "string", 1.1F, true, 2.2, 1L, 1 );
 
-        String result = (String) builder.run();
+        String result = RecordReplayer.replay(builder.build());
 
         Assert.assertEquals("string1.1true2.211", result );
     }

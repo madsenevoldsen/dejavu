@@ -18,11 +18,11 @@ public class TraceBuilder {
     private Trace trace;
     private List<String> threadIds;
 
-    public static TraceBuilder build( MarshallerPlugin... plugins ) {
-        return build( "TraceId", plugins );
+    public static TraceBuilder builder( MarshallerPlugin... plugins ) {
+        return builder( "TraceId", plugins );
     }
 
-    public static TraceBuilder build( String traceId, MarshallerPlugin... plugins ) {
+    public static TraceBuilder builder( String traceId, MarshallerPlugin... plugins ) {
         TraceBuilder traceBuilder = new TraceBuilder(traceId);
         traceBuilder.marshaller = new Marshaller( plugins );
         traceBuilder.threadIds= new ArrayList<String>();
@@ -116,8 +116,12 @@ public class TraceBuilder {
         return this;
     }
 
-    public Object run() throws Throwable {
+    public Trace build() {
+        return trace;
+    }
+
+    /*public Object run() throws Throwable {
         //File.createTempFile("dejavu-", ".tmp");
         return RecordReplayer.replay(trace);
-    }
+    }*/
 }

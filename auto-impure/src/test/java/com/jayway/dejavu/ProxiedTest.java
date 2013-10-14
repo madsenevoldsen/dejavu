@@ -53,13 +53,13 @@ public class ProxiedTest {
     @Test
     public void notReadingFile() throws Throwable {
         // now read the file in test mode where it only produces one line
-        TraceBuilder builder = TraceBuilder.build()
+        TraceBuilder builder = TraceBuilder.builder()
                 .setMethod(FileReading.class)
                 .addMethodArguments("not a filename");
 
         builder.add(Pure.PureFileReader, Pure.PureBufferedReader, "ONLY LINE", null);
 
-        List<String> lines = (List<String>) builder.run();
+        List<String> lines = RecordReplayer.replay( builder.build() );
 
         Assert.assertEquals( 1, lines.size());
         Assert.assertEquals( "ONLY LINE", lines.get(0));
@@ -68,7 +68,7 @@ public class ProxiedTest {
     @Test
     public void notReadingFileException() throws Throwable {
         // now read the file in test mode where it only produces one line
-        TraceBuilder builder = TraceBuilder.build(new SimpleExceptionMarshaller())
+        TraceBuilder builder = TraceBuilder.builder(new SimpleExceptionMarshaller())
                 .setMethod(FileReading.class)
                 .addMethodArguments( "nonexisting.xyz");
 
@@ -77,7 +77,7 @@ public class ProxiedTest {
         builder.add(ConcurrentModificationException.class );
 
         try {
-            builder.run();
+            RecordReplayer.replay( builder.build() );
             Assert.fail();
         } catch (ConcurrentModificationException e ) {
             // it must throw IOException

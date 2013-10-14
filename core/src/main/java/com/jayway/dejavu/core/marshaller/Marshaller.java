@@ -36,6 +36,7 @@ public class Marshaller {
         // imports
         addImport(sb, Marshaller.class, Trace.class, Value.class, trace.getStartPoint().getDeclaringClass() );
         addImport(sb, "com.jayway.dejavu.recordreplay.TraceBuilder");
+        addImport(sb, "com.jayway.dejavu.recordreplay.RecordReplayer");
         addImport(sb, "org.junit.Test");
 
         Set<String> imports = new HashSet<String>();
@@ -77,12 +78,12 @@ public class Marshaller {
         add(sb, "public void " + classSimpleName.toLowerCase() + "() throws Throwable {", 1);
         add(sb, "TraceBuilder builder = TraceBuilder.", 2);
         if ( threads.isEmpty() ) {
-            add(sb, "build(" + marshallerArgs +").", 4);
+            add(sb, "builder(" + marshallerArgs +").", 4);
         } else {
             if ( marshallerArgs.isEmpty() ) {
-                add(sb, "build(\"" +trace.getId()+"\").", 4);
+                add(sb, "builder(\"" +trace.getId()+"\").", 4);
             } else {
-                add(sb, "build(\"" +trace.getId()+"\"," + marshallerArgs +").", 4);
+                add(sb, "builder(\"" +trace.getId()+"\"," + marshallerArgs +").", 4);
             }
         }
 
@@ -186,7 +187,7 @@ public class Marshaller {
             }
         }
         sb.append("\n");
-        add(sb, "builder.run();", 2);
+        add(sb, "RecordReplayer.replay( builder.build() );", 2);
         add(sb, "}", 1);
         add(sb, "}", 0);
         return sb.toString();

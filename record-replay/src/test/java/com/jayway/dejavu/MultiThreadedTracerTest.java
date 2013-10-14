@@ -118,7 +118,7 @@ public class MultiThreadedTracerTest {
     @Test
     public void withthreadstest() throws Throwable {
         TraceBuilder builder = TraceBuilder.
-                build("3bf8c479-cd1e-4281-9268-f17c93a4f816").
+                builder("3bf8c479-cd1e-4281-9268-f17c93a4f816").
                 setMethod(WithThreads.class);
         builder.addMethodArguments(8);
         builder.threadIds("0b11975e-a976-485e-bbd2-0eca19f4df13", "8279a430-f2d9-4d16-b747-84ea002ed45a", "4f2e52d1-07d2-4145-ae3f-f818b8d5ebeb", "8885cd0f-f71e-4a43-9df7-785dd1750bc3", "f8b2190d-b977-4387-9422-db90b0ec67df", "54b8eea6-8811-4598-baf2-be6a78914460", "7c6ab34f-6dd7-4ba0-b4ed-e8d059a5373c", "3af6082b-b432-40f7-a50d-61dbd8e24224");
@@ -150,7 +150,7 @@ public class MultiThreadedTracerTest {
                 return value;
             }
         });
-        builder.run();
+        RecordReplayer.replay( builder.build() );
 
         Field field = TraceBuilder.class.getDeclaredField("trace");
         field.setAccessible(true);

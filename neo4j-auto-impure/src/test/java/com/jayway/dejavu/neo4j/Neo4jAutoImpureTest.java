@@ -43,25 +43,25 @@ public class Neo4jAutoImpureTest {
     @Test
     public void create_node() throws Throwable {
         TraceBuilder builder = TraceBuilder.
-                build().setMethod(DatabaseInteraction.class);
+                builder().setMethod(DatabaseInteraction.class);
         builder.addMethodArguments("First node");
 
         builder.add(Neo4jPure.Neo4jGraphDatabaseService, Neo4jPure.Neo4jTransaction, Neo4jPure.Neo4jNode, null).
                 add(415L, null, null, Neo4jPure.Neo4jGraphDatabaseService, Neo4jPure.Neo4jNode, "First node");
 
-        builder.run();
+        RecordReplayer.replay( builder.build() );
     }
 
     @Test
     public void query_test() throws Throwable {
         TraceBuilder builder = TraceBuilder.
-                build().setMethod(DatabaseQuery.class);
+                builder().setMethod(DatabaseQuery.class);
 
         builder.add(Neo4jPure.Neo4jGraphDatabaseService, Neo4jPure.Neo4jTransaction, Neo4jPure.Neo4jNode, Neo4jPure.Neo4jIndexManager).
                 add(Neo4jPure.Neo4jIndex, null, Neo4jPure.Neo4jNode, null, null, null, Neo4jPure.Neo4jGraphDatabaseService ).
                 add(Neo4jPure.Neo4jIndexManager, Neo4jPure.Neo4jIndex, Neo4jPure.Neo4jIndexHits, 1);
 
-        builder.run();
+        RecordReplayer.replay( builder.build() );
     }
 
     /*@Test
@@ -85,7 +85,7 @@ public class Neo4jAutoImpureTest {
     @Test
     public void query_paginate() throws Throwable {
         TraceBuilder builder = TraceBuilder.
-                build().setMethod(DatabasePagesQuery.class);
+                builder().setMethod(DatabasePagesQuery.class);
 
         builder.add(Neo4jPure.Neo4jGraphDatabaseService, Neo4jPure.Neo4jTransaction, Neo4jPure.Neo4jIndexManager, Neo4jPure.Neo4jIndex).
                 add(Neo4jPure.Neo4jNode, null, null, Neo4jPure.Neo4jNode, null, null, Neo4jPure.Neo4jNode, null, null, Neo4jPure.Neo4jNode).
@@ -94,6 +94,6 @@ public class Neo4jAutoImpureTest {
                 add(Neo4jPure.Neo4jIndex, Neo4jPure.Neo4jIndexHits, Neo4jPure.Neo4jPagingIterator, 0, Neo4jPure.Neo4jNode, "indexed dd", Neo4jPure.Neo4jNode).
                 add("indexed gg", Neo4jPure.Neo4jNode, "indexed rr", false);
 
-        builder.run();
+        RecordReplayer.replay( builder.build() );
     }
 }

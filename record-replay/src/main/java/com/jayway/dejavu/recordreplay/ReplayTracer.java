@@ -46,7 +46,7 @@ public class ReplayTracer implements Tracer {
                 if ( result.getValue() instanceof ThrownThrowable ) {
                     throw ((ThrownThrowable) result.getValue()).getThrowable();
                 }
-                return traceValueHandler.replay(result.getValue());
+                return traceValueHandler.handle(result.getValue());
             } else {
                 try {
                     // we need to wait for the value to be ready

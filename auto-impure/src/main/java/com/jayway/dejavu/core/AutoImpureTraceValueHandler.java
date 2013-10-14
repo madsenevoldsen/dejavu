@@ -17,7 +17,7 @@ public class AutoImpureTraceValueHandler implements TraceValueHandler {
     }
 
     @Override
-    public Object record(Object value) {
+    public Object handle(Object value) {
         if ( value instanceof Random) {
             return Pure.PureRandom;
         } else if ( value instanceof ZipEntry) {
@@ -32,14 +32,7 @@ public class AutoImpureTraceValueHandler implements TraceValueHandler {
             return Pure.PureZipFile;
         } else if ( value instanceof InputStreamReader) {
             return Pure.PureInputStreamReader;
-        }
-
-        return value;
-    }
-
-    @Override
-    public Object replay(Object value) {
-        if ( value instanceof Pure) {
+        } else if ( value instanceof Pure) {
             Pure pure = (Pure) value;
             switch (pure) {
                 case PureRandom:

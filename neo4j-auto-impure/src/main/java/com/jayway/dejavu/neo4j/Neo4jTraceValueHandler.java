@@ -20,7 +20,7 @@ public class Neo4jTraceValueHandler implements TraceValueHandler {
 
 
     @Override
-    public Object record(Object value) {
+    public Object handle(Object value) {
         if ( value instanceof GraphDatabaseService) {
             return Neo4jPure.Neo4jGraphDatabaseService;
         } else if ( value instanceof Index) {
@@ -35,14 +35,7 @@ public class Neo4jTraceValueHandler implements TraceValueHandler {
             return Neo4jPure.Neo4jPagingIterator;
         } else if ( value instanceof Transaction) {
             return Neo4jPure.Neo4jTransaction;
-        }
-
-        return value;
-    }
-
-    @Override
-    public Object replay(Object value) {
-        if ( value instanceof Neo4jPure) {
+        } else if ( value instanceof Neo4jPure) {
             Neo4jPure pure = (Neo4jPure) value;
             switch (pure) {
                 case Neo4jGraphDatabaseService:

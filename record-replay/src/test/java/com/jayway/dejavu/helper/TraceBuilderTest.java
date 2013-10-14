@@ -57,8 +57,9 @@ public class TraceBuilderTest {
         Method method = testClass.getDeclaredMethod("withsimpletypestest");
 
         final Trace trace = new MemoryTrace(null, null);
-        RunningTrace.addTraceHandler(new TraceValueHandlerAdapter() {
-            public Object replay(Object value) {
+        RunningTrace.addTraceHandler(new TraceValueHandler() {
+            @Override
+            public Object handle(Object value) {
                 trace.add(new TraceElement("?", value));
                 return value;
             }

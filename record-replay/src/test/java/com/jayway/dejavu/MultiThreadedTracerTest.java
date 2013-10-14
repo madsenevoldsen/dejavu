@@ -45,8 +45,8 @@ public class MultiThreadedTracerTest {
         Trace trace = callback.getTrace();
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        RunningTrace.addTraceHandler(new TraceValueHandlerAdapter() {
-            public Object replay(Object value) {
+        RunningTrace.addTraceHandler(new TraceValueHandler() {
+            public Object handle(Object value) {
                 values.add( new TraceElement( Thread.currentThread().getName(), value));
                 return value;
             }
@@ -78,8 +78,8 @@ public class MultiThreadedTracerTest {
         Trace trace = callback.getTrace();
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        RunningTrace.addTraceHandler(new TraceValueHandlerAdapter() {
-            public Object replay(Object value) {
+        RunningTrace.addTraceHandler(new TraceValueHandler() {
+            public Object handle(Object value) {
                 values.add(new TraceElement(Thread.currentThread().getName(), value));
                 return value;
             }
@@ -144,8 +144,8 @@ public class MultiThreadedTracerTest {
 
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        RunningTrace.addTraceHandler(new TraceValueHandlerAdapter() {
-            public Object replay(Object value) {
+        RunningTrace.addTraceHandler(new TraceValueHandler() {
+            public Object handle(Object value) {
                 values.add( new TraceElement( Thread.currentThread().getName(), value));
                 return value;
             }

@@ -12,7 +12,7 @@ public abstract class DejaVuPolicy {
 
     private static ThreadLocal<DejaVuPolicy> dejaVuPolicyThreadLocal = new ThreadLocal<DejaVuPolicy>();
 
-    public void setPolicyForCurrentThread() {
+    protected void setPolicyForCurrentThread() {
         dejaVuPolicyThreadLocal.set(this);
     }
 
@@ -20,7 +20,7 @@ public abstract class DejaVuPolicy {
         return dejaVuPolicyThreadLocal.get();
     }
 
-    public void removePolicyForCurrentThread() {
+    protected void removePolicyForCurrentThread() {
         dejaVuPolicyThreadLocal.remove();
     }
 
@@ -45,6 +45,7 @@ public abstract class DejaVuPolicy {
         DejaVuPolicy policy = getPolicyForCurrentThread();
         if ( policy == null ) {
             policy = factory.getPolicy();
+            policy.setPolicyForCurrentThread();
         }
         return policy.aroundTraced(interception);
     }
@@ -75,9 +76,8 @@ public abstract class DejaVuPolicy {
     }
 
     public Object aroundTraced( DejaVuInterception interception ) throws Throwable {
-        setPolicyForCurrentThread();
         if ( runningTrace != null) {
-            // setup is done, just proceed
+            // this must be a traced call calling a second traced method, just proceed
             return interception.proceed();
         }
 

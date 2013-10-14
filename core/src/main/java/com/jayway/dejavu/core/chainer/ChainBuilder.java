@@ -63,15 +63,16 @@ public class ChainBuilder<T> implements MethodInterceptor {
 
     @Override
     public Object intercept(Object o, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
-        if ( compose ) return compose(o, method, args);
-        if ( all ) return invokeAll(o, method, args);
-        return handle(o, method, args);
+        if ( compose ) return compose(method, args);
+        if ( all ) return invokeAll(method, args);
+        return handle(method, args);
     }
 
     // return  f(g(h( value )))
-    private Object compose(Object o, Method method, Object[] args) throws Throwable {
+    private Object compose(Method method, Object[] args) throws Throwable {
         finished.set( false );
         Object lastResult = null;
+        if ( instances.isEmpty() ) return args[0];
         for (T instance : instances) {
             try {
                 if ( lastResult == null ) {
@@ -87,7 +88,7 @@ public class ChainBuilder<T> implements MethodInterceptor {
     }
 
     // return first result
-    private Object handle(Object o, Method method, Object[] args) throws Throwable {
+    private Object handle(Method method, Object[] args) throws Throwable {
         finished.set( false );
         for (T instance : instances) {
             try {
@@ -119,7 +120,7 @@ public class ChainBuilder<T> implements MethodInterceptor {
     }
 
     // simply invoke all in the chain
-    private Object invokeAll(Object o, Method method, Object[] args) throws Throwable {
+    private Object invokeAll(Method method, Object[] args) throws Throwable {
         Object lastResult = null;
         for (T instance : instances) {
             try {

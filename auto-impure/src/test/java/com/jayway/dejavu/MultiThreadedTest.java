@@ -40,8 +40,8 @@ public class MultiThreadedTest {
         System.out.println(new Marshaller().marshal(trace));
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        RunningTrace.addTraceHandler(new TraceValueHandlerAdapter() {
-            public Object replay(Object value) {
+        RunningTrace.addTraceHandler(new TraceValueHandler() {
+            public Object handle(Object value) {
                 values.add(new TraceElement(Thread.currentThread().getName(), value));
                 return value;
             }

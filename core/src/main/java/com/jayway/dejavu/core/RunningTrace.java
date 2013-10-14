@@ -26,7 +26,7 @@ public class RunningTrace {
     protected RunningTrace( DejaVuPolicy policy, Tracer tracer ) {
         this.policy = policy;
         this.tracer = tracer;
-        tracer.setTraceValueHandlerChain(ChainBuilder.compose(TraceValueHandler.class).add(new TraceValueHandlerAdapter()).add(traceValueHandlers).build());
+        tracer.setTraceValueHandlerChain(ChainBuilder.compose(TraceValueHandler.class).add(traceValueHandlers).build());
         threadId.set(tracer.getTrace().getId());
 
         impureHandler = ChainBuilder.all(ImpureHandler.class).add(new ImpureHandler() {

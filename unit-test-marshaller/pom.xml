@@ -1,18 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.jayway.dejavu</groupId>
-    <artifactId>dejavu-auto-impure</artifactId>
+    <artifactId>dejavu-unit-test-marshalling</artifactId>
     <packaging>jar</packaging>
-    <parent>
-        <artifactId>dejavu</artifactId>
-        <groupId>com.jayway.dejavu</groupId>
-        <version>0.1.0-SNAPSHOT</version>
-    </parent>
-
     <dependencies>
         <dependency>
             <groupId>com.jayway.dejavu</groupId>
@@ -25,29 +16,47 @@
             <version>0.1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>org.easymock</groupId>
-            <artifactId>easymock</artifactId>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
             <version>3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib</artifactId>
+            <version>2.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.http-client</groupId>
+            <artifactId>google-http-client</artifactId>
+            <version>1.14.1-beta</version>
+        </dependency>
+
+        <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+        <!-- Logging dependencies         -->
+        <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
         </dependency>
         <dependency>
             <groupId>com.jayway.dejavu</groupId>
             <artifactId>dejavu-core-aspectj-interception</artifactId>
             <version>0.1.0-SNAPSHOT</version>
+            <!-- TODO Make this a test dependency only -->
         </dependency>
 
-        <dependency>
-            <groupId>com.jayway.dejavu</groupId>
-            <artifactId>dejavu-unit-test-marshalling</artifactId>
-            <version>0.1.0-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
 
         <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
         <!-- Test dependencies            -->
         <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -60,7 +69,19 @@
             <version>0.3.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.2.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
+
+    <parent>
+        <groupId>com.jayway.dejavu</groupId>
+        <artifactId>dejavu</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
     <build>
         <plugins>
             <plugin>
@@ -71,8 +92,7 @@
                     <source>1.6</source>
                     <target>1.6</target>
                     <encoding>utf-8</encoding>
-                    <complianceLevel>1.6</complianceLevel>
-                    <showWeaveInfo>true</showWeaveInfo>
+                    <complianceLevel>1.6</complianceLevel><showWeaveInfo>true</showWeaveInfo>
                     <verbose>true</verbose>
                     <aspectLibraries>
                         <aspectLibrary>

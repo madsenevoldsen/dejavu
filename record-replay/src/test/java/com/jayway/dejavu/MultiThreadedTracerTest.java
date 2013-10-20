@@ -1,7 +1,6 @@
 package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.*;
-import com.jayway.dejavu.core.marshaller.Marshaller;
 import com.jayway.dejavu.impl.FailingWithThreads;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
 import com.jayway.dejavu.impl.WithThreads;
@@ -102,18 +101,6 @@ public class MultiThreadedTracerTest {
 
         Assert.assertEquals( callback.getThreadCauses().size() +  threadCount, threadNameMap.size() );
     }
-
-    @Test
-    public void threading_and_marshalling() throws Throwable {
-        int threadCount = 8;
-        new WithThreads().begin( threadCount );
-        waitForCompletion();
-        Trace trace = callback.getTrace();
-
-        String test = new Marshaller().marshal( trace );
-        System.out.println( test );
-    }
-
 
     @Test
     public void withthreadstest() throws Throwable {

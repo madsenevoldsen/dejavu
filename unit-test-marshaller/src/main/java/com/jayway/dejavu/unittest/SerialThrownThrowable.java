@@ -1,4 +1,4 @@
-package com.jayway.dejavu.core.marshaller;
+package com.jayway.dejavu.unittest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.dejavu.core.ThrownThrowable;

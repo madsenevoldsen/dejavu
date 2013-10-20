@@ -1,8 +1,8 @@
 package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.*;
-import com.jayway.dejavu.core.marshaller.Marshaller;
-import com.jayway.dejavu.core.marshaller.RuntimeExceptionValueHandler;
+import com.jayway.dejavu.unittest.Marshaller;
+import com.jayway.dejavu.unittest.RuntimeExceptionValueHandler;
 import com.jayway.dejavu.impl.FileReading;
 import com.jayway.dejavu.impl.RandomProxyExample;
 import com.jayway.dejavu.impl.TraceCallbackImpl;

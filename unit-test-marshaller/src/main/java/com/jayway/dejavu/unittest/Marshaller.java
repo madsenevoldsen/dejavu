@@ -1,4 +1,4 @@
-package com.jayway.dejavu.core.marshaller;
+package com.jayway.dejavu.unittest;
 
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.TraceElement;
@@ -35,15 +35,17 @@ public class Marshaller {
         addImport(sb, "com.jayway.dejavu.core.MemoryTraceBuilder");
         addImport(sb, "com.jayway.dejavu.core.TraceBuilder");
         addImport(sb, "com.jayway.dejavu.recordreplay.RecordReplayer");
-        addImport(sb, "com.jayway.dejavu.core.marshaller.SerialThrownThrowable");
+        addImport(sb, "com.jayway.dejavu.unittest.SerialThrownThrowable");
         addImport(sb, "org.junit.Test");
 
         Set<String> imports = new HashSet<String>();
         Set<String> threads = new LinkedHashSet<String>();
         for (TraceElement element : trace) {
             threads.add( element.getThreadId() );
-            if ( element.getValue() != null ) {
-                addImport( sb, imports, element.getValue().getClass() );
+            // TODO fix import types for enum types (e.g. Pure)
+            Object value = handlerChain.handle(element.getValue());
+            if ( value != null ) {
+                addImport( sb, imports, value.getClass() );
             }
         }
         for (Object arg : trace.getStartArguments()) {

@@ -2,11 +2,10 @@ package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.DejaVuPolicy;
 import com.jayway.dejavu.core.Trace;
-import com.jayway.dejavu.core.marshaller.Marshaller;
-import com.jayway.dejavu.impl.ClassArguments;
-import com.jayway.dejavu.impl.ExampleFailingIntegrationPoint;
-import com.jayway.dejavu.impl.RecurseAndExcept;
-import com.jayway.dejavu.impl.TraceCallbackImpl;
+import com.jayway.dejavu.core.TraceElement;
+import com.jayway.dejavu.unittest.Marshaller;
+import com.jayway.dejavu.helper.WithSimpleTypes;
+import com.jayway.dejavu.impl.*;
 import com.jayway.dejavu.recordreplay.RecordReplayFactory;
 import com.jayway.dejavu.recordreplay.RecordReplayer;
 import junit.framework.Assert;
@@ -91,6 +90,59 @@ public class ExampleFromSerializedTest {
 
         Method method = testClass.getDeclaredMethod("classargumentstest");
         method.invoke( o );
+    }
+
+    @Test
+    public void verify_generated_test() throws Throwable {
+        TraceCallbackImpl callback = new TraceCallbackImpl();
+        RecordReplayer.initialize(callback);
+
+        final Integer origResult = new WithSimpleTypes().simple();
+
+        Trace original = callback.getTrace();
+        String test = new Marshaller().marshal(original);
+        System.out.println( test );
+
+        JavaSourceCompiler compiler = new JavaSourceCompilerImpl();
+        JavaSourceCompiler.CompilationUnit compilationUnit = compiler.createCompilationUnit();
+        compilationUnit.addJavaSource("com.jayway.dejavu.helper.WithSimpleTypesTest", test );
+        ClassLoader classLoader = compiler.compile(compilationUnit);
+        Class testClass = classLoader.loadClass("com.jayway.dejavu.helper.WithSimpleTypesTest");
+
+        Object o = testClass.newInstance();
+        Method method = testClass.getDeclaredMethod("withsimpletypestest");
+        method.invoke( o );
+        Trace newRun = callback.getTrace();
+        Assert.assertNotSame( "We except a different result now", original, newRun );
+        // validate trace
+        int result = 1;
+        int size = 0;
+        int firstElement = 0;
+        for ( TraceElement element: newRun ) {
+            size++;
+            if (size == 1) {
+                firstElement = (Integer) element.getValue();
+                continue;
+            }
+            result *= (Integer) element.getValue();
+        }
+        Assert.assertEquals( firstElement+1, size );
+        Assert.assertEquals( origResult.intValue(), result );
+    }
+
+    @Test
+    public void non_deterministic() {
+        try {
+            AlmostWorking useCase = new AlmostWorking();
+            while ( true ) {
+                useCase.getLucky();
+            }
+        } catch (Exception e ) {
+            // this is an uncommon exception
+            String test = new Marshaller().marshal(callback.getTrace());
+            // generate test that reproduces the hard bug
+            System.out.println( test );
+        }
     }
 
 }

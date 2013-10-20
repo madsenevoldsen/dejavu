@@ -11,6 +11,7 @@
         <module>core</module>
         <module>core-aspectj-interception</module>
         <module>record-replay</module>
+        <module>unit-test-marshaller</module>
         <module>circuitbreaker</module>
         <module>auto-impure</module>
         <module>neo4j-auto-impure</module>

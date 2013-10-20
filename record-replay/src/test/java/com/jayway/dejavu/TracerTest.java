@@ -2,7 +2,6 @@ package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.TraceElement;
-import com.jayway.dejavu.core.marshaller.Marshaller;
 import com.jayway.dejavu.impl.*;
 import com.jayway.dejavu.recordreplay.RecordReplayer;
 import org.junit.Assert;
@@ -91,19 +90,4 @@ public class TracerTest {
         Assert.assertEquals( time, second );
     }
 
-
-    @Test
-    public void non_deterministic() {
-        try {
-            AlmostWorking useCase = new AlmostWorking();
-            while ( true ) {
-                useCase.getLucky();
-            }
-        } catch (Exception e ) {
-            // this is an uncommon exception
-            String test = new Marshaller().marshal(callback.getTrace());
-            // generate test that reproduces the hard bug
-            System.out.println( test );
-        }
-    }
 }

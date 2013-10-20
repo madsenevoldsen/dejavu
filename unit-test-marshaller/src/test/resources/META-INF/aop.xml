@@ -1,0 +1,6 @@
+<aspectj>
+    <weaver options="">
+        <include within="com.jayway.dejavu.impl.*"/>
+        <include within="com.jayway.dejavu.helper.*"/>
+    </weaver>
+</aspectj>

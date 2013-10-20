@@ -2,27 +2,24 @@ package com.jayway.dejavu.core.marshaller;
 
 import com.jayway.dejavu.core.Trace;
 import com.jayway.dejavu.core.TraceElement;
+import com.jayway.dejavu.core.TraceValueHandler;
 import com.jayway.dejavu.core.chainer.ChainBuilder;
 
 import java.util.*;
 
+// Unit-test marshaller
 public class Marshaller {
 
-    private final MarshallerPlugin pluginChain;
-    private MarshallerPlugin[] plugins;
+    private final TraceValueHandler handlerChain;
+    private TraceValueHandler[] handlers;
 
-    public Marshaller( MarshallerPlugin... plugins) {
-        ChainBuilder<MarshallerPlugin> builder = ChainBuilder.handle(MarshallerPlugin.class);
-        builder.add(new SimpleTypeMarshaller());
-        if ( plugins != null ) {
-            this.plugins = plugins;
-            builder.add(plugins);
+    public Marshaller( TraceValueHandler... handlers ) {
+        ChainBuilder<TraceValueHandler> builder = ChainBuilder.compose(TraceValueHandler.class);
+        if ( handlers != null ) {
+            this.handlers = handlers;
+            builder.add(handlers);
         }
-        pluginChain = builder.add( new JacksonMarshallerPlugin() ).build();
-    }
-
-    public Object unmarshal( Class<?> clazz, String marshaled ) {
-        return pluginChain.unmarshal(clazz, marshaled);
+        handlerChain  = builder.add(new SimpleTypeMarshal()).add(new JacksonExceptionValueHandler()).build();
     }
 
     public String marshal( final Trace trace ) {
@@ -34,9 +31,11 @@ public class Marshaller {
         StringBuilder sb = new StringBuilder();
         sb.append("package ").append(packageName).append(";\n\n");
         // imports
-        addImport(sb, Marshaller.class, Trace.class, Value.class, trace.getStartPoint().getDeclaringClass() );
-        addImport(sb, "com.jayway.dejavu.recordreplay.TraceBuilder");
+        addImport(sb, Marshaller.class, Trace.class, trace.getStartPoint().getDeclaringClass() );
+        addImport(sb, "com.jayway.dejavu.core.MemoryTraceBuilder");
+        addImport(sb, "com.jayway.dejavu.core.TraceBuilder");
         addImport(sb, "com.jayway.dejavu.recordreplay.RecordReplayer");
+        addImport(sb, "com.jayway.dejavu.core.marshaller.SerialThrownThrowable");
         addImport(sb, "org.junit.Test");
 
         Set<String> imports = new HashSet<String>();
@@ -51,9 +50,9 @@ public class Marshaller {
             addImport( sb, imports, arg );
         }
         List<Class> classes = new ArrayList<Class>();
-        if ( plugins != null ) {
-            for (MarshallerPlugin plugin : plugins) {
-                classes.add( plugin.getClass() );
+        if ( handlers != null ) {
+            for (TraceValueHandler handler : handlers) {
+                classes.add( handler.getClass() );
             }
         }
         addImport(sb, classes.toArray(new Class[classes.size()]));
@@ -76,27 +75,27 @@ public class Marshaller {
         sb.append("\n");
         add(sb, "@Test", 1);
         add(sb, "public void " + classSimpleName.toLowerCase() + "() throws Throwable {", 1);
-        add(sb, "TraceBuilder builder = TraceBuilder.", 2);
+        add(sb, "TraceBuilder builder = new MemoryTraceBuilder(", 2);
         if ( threads.isEmpty() ) {
-            add(sb, "builder(" + marshallerArgs +").", 4);
+            add(sb, marshallerArgs +").", 4);
         } else {
             if ( marshallerArgs.isEmpty() ) {
-                add(sb, "builder(\"" +trace.getId()+"\").", 4);
+                add(sb, "\"" +trace.getId()+"\").", 4);
             } else {
-                add(sb, "builder(\"" +trace.getId()+"\"," + marshallerArgs +").", 4);
+                add(sb, "\"" +trace.getId()+"\"," + marshallerArgs +").", 4);
             }
         }
 
         // TODO fix if not only one in method
         // TODO fix proper argument elements (with type)
-        add(sb, "setMethod("+trace.getStartPoint().getDeclaringClass().getSimpleName()+".class);",4);
+        add(sb, "startMethod("+trace.getStartPoint().getDeclaringClass().getSimpleName()+".class);",4);
         if (trace.getStartPoint().getParameterTypes().length > 0 ) {
             String params = join(new Join<Object>() {
                 public String element(Object element ) {
-                return pluginChain.marshalObject(element);
+                return handlerChain.handle(element).toString();
                 }
             },trace.getStartArguments());
-            add(sb, "builder.addMethodArguments("+params+");", 2);
+            add(sb, "builder.startArguments("+params+");", 2);
         }
         if ( !threads.isEmpty() ) {
             String threadArguments = join( threads, new Join<String>() {
@@ -166,13 +165,13 @@ public class Marshaller {
                 valueRows.get( valueRows.size()-1 ).append( ", ");
             }
             current = valueRows.get( valueRows.size()-1 );
-            String str = pluginChain.marshalObject(element.getValue());
+            String str = handlerChain.handle(element.getValue()).toString();
             current.append(str);
             if ( current.length() > 80 ) {
                 preferNewLine = true;
             }
         }
-        if ( trace.impureValueCount() > 0 ) {
+        if ( trace.iterator().hasNext() ) {
             for (int i=0;i<valueRows.size(); i++) {
                 StringBuilder valueRow = valueRows.get(i);
                 String end = ".";

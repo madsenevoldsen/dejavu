@@ -1,7 +1,7 @@
 package com.jayway.dejavu.core.marshaller;
 
 import com.jayway.dejavu.core.ThrownThrowable;
-import com.jayway.dejavu.core.TraceElement;
+import com.jayway.dejavu.core.TraceValueHandler;
 
 /**
  * Mainly usable for test purposes.
@@ -9,9 +9,9 @@ import com.jayway.dejavu.core.TraceElement;
  * Makes it easier to simulate an exception from an
  * impure method
  */
-public class SimpleExceptionMarshaller implements MarshallerPlugin  {
+public class RuntimeExceptionValueHandler implements TraceValueHandler {
 
-    @Override
+    /*@Override
     public Object unmarshal(Class<?> clazz, String marshalValue) {
         if ( clazz == Class.class ) {
             try {
@@ -35,5 +35,22 @@ public class SimpleExceptionMarshaller implements MarshallerPlugin  {
             return value.getClass().getSimpleName() + ".class";
         }
         return null;
+    }*/
+
+    @Override
+    public Object handle(Object value) {
+        if ( value instanceof Class ) {
+            if ( RuntimeException.class.isAssignableFrom((Class<?>) value)) {
+                try {
+                    RuntimeException r = (RuntimeException) ((Class<?>) value).newInstance();
+                    ThrownThrowable throwable = new ThrownThrowable();
+                    throwable.setThrowable(r);
+                    return throwable;
+                } catch (Exception e) {
+                    // log
+                }
+            }
+        }
+        return value;
     }
 }

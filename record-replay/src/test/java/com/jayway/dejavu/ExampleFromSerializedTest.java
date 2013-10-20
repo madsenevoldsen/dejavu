@@ -7,6 +7,7 @@ import com.jayway.dejavu.impl.ClassArguments;
 import com.jayway.dejavu.impl.ExampleFailingIntegrationPoint;
 import com.jayway.dejavu.impl.RecurseAndExcept;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
+import com.jayway.dejavu.recordreplay.RecordReplayFactory;
 import com.jayway.dejavu.recordreplay.RecordReplayer;
 import junit.framework.Assert;
 import org.abstractmeta.toolbox.compilation.compiler.JavaSourceCompiler;
@@ -24,6 +25,7 @@ public class ExampleFromSerializedTest {
     public void setup(){
         callback = new TraceCallbackImpl();
         DejaVuPolicy.initialize(callback);
+        DejaVuPolicy.setFactory(new RecordReplayFactory());
     }
 
     @Test

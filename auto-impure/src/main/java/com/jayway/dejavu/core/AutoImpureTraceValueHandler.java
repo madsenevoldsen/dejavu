@@ -12,10 +12,6 @@ import static org.easymock.EasyMock.createMock;
 
 public class AutoImpureTraceValueHandler implements TraceValueHandler {
 
-    public static void initialize() {
-        RunningTrace.addTraceHandler( new AutoImpureTraceValueHandler());
-    }
-
     @Override
     public Object handle(Object value) {
         if ( value instanceof Random) {

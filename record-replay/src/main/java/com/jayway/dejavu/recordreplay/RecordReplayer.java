@@ -11,11 +11,11 @@ public class RecordReplayer extends DejaVuPolicy {
 
     protected boolean done = false;
 
-    public static <T> T replay( final Trace trace ) throws Throwable {
+    public static <T> T replay( final Trace trace, final TraceValueHandler... handlers  ) throws Throwable {
         RecordReplayer replayer = new RecordReplayer() {
             @Override
             public Tracer createTracer(DejaVuInterception interception) {
-                return new ReplayTracer(trace);
+                return new ReplayTracer(trace, handlers);
             }
         };
         replayer.setPolicyForCurrentThread();
@@ -44,9 +44,13 @@ public class RecordReplayer extends DejaVuPolicy {
 
     @Override
     public Tracer createTracer(DejaVuInterception interception) {
-        Trace trace = new MemoryTrace(interception.getMethod(), interception.getArguments());
-        trace.setId( RunningTrace.generateId());
-        return new RecordingTracer(trace);
+        //Trace trace = new MemoryTrace(interception.getMethod(), interception.getArguments());
+        //trace.setId( RunningTrace.generateId());
+        // new MemoryTraceBuilder(...);
+        TraceBuilder builder = new MemoryTraceBuilder(RunningTrace.generateId());
+        builder.startMethod(interception.getMethod());
+        builder.startArguments(interception.getArguments());
+        return new RecordingTracer( builder );
     }
 
     @Override

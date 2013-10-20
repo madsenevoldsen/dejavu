@@ -4,10 +4,8 @@ import com.jayway.dejavu.core.*;
 import com.jayway.dejavu.core.marshaller.Marshaller;
 import com.jayway.dejavu.impl.ExampleTrace;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
-import com.jayway.dejavu.recordreplay.MemoryTrace;
 import com.jayway.dejavu.recordreplay.RecordReplayFactory;
 import com.jayway.dejavu.recordreplay.RecordReplayer;
-import com.jayway.dejavu.recordreplay.TraceBuilder;
 import junit.framework.Assert;
 import org.abstractmeta.toolbox.compilation.compiler.JavaSourceCompiler;
 import org.abstractmeta.toolbox.compilation.compiler.impl.JavaSourceCompilerImpl;
@@ -25,12 +23,12 @@ public class TraceBuilderTest {
 
     @Test
     public void builder() throws Throwable {
-        TraceBuilder builder = TraceBuilder.builder().setMethod(ExampleTrace.class);
+        TraceBuilder builder = new MemoryTraceBuilder().startMethod(ExampleTrace.class);
 
         builder.add( 349013193767909L, "d09c2893-2835-4cbe-8c8e-4c790c268ed0", 349013194166199L);
 
         try {
-            RecordReplayer.replay( builder.build() );
+            RecordReplayer.replay(builder.build());
             Assert.fail();
         } catch (ArithmeticException e) {
 
@@ -44,7 +42,8 @@ public class TraceBuilderTest {
 
         final Integer origResult = new WithSimpleTypes().simple();
 
-        String test = new Marshaller().marshal(callback.getTrace());
+        Trace original = callback.getTrace();
+        String test = new Marshaller().marshal(original);
         System.out.println( test );
 
         JavaSourceCompiler compiler = new JavaSourceCompilerImpl();
@@ -55,30 +54,28 @@ public class TraceBuilderTest {
 
         Object o = testClass.newInstance();
         Method method = testClass.getDeclaredMethod("withsimpletypestest");
-
-        final Trace trace = new MemoryTrace(null, null);
-        RunningTrace.addTraceHandler(new TraceValueHandler() {
-            @Override
-            public Object handle(Object value) {
-                trace.add(new TraceElement("?", value));
-                return value;
-            }
-        });
         method.invoke( o );
+        Trace newRun = callback.getTrace();
+        Assert.assertNotSame( "We except a different result now", original, newRun );
         // validate trace
-        int loop = (Integer) trace.get(0).getValue();
-        Assert.assertEquals( loop+1, trace.impureValueCount() );
         int result = 1;
-        for ( int i=1; i<loop+1; i++ ) {
-            result *= (Integer) trace.get(i).getValue();
+        int size = 0;
+        int firstElement = 0;
+        for ( TraceElement element: newRun ) {
+            size++;
+            if (size == 1) {
+                firstElement = (Integer) element.getValue();
+                continue;
+            }
+            result *= (Integer) element.getValue();
         }
+        Assert.assertEquals( firstElement+1, size );
         Assert.assertEquals( origResult.intValue(), result );
-
     }
 
     @Test
     public void simple_types_test() throws Throwable {
-        TraceBuilder builder = TraceBuilder.builder().setMethod(AllSimpleTypes.class);
+        TraceBuilder builder = new MemoryTraceBuilder().startMethod(AllSimpleTypes.class);
 
         builder.add( "string", 1.1F, true, 2.2, 1L, 1 );
 

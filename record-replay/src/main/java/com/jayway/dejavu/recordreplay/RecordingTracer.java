@@ -5,11 +5,14 @@ import com.jayway.dejavu.core.repository.Tracer;
 
 public class RecordingTracer implements Tracer {
 
-    private final Trace trace;
-    private TraceValueHandler traceValueHandler;
+    private final TraceBuilder trace;
+    //private TraceValueHandler traceValueHandler;
 
-    public RecordingTracer( Trace trace ) {
+    public RecordingTracer( /*String traceId, DejaVuInterception interception, */TraceBuilder trace ) {
         this.trace = trace;
+        //trace = new MemoryTraceBuilder(traceId);
+        //trace.startMethod( interception.getMethod());
+        //trace.startArguments( interception.getArguments() );
     }
 
     @Override
@@ -17,10 +20,10 @@ public class RecordingTracer implements Tracer {
         synchronized (trace){
             try {
                 Object result = interception.proceed();
-                trace.add( new TraceElement(threadId, traceValueHandler.handle(result)));
+                trace.addValue( threadId, result);
                 return result;
             } catch (Throwable t) {
-                trace.add( new TraceElement(threadId, traceValueHandler.handle(new ThrownThrowable(t))));
+                trace.addValue( threadId, new ThrownThrowable(t));
                 throw t;
             }
         }
@@ -28,16 +31,18 @@ public class RecordingTracer implements Tracer {
 
     @Override
     public String getNextChildThreadId(String parentThreadId) {
-        return parentThreadId + "." + RunningTrace.generateId();
+        String childThreadId = parentThreadId + "." + RunningTrace.generateId();
+        trace.addThreadId( childThreadId );
+        return childThreadId;
     }
 
-    @Override
+    /*@Override
     public void setTraceValueHandlerChain(TraceValueHandler traceValueHandler) {
         this.traceValueHandler = traceValueHandler;
-    }
+    }*/
 
     @Override
     public Trace getTrace() {
-        return trace;
+        return trace.build();
     }
 }

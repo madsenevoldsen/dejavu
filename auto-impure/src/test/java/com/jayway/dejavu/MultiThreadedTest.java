@@ -24,7 +24,6 @@ public class MultiThreadedTest {
         callback = new TraceCallbackImpl();
         DejaVuPolicy.initialize(callback);
         RunningTrace.initialize();
-        AutoImpureTraceValueHandler.initialize();
         DejaVuPolicy.setFactory(new RecordReplayFactory());
     }
 
@@ -37,21 +36,25 @@ public class MultiThreadedTest {
 
 
         Trace trace = callback.getTrace();
-        System.out.println(new Marshaller().marshal(trace));
+        System.out.println(new Marshaller(new AutoImpureTraceValueHandler()).marshal(trace));
+        int size = 0;
+        for (TraceElement traceElement : trace) {
+            size++;
+        }
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        RunningTrace.addTraceHandler(new TraceValueHandler() {
+        RecordReplayer.replay(trace, new TraceValueHandler() {
+            @Override
             public Object handle(Object value) {
                 values.add(new TraceElement(Thread.currentThread().getName(), value));
                 return value;
             }
         });
-        RecordReplayer.replay(trace);
 
         Map<String, String> threadNameMap = new HashMap<String, String>();
-        Assert.assertEquals("Trace and replay must have same amount of values", trace.impureValueCount(), values.size());
-        for (int i=0; i<trace.impureValueCount(); i++ ) {
-            TraceElement element = trace.get(i);
+        Assert.assertEquals("Trace and replay must have same amount of values", size, values.size());
+        int i=0;
+        for (TraceElement element : trace ) {
             TraceElement rerunElement = values.get(i);
             if ( !(element.getValue() instanceof Pure) ) {
                 Assert.assertEquals(element.getValue(), rerunElement.getValue());
@@ -62,6 +65,7 @@ public class MultiThreadedTest {
                 // first encounter of two threadIds, must be same for all other
                 threadNameMap.put( element.getThreadId(), rerunElement.getThreadId() );
             }
+            i++;
         }
 
         // exactly three threads are expected to have run

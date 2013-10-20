@@ -13,7 +13,6 @@ public class RunningTrace {
     private static ThreadLocal<Boolean> threadLocalInImpure = new ThreadLocal<Boolean>();
 
     private static List<ImpureHandler> impureHandlers = new ArrayList<ImpureHandler>();
-    private static List<TraceValueHandler> traceValueHandlers = new ArrayList<TraceValueHandler>();
 
     private DejaVuPolicy policy;
     private ImpureHandler impureHandler;
@@ -26,7 +25,6 @@ public class RunningTrace {
     protected RunningTrace( DejaVuPolicy policy, Tracer tracer ) {
         this.policy = policy;
         this.tracer = tracer;
-        tracer.setTraceValueHandlerChain(ChainBuilder.compose(TraceValueHandler.class).add(traceValueHandlers).build());
         threadId.set(tracer.getTrace().getId());
 
         impureHandler = ChainBuilder.all(ImpureHandler.class).add(new ImpureHandler() {
@@ -41,15 +39,10 @@ public class RunningTrace {
 
     public static void initialize() {
         impureHandlers.clear();
-        traceValueHandlers.clear();
     }
 
     public static void addImpureHandler( ImpureHandler handler ) {
         impureHandlers.add(handler);
-    }
-
-    public static void addTraceHandler( TraceValueHandler handler ) {
-        traceValueHandlers.add(handler);
     }
 
     public synchronized void threadAttached( String id ) {

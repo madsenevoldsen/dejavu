@@ -7,14 +7,12 @@ import com.jayway.dejavu.impl.TraceCallbackImpl;
 import com.jayway.dejavu.impl.WithThreads;
 import com.jayway.dejavu.recordreplay.RecordReplayFactory;
 import com.jayway.dejavu.recordreplay.RecordReplayer;
-import com.jayway.dejavu.recordreplay.TraceBuilder;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,24 +36,24 @@ public class MultiThreadedTracerTest {
     public void with_three_child_threads() throws Throwable {
         WithThreads withThreads = new WithThreads();
         int threads = 3;
-        withThreads.begin( threads );
+        withThreads.begin(threads);
         waitForCompletion();
 
 
         Trace trace = callback.getTrace();
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        RunningTrace.addTraceHandler(new TraceValueHandler() {
+        RecordReplayer.replay( trace, new TraceValueHandler() {
+            @Override
             public Object handle(Object value) {
-                values.add( new TraceElement( Thread.currentThread().getName(), value));
+                values.add( new TraceElement(Thread.currentThread().getName(), value));
                 return value;
             }
         });
-        RecordReplayer.replay(trace);
 
         Map<String, String> threadNameMap = new HashMap<String, String>();
-        for (int i=0; i<trace.impureValueCount(); i++ ) {
-            TraceElement element = trace.get(i);
+        int i = 0;
+        for (TraceElement element: trace ) {
             TraceElement rerunElement = values.get(i);
             Assert.assertEquals(element.getValue(), rerunElement.getValue());
             if ( threadNameMap.containsKey(element.getThreadId()) ) {
@@ -64,10 +62,11 @@ public class MultiThreadedTracerTest {
                 // first encounter of two threadIds, must be same for all other
                 threadNameMap.put( element.getThreadId(), rerunElement.getThreadId() );
             }
+            i++;
         }
 
         // exactly three threads are expected to have run
-        Assert.assertEquals( threads, threadNameMap.size() );
+        Assert.assertEquals(threads, threadNameMap.size());
     }
 
     @Test
@@ -78,17 +77,17 @@ public class MultiThreadedTracerTest {
         Trace trace = callback.getTrace();
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        RunningTrace.addTraceHandler(new TraceValueHandler() {
+        RecordReplayer.replay( trace, new TraceValueHandler() {
+            @Override
             public Object handle(Object value) {
-                values.add(new TraceElement(Thread.currentThread().getName(), value));
+                values.add( new TraceElement(Thread.currentThread().getName(), value));
                 return value;
             }
         });
-        RecordReplayer.replay(trace);
 
         Map<String, String> threadNameMap = new HashMap<String, String>();
-        for (int i=0; i<trace.impureValueCount(); i++ ) {
-            TraceElement element = trace.get(i);
+        int i = 0;
+        for (TraceElement element: trace ) {
             TraceElement rerunElement = values.get(i);
             //System.out.println(element.getValue() + " produced on thread " +element.getThreadId() );
             Assert.assertEquals(element.getValue(), rerunElement.getValue());
@@ -98,6 +97,7 @@ public class MultiThreadedTracerTest {
                 // first encounter of two threadIds, must be same for all other
                 threadNameMap.put( element.getThreadId(), rerunElement.getThreadId() );
             }
+            i++;
         }
 
         Assert.assertEquals( callback.getThreadCauses().size() +  threadCount, threadNameMap.size() );
@@ -117,10 +117,9 @@ public class MultiThreadedTracerTest {
 
     @Test
     public void withthreadstest() throws Throwable {
-        TraceBuilder builder = TraceBuilder.
-                builder("3bf8c479-cd1e-4281-9268-f17c93a4f816").
-                setMethod(WithThreads.class);
-        builder.addMethodArguments(8);
+        TraceBuilder builder = new MemoryTraceBuilder("3bf8c479-cd1e-4281-9268-f17c93a4f816").
+                startMethod(WithThreads.class);
+        builder.startArguments(8);
         builder.threadIds("0b11975e-a976-485e-bbd2-0eca19f4df13", "8279a430-f2d9-4d16-b747-84ea002ed45a", "4f2e52d1-07d2-4145-ae3f-f818b8d5ebeb", "8885cd0f-f71e-4a43-9df7-785dd1750bc3", "f8b2190d-b977-4387-9422-db90b0ec67df", "54b8eea6-8811-4598-baf2-be6a78914460", "7c6ab34f-6dd7-4ba0-b4ed-e8d059a5373c", "3af6082b-b432-40f7-a50d-61dbd8e24224");
 
         builder.addT(1, "078b7afc-677a-46a8-8bff-44024f993e4d", 363L).
@@ -144,20 +143,18 @@ public class MultiThreadedTracerTest {
 
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        RunningTrace.addTraceHandler(new TraceValueHandler() {
+        Trace build = builder.build();
+        RecordReplayer.replay(build, new TraceValueHandler() {
+            @Override
             public Object handle(Object value) {
-                values.add( new TraceElement( Thread.currentThread().getName(), value));
+                values.add( new TraceElement(Thread.currentThread().getName(), value));
                 return value;
             }
         });
-        RecordReplayer.replay( builder.build() );
 
-        Field field = TraceBuilder.class.getDeclaredField("trace");
-        field.setAccessible(true);
-        Trace trace = (Trace) field.get( builder );
         Map<String, String> threadNameMap = new HashMap<String, String>();
-        for (int i=0; i<trace.impureValueCount(); i++ ) {
-            TraceElement element = trace.get(i);
+        int i=0;
+        for (TraceElement element: build ) {
             TraceElement rerunElement = values.get(i);
             Assert.assertEquals(element.getValue(), rerunElement.getValue());
             if ( threadNameMap.containsKey(element.getThreadId()) ) {
@@ -166,6 +163,7 @@ public class MultiThreadedTracerTest {
                 // first encounter of two threadIds, must be same for all other
                 threadNameMap.put( element.getThreadId(), rerunElement.getThreadId() );
             }
+            i++;
         }
 
         // exactly three threads are expected to have run

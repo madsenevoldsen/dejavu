@@ -1,9 +1,11 @@
 package com.jayway.dejavu.unittest;
 
-import com.jayway.dejavu.core.interfaces.Trace;
+import com.jayway.dejavu.core.DejaVuEngine;
+import com.jayway.dejavu.core.TraceBuilder;
 import com.jayway.dejavu.core.TraceElement;
-import com.jayway.dejavu.core.interfaces.TraceValueHandler;
 import com.jayway.dejavu.core.chainer.ChainBuilder;
+import com.jayway.dejavu.core.interfaces.Trace;
+import com.jayway.dejavu.core.interfaces.TraceValueHandler;
 
 import java.util.*;
 
@@ -32,7 +34,18 @@ public class Marshaller {
         sb.append("package ").append(packageName).append(";\n\n");
         // imports
         addImport(sb, Marshaller.class, Trace.class, trace.getStartPoint().getDeclaringClass() );
-        addImport(sb, "com.jayway.dejavu.core.memorytrace.MemoryTraceBuilder");
+        TraceBuilder builder = DejaVuEngine.createTraceBuilder();
+        TraceValueHandler[] valueHandlers = builder.getHandlers();
+        if ( valueHandlers != null ) {
+            for (TraceValueHandler valueHandler : valueHandlers) {
+                if ( valueHandler.getClass().isAnonymousClass() ) {
+                    //log.warning("Anonymous TraceValueHandler cannot be re-created. Skipping");
+                } else {
+                    addImport(sb, valueHandler.getClass());
+                }
+            }
+        }
+        addImport(sb, builder.getClass());
         addImport(sb, "com.jayway.dejavu.core.TraceBuilder");
         addImport(sb, "com.jayway.dejavu.recordreplay.RecordReplayer");
         addImport(sb, "com.jayway.dejavu.unittest.SerialThrownThrowable");
@@ -42,7 +55,7 @@ public class Marshaller {
         Set<String> threads = new LinkedHashSet<String>();
         for (TraceElement element : trace) {
             threads.add( element.getThreadId() );
-            // TODO fix import types for enum types (e.g. Pure)
+            // TODO fix import types for enum types (e.g. Pure). Use ValueHandlers
             Object value = handlerChain.handle(element.getValue());
             if ( value != null ) {
                 addImport( sb, imports, value.getClass() );

@@ -7,7 +7,6 @@ import com.jayway.dejavu.core.interfaces.DejaVuInterception;
 import com.jayway.dejavu.core.interfaces.Trace;
 import com.jayway.dejavu.core.interfaces.TraceValueHandler;
 import com.jayway.dejavu.core.interfaces.Tracer;
-import com.jayway.dejavu.core.memorytrace.MemoryTraceBuilder;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -50,7 +49,7 @@ public class RecordReplayer extends DejaVuEngine {
 
     @Override
     public Tracer createTracer(DejaVuInterception interception) {
-        TraceBuilder builder = new MemoryTraceBuilder(DejaVuEngine.generateId());
+        TraceBuilder builder = createTraceBuilder();
         builder.startMethod(interception.getMethod());
         builder.startArguments(interception.getArguments());
         return new RecordingTracer( builder );

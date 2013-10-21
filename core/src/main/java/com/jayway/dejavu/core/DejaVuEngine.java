@@ -2,6 +2,7 @@ package com.jayway.dejavu.core;
 
 import com.jayway.dejavu.core.chainer.ChainBuilder;
 import com.jayway.dejavu.core.interfaces.*;
+import com.jayway.dejavu.core.memorytrace.MemoryTraceBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,21 +45,36 @@ public abstract class DejaVuEngine {
         DejaVuEngine.callback = callback;
     }
 
-    private static EngineFactory factory = new EngineFactory() {
+    private static EngineFactory engineFactory = new EngineFactory() {
         @Override
         public DejaVuEngine getEngine() {
-            throw new RuntimeException("Engine factory not set up! Call DejaVuEngine.setFactory(..)");
+            throw new RuntimeException("EngineFactory not set up! Call DejaVuEngine.setEngineFactory(..)");
         }
     };
 
-    public static void setFactory(EngineFactory factory) {
-        DejaVuEngine.factory = factory;
+    public static void setEngineFactory(EngineFactory engineFactory) {
+        DejaVuEngine.engineFactory = engineFactory;
+    }
+
+    private static TraceBuilderFactory traceBuilderFactory = new TraceBuilderFactory() {
+        @Override
+        public TraceBuilder createTraceBuilder() {
+            return new MemoryTraceBuilder(generateId());
+        }
+    };
+
+    public static void setTraceBuilderFactory( TraceBuilderFactory traceBuilderFactory) {
+        DejaVuEngine.traceBuilderFactory = traceBuilderFactory;
+    }
+
+    public static TraceBuilder createTraceBuilder() {
+        return traceBuilderFactory.createTraceBuilder();
     }
 
     public static Object traced( DejaVuInterception interception) throws Throwable {
         DejaVuEngine engine = getEngineForCurrentThread();
         if ( engine == null ) {
-            engine = factory.getEngine();
+            engine = engineFactory.getEngine();
             engine.setEngineForCurrentThread();
         }
         return engine.aroundTraced(interception);

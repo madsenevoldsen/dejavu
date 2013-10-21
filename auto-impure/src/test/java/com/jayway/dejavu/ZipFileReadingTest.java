@@ -11,7 +11,7 @@ public class ZipFileReadingTest {
 
     @Test
     public void read_from_zip_file() throws Throwable {
-        DejaVuEngine.setFactory(new RecordReplayFactory());
+        DejaVuEngine.setEngineFactory(new RecordReplayFactory());
         TraceBuilder builder = new MemoryTraceBuilder(new AutoImpureTraceValueHandler())
                 .startMethod(ZipFileReader.class)
                 .startArguments("myZipFile.zip");

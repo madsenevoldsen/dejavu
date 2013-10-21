@@ -1,7 +1,6 @@
 package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.DejaVuEngine;
-import com.jayway.dejavu.core.DejaVuEngine;
 import com.jayway.dejavu.core.interfaces.Trace;
 import com.jayway.dejavu.core.TraceElement;
 import com.jayway.dejavu.unittest.Marshaller;
@@ -25,7 +24,7 @@ public class ExampleFromSerializedTest {
     public void setup(){
         callback = new TraceCallbackImpl();
         DejaVuEngine.initialize(callback);
-        DejaVuEngine.setFactory(new RecordReplayFactory());
+        DejaVuEngine.setEngineFactory(new RecordReplayFactory());
     }
 
     @Test

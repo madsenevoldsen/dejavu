@@ -20,7 +20,7 @@ public class Neo4jAutoImpureTest {
     public void before(){
         callback = new TraceCallbackImpl();
         DejaVuEngine.initialize(callback);
-        DejaVuEngine.setFactory(new RecordReplayFactory());
+        DejaVuEngine.setEngineFactory(new RecordReplayFactory());
     }
 
     @Test

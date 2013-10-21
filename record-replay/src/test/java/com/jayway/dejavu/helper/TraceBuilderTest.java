@@ -1,7 +1,6 @@
 package com.jayway.dejavu.helper;
 
 import com.jayway.dejavu.core.DejaVuEngine;
-import com.jayway.dejavu.core.DejaVuEngine;
 import com.jayway.dejavu.core.memorytrace.MemoryTraceBuilder;
 import com.jayway.dejavu.core.TraceBuilder;
 import com.jayway.dejavu.impl.ExampleTrace;
@@ -15,7 +14,7 @@ public class TraceBuilderTest {
 
     @Before
     public void setup() {
-        DejaVuEngine.setFactory(new RecordReplayFactory());
+        DejaVuEngine.setEngineFactory(new RecordReplayFactory());
     }
 
     @Test

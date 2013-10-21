@@ -17,6 +17,7 @@ public abstract class TraceBuilder {
     private static Logger log = LoggerFactory.getLogger( TraceBuilder.class );
 
     private String traceId;
+    private TraceValueHandler[] handlers;
     private List<String> threadIds;
     private Method startMethod;
     private Object[] startArguments;
@@ -25,10 +26,12 @@ public abstract class TraceBuilder {
 
     public TraceBuilder( String traceId, TraceValueHandler... handlers) {
         this.traceId = traceId;
+        this.handlers = handlers;
         valueHandlers = ChainBuilder.compose(TraceValueHandler.class).add( handlers ).build();
         threadIds = new ArrayList<String>();
         threadIds.add( traceId );
     }
+
 
     public TraceBuilder(TraceValueHandler... handlers ) {
         this("traceId", handlers);
@@ -142,4 +145,7 @@ public abstract class TraceBuilder {
 
     public abstract Trace build();
 
+    public TraceValueHandler[] getHandlers() {
+        return handlers;
+    }
 }

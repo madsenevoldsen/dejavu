@@ -1,8 +1,8 @@
 package com.jayway.dejavu.core.memorytrace;
 
-import com.jayway.dejavu.core.interfaces.Trace;
 import com.jayway.dejavu.core.TraceBuilder;
 import com.jayway.dejavu.core.TraceElement;
+import com.jayway.dejavu.core.interfaces.Trace;
 import com.jayway.dejavu.core.interfaces.TraceValueHandler;
 
 import java.util.ArrayList;
@@ -13,12 +13,7 @@ public class MemoryTraceBuilder extends TraceBuilder {
     private List<TraceElement> values;
 
     public MemoryTraceBuilder(String traceId) {
-        super(traceId, new TraceValueHandler() {
-            @Override
-            public Object handle(Object value) {
-                return value;
-            }
-        });
+        super(traceId);
     }
 
     public MemoryTraceBuilder(TraceValueHandler... handlers) {

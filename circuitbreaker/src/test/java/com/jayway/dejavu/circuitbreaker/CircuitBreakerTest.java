@@ -18,7 +18,7 @@ public class CircuitBreakerTest {
     public void setup() {
         callback = new TraceCallbackImpl();
         DejaVuEngine.initialize(callback);
-        DejaVuEngine.setFactory(new RecordReplayFactory());
+        DejaVuEngine.setEngineFactory(new RecordReplayFactory());
         DejaVuEngine.clearImpureHandlers();
         CircuitBreakerPolicy.initialize();
     }

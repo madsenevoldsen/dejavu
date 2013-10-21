@@ -25,7 +25,7 @@ public class ProxiedTest {
     public void setup() {
         callback = new TraceCallbackImpl();
         DejaVuEngine.initialize(callback);
-        DejaVuEngine.setFactory(new RecordReplayFactory());
+        DejaVuEngine.setEngineFactory(new RecordReplayFactory());
     }
 
     @Test

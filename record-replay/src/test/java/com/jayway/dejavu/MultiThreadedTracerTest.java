@@ -30,7 +30,7 @@ public class MultiThreadedTracerTest {
     public void setup() {
         callback = new TraceCallbackImpl();
         RecordReplayer.initialize(callback);
-        DejaVuEngine.setFactory(new RecordReplayFactory());
+        DejaVuEngine.setEngineFactory(new RecordReplayFactory());
     }
 
     @Test

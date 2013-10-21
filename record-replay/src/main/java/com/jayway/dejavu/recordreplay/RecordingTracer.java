@@ -1,18 +1,16 @@
 package com.jayway.dejavu.recordreplay;
 
 import com.jayway.dejavu.core.*;
-import com.jayway.dejavu.core.repository.Tracer;
+import com.jayway.dejavu.core.interfaces.DejaVuInterception;
+import com.jayway.dejavu.core.interfaces.Trace;
+import com.jayway.dejavu.core.interfaces.Tracer;
 
 public class RecordingTracer implements Tracer {
 
     private final TraceBuilder trace;
-    //private TraceValueHandler traceValueHandler;
 
-    public RecordingTracer( /*String traceId, DejaVuInterception interception, */TraceBuilder trace ) {
+    public RecordingTracer( TraceBuilder trace ) {
         this.trace = trace;
-        //trace = new MemoryTraceBuilder(traceId);
-        //trace.startMethod( interception.getMethod());
-        //trace.startArguments( interception.getArguments() );
     }
 
     @Override
@@ -31,15 +29,10 @@ public class RecordingTracer implements Tracer {
 
     @Override
     public String getNextChildThreadId(String parentThreadId) {
-        String childThreadId = parentThreadId + "." + RunningTrace.generateId();
+        String childThreadId = parentThreadId + "." + DejaVuEngine.generateId();
         trace.addThreadId( childThreadId );
         return childThreadId;
     }
-
-    /*@Override
-    public void setTraceValueHandlerChain(TraceValueHandler traceValueHandler) {
-        this.traceValueHandler = traceValueHandler;
-    }*/
 
     @Override
     public Trace getTrace() {

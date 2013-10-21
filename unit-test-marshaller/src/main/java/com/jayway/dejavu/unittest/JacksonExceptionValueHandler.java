@@ -3,7 +3,7 @@ package com.jayway.dejavu.unittest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.dejavu.core.ThrownThrowable;
-import com.jayway.dejavu.core.TraceValueHandler;
+import com.jayway.dejavu.core.interfaces.TraceValueHandler;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

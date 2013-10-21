@@ -1,7 +1,8 @@
 package com.jayway.dejavu;
 
-import com.jayway.dejavu.core.DejaVuPolicy;
-import com.jayway.dejavu.core.Trace;
+import com.jayway.dejavu.core.DejaVuEngine;
+import com.jayway.dejavu.core.DejaVuEngine;
+import com.jayway.dejavu.core.interfaces.Trace;
 import com.jayway.dejavu.core.TraceElement;
 import com.jayway.dejavu.unittest.Marshaller;
 import com.jayway.dejavu.helper.WithSimpleTypes;
@@ -23,8 +24,8 @@ public class ExampleFromSerializedTest {
     @Before
     public void setup(){
         callback = new TraceCallbackImpl();
-        DejaVuPolicy.initialize(callback);
-        DejaVuPolicy.setFactory(new RecordReplayFactory());
+        DejaVuEngine.initialize(callback);
+        DejaVuEngine.setFactory(new RecordReplayFactory());
     }
 
     @Test

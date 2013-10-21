@@ -7,3 +7,6 @@
 
 *.iml
 .idea/*
+
+target/
+testdb/

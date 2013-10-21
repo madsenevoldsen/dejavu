@@ -1,7 +1,7 @@
-package com.jayway.dejavu.core.repository;
+package com.jayway.dejavu.core.interfaces;
 
 import com.jayway.dejavu.core.ThreadThrowable;
-import com.jayway.dejavu.core.Trace;
+import com.jayway.dejavu.core.interfaces.Trace;
 
 import java.util.List;
 

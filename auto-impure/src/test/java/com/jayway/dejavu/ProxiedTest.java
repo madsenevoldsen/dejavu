@@ -1,13 +1,15 @@
 package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.*;
-import com.jayway.dejavu.unittest.Marshaller;
-import com.jayway.dejavu.unittest.RuntimeExceptionValueHandler;
+import com.jayway.dejavu.core.interfaces.Trace;
+import com.jayway.dejavu.core.memorytrace.MemoryTraceBuilder;
 import com.jayway.dejavu.impl.FileReading;
 import com.jayway.dejavu.impl.RandomProxyExample;
+import com.jayway.dejavu.impl.RuntimeExceptionValueHandler;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
 import com.jayway.dejavu.recordreplay.RecordReplayFactory;
 import com.jayway.dejavu.recordreplay.RecordReplayer;
+import com.jayway.dejavu.unittest.Marshaller;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,9 +24,8 @@ public class ProxiedTest {
     @Before
     public void setup() {
         callback = new TraceCallbackImpl();
-        RunningTrace.initialize();
-        DejaVuPolicy.initialize(callback);
-        DejaVuPolicy.setFactory(new RecordReplayFactory());
+        DejaVuEngine.initialize(callback);
+        DejaVuEngine.setFactory(new RecordReplayFactory());
     }
 
     @Test

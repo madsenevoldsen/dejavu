@@ -1,6 +1,6 @@
 package com.jayway.dejavu.unittest;
 
-import com.jayway.dejavu.core.TraceValueHandler;
+import com.jayway.dejavu.core.interfaces.TraceValueHandler;
 
 class SimpleTypeMarshal implements TraceValueHandler {
 

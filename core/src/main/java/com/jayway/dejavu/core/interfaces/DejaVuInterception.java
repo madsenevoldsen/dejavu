@@ -1,4 +1,4 @@
-package com.jayway.dejavu.core;
+package com.jayway.dejavu.core.interfaces;
 
 import java.lang.reflect.Method;
 

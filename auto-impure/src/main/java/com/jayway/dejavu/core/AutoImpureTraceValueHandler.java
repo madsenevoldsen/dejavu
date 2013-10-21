@@ -1,5 +1,7 @@
 package com.jayway.dejavu.core;
 
+import com.jayway.dejavu.core.interfaces.TraceValueHandler;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.InputStream;

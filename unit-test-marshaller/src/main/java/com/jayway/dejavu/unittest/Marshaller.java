@@ -1,8 +1,8 @@
 package com.jayway.dejavu.unittest;
 
-import com.jayway.dejavu.core.Trace;
+import com.jayway.dejavu.core.interfaces.Trace;
 import com.jayway.dejavu.core.TraceElement;
-import com.jayway.dejavu.core.TraceValueHandler;
+import com.jayway.dejavu.core.interfaces.TraceValueHandler;
 import com.jayway.dejavu.core.chainer.ChainBuilder;
 
 import java.util.*;
@@ -32,7 +32,7 @@ public class Marshaller {
         sb.append("package ").append(packageName).append(";\n\n");
         // imports
         addImport(sb, Marshaller.class, Trace.class, trace.getStartPoint().getDeclaringClass() );
-        addImport(sb, "com.jayway.dejavu.core.MemoryTraceBuilder");
+        addImport(sb, "com.jayway.dejavu.core.memorytrace.MemoryTraceBuilder");
         addImport(sb, "com.jayway.dejavu.core.TraceBuilder");
         addImport(sb, "com.jayway.dejavu.recordreplay.RecordReplayer");
         addImport(sb, "com.jayway.dejavu.unittest.SerialThrownThrowable");

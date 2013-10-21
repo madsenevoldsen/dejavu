@@ -1,6 +1,6 @@
 package com.jayway.dejavu;
 
-import com.jayway.dejavu.core.Trace;
+import com.jayway.dejavu.core.interfaces.Trace;
 import com.jayway.dejavu.core.TraceElement;
 import com.jayway.dejavu.impl.*;
 import com.jayway.dejavu.recordreplay.RecordReplayer;

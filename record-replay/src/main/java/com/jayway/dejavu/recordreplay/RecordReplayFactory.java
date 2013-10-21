@@ -1,12 +1,12 @@
 package com.jayway.dejavu.recordreplay;
 
-import com.jayway.dejavu.core.DejaVuPolicy;
-import com.jayway.dejavu.core.PolicyFactory;
+import com.jayway.dejavu.core.DejaVuEngine;
+import com.jayway.dejavu.core.interfaces.EngineFactory;
 
-public class RecordReplayFactory implements PolicyFactory {
+public class RecordReplayFactory implements EngineFactory {
 
     @Override
-    public DejaVuPolicy getPolicy() {
+    public DejaVuEngine getEngine() {
         return new RecordReplayer();
     }
 }

@@ -59,12 +59,12 @@ public class Neo4jAutoImpure {
     }
 
     private Object impureMethod(ProceedingJoinPoint proceed) throws Throwable {
-        return DejaVuPolicy.impure(new AspectJInterception( proceed), "neo4j");
+        return DejaVuEngine.impure(new AspectJInterception(proceed), "neo4j");
     }
 
     private <T> T impureConstruction( ProceedingJoinPoint proceed, Class<T> clazz ) throws Throwable {
         // if already inside an @impure just proceed
-        return (T) DejaVuPolicy.impure(new AspectJInterception(proceed), "neo4j");
+        return (T) DejaVuEngine.impure(new AspectJInterception(proceed), "neo4j");
     }
 
 }

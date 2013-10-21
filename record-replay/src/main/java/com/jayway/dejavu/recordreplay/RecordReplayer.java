@@ -1,13 +1,19 @@
 package com.jayway.dejavu.recordreplay;
 
-import com.jayway.dejavu.core.*;
-import com.jayway.dejavu.core.repository.Tracer;
+import com.jayway.dejavu.core.DejaVuEngine;
+import com.jayway.dejavu.core.ThreadThrowable;
+import com.jayway.dejavu.core.TraceBuilder;
+import com.jayway.dejavu.core.interfaces.DejaVuInterception;
+import com.jayway.dejavu.core.interfaces.Trace;
+import com.jayway.dejavu.core.interfaces.TraceValueHandler;
+import com.jayway.dejavu.core.interfaces.Tracer;
+import com.jayway.dejavu.core.memorytrace.MemoryTraceBuilder;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
-public class RecordReplayer extends DejaVuPolicy {
+public class RecordReplayer extends DejaVuEngine {
 
     protected boolean done = false;
 
@@ -18,7 +24,7 @@ public class RecordReplayer extends DejaVuPolicy {
                 return new ReplayTracer(trace, handlers);
             }
         };
-        replayer.setPolicyForCurrentThread();
+        replayer.setEngineForCurrentThread();
         Method method = trace.getStartPoint();
         Class<?> aClass = method.getDeclaringClass();
 
@@ -34,7 +40,7 @@ public class RecordReplayer extends DejaVuPolicy {
                 // wait until finished
                 Thread.sleep(500);
             }
-            replayer.removePolicyForCurrentThread();
+            replayer.removeEngineForCurrentThread();
         }
     }
 
@@ -44,10 +50,7 @@ public class RecordReplayer extends DejaVuPolicy {
 
     @Override
     public Tracer createTracer(DejaVuInterception interception) {
-        //Trace trace = new MemoryTrace(interception.getMethod(), interception.getArguments());
-        //trace.setId( RunningTrace.generateId());
-        // new MemoryTraceBuilder(...);
-        TraceBuilder builder = new MemoryTraceBuilder(RunningTrace.generateId());
+        TraceBuilder builder = new MemoryTraceBuilder(DejaVuEngine.generateId());
         builder.startMethod(interception.getMethod());
         builder.startArguments(interception.getArguments());
         return new RecordingTracer( builder );

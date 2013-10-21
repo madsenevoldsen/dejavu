@@ -1,68 +1,82 @@
 package com.jayway.dejavu.core;
 
-import com.jayway.dejavu.core.repository.TraceCallback;
-import com.jayway.dejavu.core.repository.Tracer;
+import com.jayway.dejavu.core.chainer.ChainBuilder;
+import com.jayway.dejavu.core.interfaces.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-public abstract class DejaVuPolicy {
+public abstract class DejaVuEngine {
 
     private RunningTrace runningTrace;
 
-    private static ThreadLocal<DejaVuPolicy> dejaVuPolicyThreadLocal = new ThreadLocal<DejaVuPolicy>();
+    private static ThreadLocal<DejaVuEngine> dejaVuEngineThreadLocal = new ThreadLocal<DejaVuEngine>();
+    private static List<ImpureHandler> impureHandlers = new ArrayList<ImpureHandler>();
 
-    protected void setPolicyForCurrentThread() {
-        dejaVuPolicyThreadLocal.set(this);
+    public static void clearImpureHandlers() {
+        impureHandlers.clear();
     }
 
-    public static DejaVuPolicy getPolicyForCurrentThread() {
-        return dejaVuPolicyThreadLocal.get();
+    public static void addImpureHandler( ImpureHandler handler ) {
+        impureHandlers.add(handler);
     }
 
-    protected void removePolicyForCurrentThread() {
-        dejaVuPolicyThreadLocal.remove();
+    public static ImpureHandler createImpureHandlerChain( ImpureHandler defaultHandler ) {
+        return ChainBuilder.all(ImpureHandler.class).add(defaultHandler).add( impureHandlers ).build();
+    }
+
+    protected void setEngineForCurrentThread() {
+        dejaVuEngineThreadLocal.set(this);
+    }
+
+    public static DejaVuEngine getEngineForCurrentThread() {
+        return dejaVuEngineThreadLocal.get();
+    }
+
+    protected void removeEngineForCurrentThread() {
+        dejaVuEngineThreadLocal.remove();
     }
 
     private static TraceCallback callback;
 
     public static void initialize( TraceCallback callback ) {
-        DejaVuPolicy.callback = callback;
+        DejaVuEngine.callback = callback;
     }
 
-    private static PolicyFactory factory = new PolicyFactory() {
+    private static EngineFactory factory = new EngineFactory() {
         @Override
-        public DejaVuPolicy getPolicy() {
-            throw new RuntimeException("Policy factory not set up! Call DejaVuPolicy.setFactory(..)");
+        public DejaVuEngine getEngine() {
+            throw new RuntimeException("Engine factory not set up! Call DejaVuEngine.setFactory(..)");
         }
     };
 
-    public static void setFactory(PolicyFactory factory) {
-        DejaVuPolicy.factory = factory;
+    public static void setFactory(EngineFactory factory) {
+        DejaVuEngine.factory = factory;
     }
 
     public static Object traced( DejaVuInterception interception) throws Throwable {
-        DejaVuPolicy policy = getPolicyForCurrentThread();
-        if ( policy == null ) {
-            policy = factory.getPolicy();
-            policy.setPolicyForCurrentThread();
+        DejaVuEngine engine = getEngineForCurrentThread();
+        if ( engine == null ) {
+            engine = factory.getEngine();
+            engine.setEngineForCurrentThread();
         }
-        return policy.aroundTraced(interception);
+        return engine.aroundTraced(interception);
     }
 
     public static Object impure(DejaVuInterception interception, String integrationPoint) throws Throwable {
-        DejaVuPolicy policy = getPolicyForCurrentThread();
-        if (policy == null || policy.runningTrace == null) {
+        DejaVuEngine engine = getEngineForCurrentThread();
+        if (engine == null || engine.runningTrace == null) {
             return interception.proceed();
         } else {
-            return policy.aroundImpure(interception, integrationPoint);
+            return engine.aroundImpure(interception, integrationPoint);
         }
     }
 
     public static Object attach(DejaVuInterception interception) throws Throwable {
-        DejaVuPolicy policy = getPolicyForCurrentThread();
-        if ( policy != null ) {
-            policy.attachThread(interception);
+        DejaVuEngine engine = getEngineForCurrentThread();
+        if ( engine != null ) {
+            engine.attachThread(interception);
             return null;
         } else {
             return interception.proceed();
@@ -134,6 +148,10 @@ public abstract class DejaVuPolicy {
             cb.traced(trace, t, threadThrowables);
         }
         runningTrace = null;
-        removePolicyForCurrentThread();
+        removeEngineForCurrentThread();
+    }
+
+    public static String generateId() {
+        return RunningTrace.generateId();
     }
 }

@@ -1,6 +1,6 @@
 package com.jayway.dejavu.neo4j;
 
-import com.jayway.dejavu.core.TraceValueHandler;
+import com.jayway.dejavu.core.interfaces.TraceValueHandler;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;

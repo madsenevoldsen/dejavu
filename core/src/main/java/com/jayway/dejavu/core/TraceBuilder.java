@@ -2,6 +2,8 @@ package com.jayway.dejavu.core;
 
 import com.jayway.dejavu.core.annotation.Traced;
 import com.jayway.dejavu.core.chainer.ChainBuilder;
+import com.jayway.dejavu.core.interfaces.Trace;
+import com.jayway.dejavu.core.interfaces.TraceValueHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

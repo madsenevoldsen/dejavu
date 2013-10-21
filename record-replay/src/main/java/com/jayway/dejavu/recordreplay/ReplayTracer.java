@@ -2,7 +2,10 @@ package com.jayway.dejavu.recordreplay;
 
 import com.jayway.dejavu.core.*;
 import com.jayway.dejavu.core.chainer.ChainBuilder;
-import com.jayway.dejavu.core.repository.Tracer;
+import com.jayway.dejavu.core.interfaces.DejaVuInterception;
+import com.jayway.dejavu.core.interfaces.Trace;
+import com.jayway.dejavu.core.interfaces.TraceValueHandler;
+import com.jayway.dejavu.core.interfaces.Tracer;
 
 import java.util.HashMap;
 import java.util.Iterator;

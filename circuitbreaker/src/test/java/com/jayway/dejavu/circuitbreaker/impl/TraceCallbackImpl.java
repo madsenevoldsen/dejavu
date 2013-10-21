@@ -1,8 +1,8 @@
 package com.jayway.dejavu.circuitbreaker.impl;
 
 import com.jayway.dejavu.core.ThreadThrowable;
-import com.jayway.dejavu.core.Trace;
-import com.jayway.dejavu.core.repository.TraceCallback;
+import com.jayway.dejavu.core.interfaces.Trace;
+import com.jayway.dejavu.core.interfaces.TraceCallback;
 
 import java.util.List;
 

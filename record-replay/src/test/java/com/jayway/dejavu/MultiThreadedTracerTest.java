@@ -1,6 +1,9 @@
 package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.*;
+import com.jayway.dejavu.core.interfaces.Trace;
+import com.jayway.dejavu.core.interfaces.TraceValueHandler;
+import com.jayway.dejavu.core.memorytrace.MemoryTraceBuilder;
 import com.jayway.dejavu.impl.FailingWithThreads;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
 import com.jayway.dejavu.impl.WithThreads;
@@ -27,8 +30,7 @@ public class MultiThreadedTracerTest {
     public void setup() {
         callback = new TraceCallbackImpl();
         RecordReplayer.initialize(callback);
-        RunningTrace.initialize();
-        DejaVuPolicy.setFactory( new RecordReplayFactory());
+        DejaVuEngine.setFactory(new RecordReplayFactory());
     }
 
     @Test

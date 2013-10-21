@@ -1,4 +1,7 @@
-package com.jayway.dejavu.core;
+package com.jayway.dejavu.core.memorytrace;
+
+import com.jayway.dejavu.core.interfaces.Trace;
+import com.jayway.dejavu.core.TraceElement;
 
 import java.lang.reflect.Method;
 import java.util.Collections;

@@ -1,5 +1,6 @@
 package com.jayway.dejavu.core;
 
+import com.jayway.dejavu.core.interfaces.DejaVuInterception;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.reflect.ConstructorSignature;

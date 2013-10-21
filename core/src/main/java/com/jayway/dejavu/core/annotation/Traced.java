@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  * The input parameters must be treated as immutable values
  * otherwise the trace will not be correct.
  *
- * The trace created can be re-run using the <i>DejaVuPolicy.replay</i>.
+ * The trace created can be re-run using the <i>DejaVuEngine.replay</i>.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

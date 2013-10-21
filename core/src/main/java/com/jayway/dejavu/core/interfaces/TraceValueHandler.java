@@ -1,4 +1,4 @@
-package com.jayway.dejavu.core;
+package com.jayway.dejavu.core.interfaces;
 
 // handler chain for the traced values
 public interface TraceValueHandler {

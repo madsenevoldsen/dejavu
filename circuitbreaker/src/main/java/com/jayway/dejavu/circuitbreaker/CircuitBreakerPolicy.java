@@ -1,6 +1,6 @@
 package com.jayway.dejavu.circuitbreaker;
 
-import com.jayway.dejavu.core.RunningTrace;
+import com.jayway.dejavu.core.DejaVuEngine;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,7 +8,7 @@ import java.util.Map;
 public class CircuitBreakerPolicy {
 
     public static void initialize() {
-        RunningTrace.addImpureHandler(new CircuitBreakerImpureHandler());
+        DejaVuEngine.addImpureHandler(new CircuitBreakerImpureHandler());
         circuitBreakers = new HashMap<String, CircuitBreaker>();
     }
 

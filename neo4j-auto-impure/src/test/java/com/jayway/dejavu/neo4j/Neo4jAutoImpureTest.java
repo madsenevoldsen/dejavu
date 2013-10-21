@@ -1,8 +1,7 @@
 package com.jayway.dejavu.neo4j;
 
-import com.jayway.dejavu.core.DejaVuPolicy;
-import com.jayway.dejavu.core.MemoryTraceBuilder;
-import com.jayway.dejavu.core.RunningTrace;
+import com.jayway.dejavu.core.DejaVuEngine;
+import com.jayway.dejavu.core.memorytrace.MemoryTraceBuilder;
 import com.jayway.dejavu.core.TraceBuilder;
 import com.jayway.dejavu.neo4j.impl.DatabaseInteraction;
 import com.jayway.dejavu.neo4j.impl.DatabasePagesQuery;
@@ -20,9 +19,8 @@ public class Neo4jAutoImpureTest {
     @Before
     public void before(){
         callback = new TraceCallbackImpl();
-        RunningTrace.initialize();
-        DejaVuPolicy.initialize(callback);
-        DejaVuPolicy.setFactory(new RecordReplayFactory());
+        DejaVuEngine.initialize(callback);
+        DejaVuEngine.setFactory(new RecordReplayFactory());
     }
 
     @Test

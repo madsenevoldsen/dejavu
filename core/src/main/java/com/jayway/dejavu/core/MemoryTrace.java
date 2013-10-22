@@ -1,4 +1,4 @@
-package com.jayway.dejavu.core.memorytrace;
+package com.jayway.dejavu.core;
 
 import com.jayway.dejavu.core.interfaces.Trace;
 import com.jayway.dejavu.core.TraceElement;
@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-public class MemoryTrace implements Trace {
+class MemoryTrace implements Trace {
     private String id;
     private List<TraceElement> values;
     private Method startPoint;

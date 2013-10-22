@@ -1,7 +1,6 @@
 package com.jayway.dejavu.neo4j;
 
 import com.jayway.dejavu.core.DejaVuEngine;
-import com.jayway.dejavu.core.memorytrace.MemoryTraceBuilder;
 import com.jayway.dejavu.core.TraceBuilder;
 import com.jayway.dejavu.neo4j.impl.DatabaseInteraction;
 import com.jayway.dejavu.neo4j.impl.DatabasePagesQuery;
@@ -40,7 +39,7 @@ public class Neo4jAutoImpureTest {
 
     @Test
     public void create_node() throws Throwable {
-        TraceBuilder builder = new MemoryTraceBuilder(new Neo4jTraceValueHandler()).startMethod(DatabaseInteraction.class);
+        TraceBuilder builder = DejaVuEngine.createTraceBuilder("traceId", new Neo4jTraceValueHandler()).startMethod(DatabaseInteraction.class);
         builder.startArguments("First node");
 
         builder.add(Neo4jPure.Neo4jGraphDatabaseService, Neo4jPure.Neo4jTransaction, Neo4jPure.Neo4jNode, null).
@@ -51,7 +50,7 @@ public class Neo4jAutoImpureTest {
 
     @Test
     public void query_test() throws Throwable {
-        TraceBuilder builder = new MemoryTraceBuilder(new Neo4jTraceValueHandler()).startMethod(DatabaseQuery.class);
+        TraceBuilder builder = DejaVuEngine.createTraceBuilder("traceId", new Neo4jTraceValueHandler()).startMethod(DatabaseQuery.class);
 
         builder.add(Neo4jPure.Neo4jGraphDatabaseService, Neo4jPure.Neo4jTransaction, Neo4jPure.Neo4jNode, Neo4jPure.Neo4jIndexManager).
                 add(Neo4jPure.Neo4jIndex, null, Neo4jPure.Neo4jNode, null, null, null, Neo4jPure.Neo4jGraphDatabaseService ).
@@ -62,7 +61,7 @@ public class Neo4jAutoImpureTest {
 
     @Test
     public void query_paginate() throws Throwable {
-        TraceBuilder builder = new MemoryTraceBuilder(new Neo4jTraceValueHandler()).
+        TraceBuilder builder = DejaVuEngine.createTraceBuilder("traceId", new Neo4jTraceValueHandler()).
                 startMethod(DatabasePagesQuery.class);
 
         builder.add(Neo4jPure.Neo4jGraphDatabaseService, Neo4jPure.Neo4jTransaction, Neo4jPure.Neo4jIndexManager, Neo4jPure.Neo4jIndex).

@@ -1,7 +1,9 @@
 package com.jayway.dejavu;
 
-import com.jayway.dejavu.core.*;
-import com.jayway.dejavu.core.memorytrace.MemoryTraceBuilder;
+import com.jayway.dejavu.core.AutoImpureTraceValueHandler;
+import com.jayway.dejavu.core.DejaVuEngine;
+import com.jayway.dejavu.core.Pure;
+import com.jayway.dejavu.core.TraceBuilder;
 import com.jayway.dejavu.impl.ZipFileReader;
 import com.jayway.dejavu.recordreplay.RecordReplayFactory;
 import com.jayway.dejavu.recordreplay.RecordReplayer;
@@ -12,7 +14,7 @@ public class ZipFileReadingTest {
     @Test
     public void read_from_zip_file() throws Throwable {
         DejaVuEngine.setEngineFactory(new RecordReplayFactory());
-        TraceBuilder builder = new MemoryTraceBuilder(new AutoImpureTraceValueHandler())
+        TraceBuilder builder = DejaVuEngine.createTraceBuilder("traceId", new AutoImpureTraceValueHandler())
                 .startMethod(ZipFileReader.class)
                 .startArguments("myZipFile.zip");
 

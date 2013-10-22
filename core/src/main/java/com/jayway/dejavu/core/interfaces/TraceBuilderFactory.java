@@ -4,5 +4,5 @@ import com.jayway.dejavu.core.TraceBuilder;
 
 public interface TraceBuilderFactory {
 
-    TraceBuilder createTraceBuilder();
+    TraceBuilder createTraceBuilder( String traceId, TraceValueHandler... handlers );
 }

@@ -1,27 +1,17 @@
-package com.jayway.dejavu.core.memorytrace;
+package com.jayway.dejavu.core;
 
-import com.jayway.dejavu.core.TraceBuilder;
-import com.jayway.dejavu.core.TraceElement;
 import com.jayway.dejavu.core.interfaces.Trace;
 import com.jayway.dejavu.core.interfaces.TraceValueHandler;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MemoryTraceBuilder extends TraceBuilder {
+class MemoryTraceBuilder extends TraceBuilder {
 
     private List<TraceElement> values;
 
-    public MemoryTraceBuilder(String traceId) {
-        super(traceId);
-    }
-
-    public MemoryTraceBuilder(TraceValueHandler... handlers) {
-        super("traceId", handlers);
-    }
-
-    public MemoryTraceBuilder() {
-        this("traceId");
+    public MemoryTraceBuilder(String traceId, TraceValueHandler... handlers ) {
+        super(traceId, handlers);
     }
 
     @Override

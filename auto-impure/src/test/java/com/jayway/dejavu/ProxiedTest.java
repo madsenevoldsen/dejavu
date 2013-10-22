@@ -1,8 +1,10 @@
 package com.jayway.dejavu;
 
-import com.jayway.dejavu.core.*;
+import com.jayway.dejavu.core.AutoImpureTraceValueHandler;
+import com.jayway.dejavu.core.DejaVuEngine;
+import com.jayway.dejavu.core.Pure;
+import com.jayway.dejavu.core.TraceBuilder;
 import com.jayway.dejavu.core.interfaces.Trace;
-import com.jayway.dejavu.core.memorytrace.MemoryTraceBuilder;
 import com.jayway.dejavu.impl.FileReading;
 import com.jayway.dejavu.impl.RandomProxyExample;
 import com.jayway.dejavu.impl.RuntimeExceptionValueHandler;
@@ -48,7 +50,7 @@ public class ProxiedTest {
     @Test
     public void notReadingFile() throws Throwable {
         // now read the file in test mode where it only produces one line
-        TraceBuilder builder = new MemoryTraceBuilder( new AutoImpureTraceValueHandler())
+        TraceBuilder builder = DejaVuEngine.createTraceBuilder( "traceId", new AutoImpureTraceValueHandler())
                 .startMethod(FileReading.class)
                 .startArguments("not a filename");
 
@@ -63,8 +65,7 @@ public class ProxiedTest {
     @Test
     public void notReadingFileException() throws Throwable {
         // now read the file in test mode where it only produces one line
-        TraceBuilder builder = new MemoryTraceBuilder(
-            new RuntimeExceptionValueHandler())
+        TraceBuilder builder = DejaVuEngine.createTraceBuilder( "traceId", new RuntimeExceptionValueHandler())
                 .startMethod(FileReading.class)
                 .startArguments("nonexisting.xyz");
 

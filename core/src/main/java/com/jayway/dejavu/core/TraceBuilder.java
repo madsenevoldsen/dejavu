@@ -24,17 +24,16 @@ public abstract class TraceBuilder {
 
     private TraceValueHandler valueHandlers;
 
+    /*public TraceBuilder(TraceValueHandler... handlers ) {
+        this(DejaVuEngine.generateId(), handlers);
+    }*/
+
     public TraceBuilder( String traceId, TraceValueHandler... handlers) {
         this.traceId = traceId;
         this.handlers = handlers;
         valueHandlers = ChainBuilder.compose(TraceValueHandler.class).add( handlers ).build();
         threadIds = new ArrayList<String>();
         threadIds.add( traceId );
-    }
-
-
-    public TraceBuilder(TraceValueHandler... handlers ) {
-        this("traceId", handlers);
     }
 
     public void setTraceId( String traceId ) {

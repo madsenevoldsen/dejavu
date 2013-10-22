@@ -45,7 +45,7 @@ public class Marshaller {
                 }
             }
         }
-        addImport(sb, builder.getClass());
+        addImport(sb, DejaVuEngine.class);
         addImport(sb, "com.jayway.dejavu.core.TraceBuilder");
         addImport(sb, "com.jayway.dejavu.recordreplay.RecordReplayer");
         addImport(sb, "com.jayway.dejavu.unittest.SerialThrownThrowable");
@@ -90,7 +90,8 @@ public class Marshaller {
         sb.append("\n");
         add(sb, "@Test", 1);
         add(sb, "public void " + classSimpleName.toLowerCase() + "() throws Throwable {", 1);
-        add(sb, "TraceBuilder builder = new MemoryTraceBuilder(", 2);
+        // TODO add TraceValueHandler instances into TraceBuilder
+        add(sb, "TraceBuilder builder = DejaVuEngine.createTraceBuilder(", 2);
         if ( threads.isEmpty() ) {
             add(sb, marshallerArgs +").", 4);
         } else {

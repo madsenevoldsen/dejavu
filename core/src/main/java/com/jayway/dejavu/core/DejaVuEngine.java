@@ -2,7 +2,7 @@ package com.jayway.dejavu.core;
 
 import com.jayway.dejavu.core.chainer.ChainBuilder;
 import com.jayway.dejavu.core.interfaces.*;
-import com.jayway.dejavu.core.memorytrace.MemoryTraceBuilder;
+import com.jayway.dejavu.core.MemoryTraceBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,8 +58,8 @@ public abstract class DejaVuEngine {
 
     private static TraceBuilderFactory traceBuilderFactory = new TraceBuilderFactory() {
         @Override
-        public TraceBuilder createTraceBuilder() {
-            return new MemoryTraceBuilder(generateId());
+        public TraceBuilder createTraceBuilder(String traceId, TraceValueHandler... handlers) {
+            return new MemoryTraceBuilder(traceId, handlers);
         }
     };
 
@@ -68,7 +68,11 @@ public abstract class DejaVuEngine {
     }
 
     public static TraceBuilder createTraceBuilder() {
-        return traceBuilderFactory.createTraceBuilder();
+        return traceBuilderFactory.createTraceBuilder(generateId());
+    }
+
+    public static TraceBuilder createTraceBuilder(String traceId, TraceValueHandler... handlers ) {
+        return traceBuilderFactory.createTraceBuilder(traceId, handlers);
     }
 
     public static Object traced( DejaVuInterception interception) throws Throwable {

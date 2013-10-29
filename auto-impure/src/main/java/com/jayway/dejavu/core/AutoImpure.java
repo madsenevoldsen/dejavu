@@ -102,11 +102,11 @@ public class AutoImpure {
 
     private Object impureMethod(ProceedingJoinPoint proceed) throws Throwable {
         // if already inside an @impure just proceed
-        return DejaVuEngine.impure(new AspectJInterception(proceed), "");
+        return DejaVuEngine.impure(new AspectJInterception(proceed, ""));
     }
 
     private <T> T impureConstruction( ProceedingJoinPoint proceed, Class<T> clazz ) throws Throwable {
         // if already inside an @impure just proceed
-        return (T) DejaVuEngine.impure(new AspectJInterception(proceed), "");
+        return (T) DejaVuEngine.impure(new AspectJInterception(proceed, ""));
     }
 }

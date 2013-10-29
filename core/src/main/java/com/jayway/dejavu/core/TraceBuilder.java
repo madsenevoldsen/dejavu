@@ -1,9 +1,7 @@
 package com.jayway.dejavu.core;
 
 import com.jayway.dejavu.core.annotation.Traced;
-import com.jayway.dejavu.core.chainer.ChainBuilder;
 import com.jayway.dejavu.core.interfaces.Trace;
-import com.jayway.dejavu.core.interfaces.TraceValueHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,21 +15,12 @@ public abstract class TraceBuilder {
     private static Logger log = LoggerFactory.getLogger( TraceBuilder.class );
 
     private String traceId;
-    private TraceValueHandler[] handlers;
     private List<String> threadIds;
     private Method startMethod;
     private Object[] startArguments;
 
-    private TraceValueHandler valueHandlers;
-
-    /*public TraceBuilder(TraceValueHandler... handlers ) {
-        this(DejaVuEngine.generateId(), handlers);
-    }*/
-
-    public TraceBuilder( String traceId, TraceValueHandler... handlers) {
+    public TraceBuilder( String traceId ) {
         this.traceId = traceId;
-        this.handlers = handlers;
-        valueHandlers = ChainBuilder.compose(TraceValueHandler.class).add( handlers ).build();
         threadIds = new ArrayList<String>();
         threadIds.add( traceId );
     }
@@ -92,15 +81,7 @@ public abstract class TraceBuilder {
     }
 
     public TraceBuilder startArguments( Object... arguments ) {
-        if ( arguments == null ) {
-            startArguments = new Object[]{ null };
-            return this;
-        }
-        List<Object> args = new ArrayList<Object>();
-        for (Object argument : arguments) {
-            args.add( valueHandlers.handle( argument ));
-        }
-        startArguments = args.toArray(new Object[args.size()]);
+        startArguments = arguments;
         return this;
     }
 
@@ -128,7 +109,7 @@ public abstract class TraceBuilder {
             if ( value == null ) {
                 addNull(threadIdx);
             } else {
-                addElement(new TraceElement(threadIds.get(threadIdx), valueHandlers.handle(value)));
+                addElement(new TraceElement(threadIds.get(threadIdx), value));
             }
         }
         return this;
@@ -142,9 +123,11 @@ public abstract class TraceBuilder {
         return this;
     }
 
-    public abstract Trace build();
-
-    public TraceValueHandler[] getHandlers() {
-        return handlers;
+    public String getNextChildThreadId(String parentThreadId) {
+        String childThreadId = parentThreadId + "." + DejaVuEngine.generateId();
+        addThreadId(childThreadId);
+        return childThreadId;
     }
+
+    public abstract Trace build();
 }

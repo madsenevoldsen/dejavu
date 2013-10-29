@@ -1,13 +1,11 @@
 package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.DejaVuEngine;
-import com.jayway.dejavu.core.interfaces.Trace;
 import com.jayway.dejavu.core.TraceElement;
-import com.jayway.dejavu.unittest.Marshaller;
+import com.jayway.dejavu.core.interfaces.Trace;
 import com.jayway.dejavu.helper.WithSimpleTypes;
 import com.jayway.dejavu.impl.*;
-import com.jayway.dejavu.recordreplay.RecordReplayFactory;
-import com.jayway.dejavu.recordreplay.RecordReplayer;
+import com.jayway.dejavu.unittest.Marshaller;
 import junit.framework.Assert;
 import org.abstractmeta.toolbox.compilation.compiler.JavaSourceCompiler;
 import org.abstractmeta.toolbox.compilation.compiler.impl.JavaSourceCompilerImpl;
@@ -24,7 +22,6 @@ public class ExampleFromSerializedTest {
     public void setup(){
         callback = new TraceCallbackImpl();
         DejaVuEngine.initialize(callback);
-        DejaVuEngine.setEngineFactory(new RecordReplayFactory());
     }
 
     @Test
@@ -84,7 +81,7 @@ public class ExampleFromSerializedTest {
         String test = new Marshaller().marshal( trace );
         System.out.println( test );
 
-        RecordReplayer.replay(trace);
+        new DejaVuEngine().replay(trace);
         Class testClass = compileAndClassLoad("com.jayway.dejavu.impl.ClassArgumentsTest", test);
         Object o = testClass.newInstance();
 
@@ -95,7 +92,7 @@ public class ExampleFromSerializedTest {
     @Test
     public void verify_generated_test() throws Throwable {
         TraceCallbackImpl callback = new TraceCallbackImpl();
-        RecordReplayer.initialize(callback);
+        DejaVuEngine.initialize(callback);
 
         final Integer origResult = new WithSimpleTypes().simple();
 

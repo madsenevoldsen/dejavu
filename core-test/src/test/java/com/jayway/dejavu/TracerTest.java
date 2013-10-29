@@ -1,9 +1,9 @@
 package com.jayway.dejavu;
 
-import com.jayway.dejavu.core.interfaces.Trace;
+import com.jayway.dejavu.core.DejaVuEngine;
 import com.jayway.dejavu.core.TraceElement;
+import com.jayway.dejavu.core.interfaces.Trace;
 import com.jayway.dejavu.impl.*;
-import com.jayway.dejavu.recordreplay.RecordReplayer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +19,7 @@ public class TracerTest {
     @Before
     public void setup() {
         callback = new TraceCallbackImpl();
-        RecordReplayer.initialize(callback);
+        DejaVuEngine.initialize(callback);
     }
 
     @Test
@@ -27,7 +27,7 @@ public class TracerTest {
         HowItShouldBe real = new HowItShouldBe();
         String result = real.myStartPoint("From a real call");
 
-        String dejaVuRun = RecordReplayer.replay(callback.getTrace());
+        String dejaVuRun = new DejaVuEngine().replay(callback.getTrace());
 
         Assert.assertEquals(result, dejaVuRun);
     }
@@ -42,7 +42,7 @@ public class TracerTest {
         } catch (ArithmeticException e) {
             try {
                 log.info("==== Deja vu ====");
-                RecordReplayer.replay(callback.getTrace());
+                new DejaVuEngine().replay(callback.getTrace());
                 Assert.fail("Must throw ArithmeticException again");
             } catch (ArithmeticException ee ) {
             }
@@ -57,7 +57,7 @@ public class TracerTest {
             Assert.fail("Must throw MyOwnException");
         } catch (MyOwnException e ) {
             try {
-                RecordReplayer.replay(callback.getTrace());
+                new DejaVuEngine().replay(callback.getTrace());
                 Assert.fail("Must throw MyOwnException again");
             } catch (MyOwnException ee ) {
             }
@@ -69,7 +69,7 @@ public class TracerTest {
         MultiTrace multiTrace = new MultiTrace();
         String result = multiTrace.first();
         log.info("==== Deja vu ====");
-        String reRun = RecordReplayer.replay(callback.getTrace());
+        String reRun = new DejaVuEngine().replay(callback.getTrace());
 
         Assert.assertEquals( result, reRun );
         System.out.println( result );
@@ -86,7 +86,7 @@ public class TracerTest {
         }
         Assert.assertEquals( 1, size );
 
-        Long second = RecordReplayer.replay(trace);
+        Long second = new DejaVuEngine().replay(trace);
         Assert.assertEquals( time, second );
     }
 

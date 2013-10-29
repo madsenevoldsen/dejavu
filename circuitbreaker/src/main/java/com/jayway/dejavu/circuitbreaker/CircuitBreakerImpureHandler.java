@@ -1,25 +1,23 @@
 package com.jayway.dejavu.circuitbreaker;
 
-import com.jayway.dejavu.core.interfaces.ImpureHandler;
+import com.jayway.dejavu.core.ThrownThrowable;
+import com.jayway.dejavu.core.interfaces.AroundImpure;
+import com.jayway.dejavu.core.interfaces.Interception;
 
-public class CircuitBreakerImpureHandler implements ImpureHandler {
-
-    private ThreadLocal<CircuitBreakerWrapper> threadLocal = new ThreadLocal<CircuitBreakerWrapper>();
+public class CircuitBreakerImpureHandler implements AroundImpure {
 
     @Override
-    public void before(String integrationPoint) {
-        CircuitBreakerWrapper cb = new CircuitBreakerWrapper(integrationPoint);
-        threadLocal.set(cb);
+    public Object proceed(Interception interception) throws Throwable {
+        CircuitBreakerWrapper cb = new CircuitBreakerWrapper(interception.integrationPoint());
         cb.verify();
-    }
+        Object result = interception.proceed();
 
-    @Override
-    public void after(Object result) {
-        CircuitBreakerWrapper wrapper = threadLocal.get();
-        if ( result instanceof Throwable ) {
-            wrapper.failure((Throwable) result);
+        if ( result instanceof ThrownThrowable ) {
+            cb.failure(((ThrownThrowable) result).getThrowable());
         } else {
-            wrapper.success();
+            cb.success();
         }
+
+        return result;
     }
 }

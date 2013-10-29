@@ -15,23 +15,17 @@ public class ChainBuilder<T> implements MethodInterceptor {
 
     private Class<T> clazz;
     private List<T> instances;
-    private boolean all;
     private boolean compose;
 
     public static <T> ChainBuilder<T> handle( Class<T> clazz ) {
-        return new ChainBuilder<T>(clazz, false, false);
+        return new ChainBuilder<T>(clazz, false);
     }
 
     public static <T> ChainBuilder<T> compose( Class<T> clazz ) {
-        return new ChainBuilder<T>(clazz, true, false);
+        return new ChainBuilder<T>(clazz, true);
     }
 
-    public static <T> ChainBuilder<T> all( Class<T> clazz ) {
-        return new ChainBuilder<T>(clazz, false, true);
-    }
-
-    private ChainBuilder( Class<T> clazz, boolean compose, boolean all ) {
-        this.all = all;
+    private ChainBuilder( Class<T> clazz, boolean compose) {
         this.compose = compose;
         this.clazz = clazz;
         instances = new ArrayList<T>();
@@ -43,8 +37,10 @@ public class ChainBuilder<T> implements MethodInterceptor {
     }
 
     public ChainBuilder<T> add(Collection<T> collection ) {
-        for (T t : collection) {
-            instances.add(t);
+        if ( collection != null ) {
+            for (T t : collection) {
+                instances.add(t);
+            }
         }
         return this;
     }
@@ -64,7 +60,6 @@ public class ChainBuilder<T> implements MethodInterceptor {
     @Override
     public Object intercept(Object o, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
         if ( compose ) return compose(method, args);
-        if ( all ) return invokeAll(method, args);
         return handle(method, args);
     }
 
@@ -118,20 +113,6 @@ public class ChainBuilder<T> implements MethodInterceptor {
         }
         throw new CouldNotHandleException(sb.toString());
     }
-
-    // simply invoke all in the chain
-    private Object invokeAll(Method method, Object[] args) throws Throwable {
-        Object lastResult = null;
-        for (T instance : instances) {
-            try {
-                lastResult = method.invoke(instance, args);
-            } catch (InvocationTargetException e ) {
-                throw e.getCause();
-            }
-        }
-        return lastResult;
-    }
-
 
     public static void finished() {
         finished.set( true );

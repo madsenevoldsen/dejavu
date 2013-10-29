@@ -1,21 +1,14 @@
 package com.jayway.dejavu.circuitbreaker;
 
-import com.jayway.dejavu.core.DejaVuEngine;
-
 import java.util.HashMap;
 import java.util.Map;
 
 public class CircuitBreakerPolicy {
 
-    public static void initialize() {
-        DejaVuEngine.addImpureHandler(new CircuitBreakerImpureHandler());
-        circuitBreakers = new HashMap<String, CircuitBreaker>();
-    }
-
     private static int timeout = 10 * 60 * 1000; // ten minutes
     private static int exceptionThreshold = 10;
 
-    private static Map<String, CircuitBreaker> circuitBreakers;
+    private static final Map<String, CircuitBreaker> circuitBreakers = new HashMap<String, CircuitBreaker>();
 
     public static void addCircuitBreaker( CircuitBreaker handler ) {
         circuitBreakers.put(handler.getName(), handler);

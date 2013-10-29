@@ -1,6 +1,7 @@
 package com.jayway.dejavu;
 
 import com.jayway.dejavu.core.DejaVuEngine;
+import com.jayway.dejavu.core.ThreadThrowable;
 import com.jayway.dejavu.core.TraceBuilder;
 import com.jayway.dejavu.core.TraceElement;
 import com.jayway.dejavu.core.interfaces.Trace;
@@ -8,8 +9,6 @@ import com.jayway.dejavu.core.interfaces.TraceValueHandler;
 import com.jayway.dejavu.impl.FailingWithThreads;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
 import com.jayway.dejavu.impl.WithThreads;
-import com.jayway.dejavu.recordreplay.RecordReplayFactory;
-import com.jayway.dejavu.recordreplay.RecordReplayer;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,28 +29,27 @@ public class MultiThreadedTracerTest {
     @Before
     public void setup() {
         callback = new TraceCallbackImpl();
-        RecordReplayer.initialize(callback);
-        DejaVuEngine.setEngineFactory(new RecordReplayFactory());
+        DejaVuEngine.initialize(callback);
     }
 
     @Test
     public void with_three_child_threads() throws Throwable {
         WithThreads withThreads = new WithThreads();
-        int threads = 3;
+        final int threads = 3;
         withThreads.begin(threads);
         waitForCompletion();
-
-
         Trace trace = callback.getTrace();
+        callback.clearTrace();
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        RecordReplayer.replay( trace, new TraceValueHandler() {
+        new DejaVuEngine().replay( trace, new TraceValueHandler() {
             @Override
             public Object handle(Object value) {
                 values.add( new TraceElement(Thread.currentThread().getName(), value));
                 return value;
             }
         });
+        waitForCompletion();
 
         Map<String, String> threadNameMap = new HashMap<String, String>();
         int i = 0;
@@ -73,19 +71,22 @@ public class MultiThreadedTracerTest {
 
     @Test
     public void with_failing_trace() throws Throwable {
-        int threadCount = 8;
+        final int threadCount = 8;
         new FailingWithThreads().begin( threadCount );
         waitForCompletion();
         Trace trace = callback.getTrace();
+        List<ThreadThrowable> threadCauses = callback.getThreadCauses();
+        callback.clearTrace();
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        RecordReplayer.replay( trace, new TraceValueHandler() {
+        new DejaVuEngine().replay(trace, new TraceValueHandler() {
             @Override
             public Object handle(Object value) {
-                values.add( new TraceElement(Thread.currentThread().getName(), value));
+                values.add(new TraceElement(Thread.currentThread().getName(), value));
                 return value;
             }
         });
+        waitForCompletion();
 
         Map<String, String> threadNameMap = new HashMap<String, String>();
         int i = 0;
@@ -102,7 +103,8 @@ public class MultiThreadedTracerTest {
             i++;
         }
 
-        Assert.assertEquals( callback.getThreadCauses().size() +  threadCount, threadNameMap.size() );
+        Assert.assertEquals(threadCauses.size() + threadCount, threadNameMap.size());
+
     }
 
     @Test
@@ -134,13 +136,14 @@ public class MultiThreadedTracerTest {
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
         Trace build = builder.build();
-        RecordReplayer.replay(build, new TraceValueHandler() {
+        new DejaVuEngine().replay(build, new TraceValueHandler() {
             @Override
             public Object handle(Object value) {
                 values.add( new TraceElement(Thread.currentThread().getName(), value));
                 return value;
             }
         });
+        waitForCompletion();
 
         Map<String, String> threadNameMap = new HashMap<String, String>();
         int i=0;
@@ -158,7 +161,9 @@ public class MultiThreadedTracerTest {
 
         // exactly three threads are expected to have run
         Assert.assertEquals( 8, threadNameMap.size() );
+
     }
+
 
     private void waitForCompletion() {
         // wait for the trace to be done

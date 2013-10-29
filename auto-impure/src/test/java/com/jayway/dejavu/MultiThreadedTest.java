@@ -1,13 +1,14 @@
 package com.jayway.dejavu;
 
-import com.jayway.dejavu.core.*;
+import com.jayway.dejavu.core.AutoImpureTraceValueHandler;
+import com.jayway.dejavu.core.DejaVuEngine;
+import com.jayway.dejavu.core.Pure;
+import com.jayway.dejavu.core.TraceElement;
 import com.jayway.dejavu.core.interfaces.Trace;
 import com.jayway.dejavu.core.interfaces.TraceValueHandler;
-import com.jayway.dejavu.unittest.Marshaller;
 import com.jayway.dejavu.impl.TraceCallbackImpl;
 import com.jayway.dejavu.impl.WithThreads;
-import com.jayway.dejavu.recordreplay.RecordReplayFactory;
-import com.jayway.dejavu.recordreplay.RecordReplayer;
+import com.jayway.dejavu.unittest.Marshaller;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,32 +26,35 @@ public class MultiThreadedTest {
     public void setup() {
         callback = new TraceCallbackImpl();
         DejaVuEngine.initialize(callback);
-        DejaVuEngine.setEngineFactory(new RecordReplayFactory());
     }
 
     @Test
     public void with_three_child_threads() throws Throwable {
+        DejaVuEngine.setValueHandlerClasses( AutoImpureTraceValueHandler.class);
         WithThreads withThreads = new WithThreads();
         int threads = 5;
         withThreads.begin( threads );
         waitForCompletion();
-
-
         Trace trace = callback.getTrace();
-        System.out.println(new Marshaller(new AutoImpureTraceValueHandler()).marshal(trace));
+        callback.clear();
+
+        System.out.println(new Marshaller().marshal(trace));
         int size = 0;
         for (TraceElement traceElement : trace) {
             size++;
         }
 
         final List<TraceElement> values = new ArrayList<TraceElement>();
-        RecordReplayer.replay(trace, new TraceValueHandler() {
+        new DejaVuEngine().replay(trace, new TraceValueHandler() {
             @Override
             public Object handle(Object value) {
                 values.add(new TraceElement(Thread.currentThread().getName(), value));
                 return value;
             }
-        });
+        }, new AutoImpureTraceValueHandler());
+        waitForCompletion();
+
+        Assert.assertNull( "No threads are expected to fail", callback.getThreadCauses() );
 
         Map<String, String> threadNameMap = new HashMap<String, String>();
         Assert.assertEquals("Trace and replay must have same amount of values", size, values.size());

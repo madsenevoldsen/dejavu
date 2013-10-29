@@ -1,58 +1,62 @@
 package com.jayway.dejavu.core;
 
-import com.jayway.dejavu.core.interfaces.DejaVuInterception;
+import com.jayway.dejavu.core.interfaces.Interception;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.Signature;
-import org.aspectj.lang.reflect.ConstructorSignature;
 import org.aspectj.lang.reflect.MethodSignature;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
-public class AspectJInterception implements DejaVuInterception {
+public class AspectJInterception implements Interception {
 
     private ProceedingJoinPoint proceedingJoinPoint;
+    private String integrationPoint;
+    private Object[] arguments;
+    private String threadId;
 
     public AspectJInterception(ProceedingJoinPoint proceedingJoinPoint ) {
+        this(proceedingJoinPoint, "");
+    }
+
+    public AspectJInterception(ProceedingJoinPoint proceedingJoinPoint, String integrationPoint ) {
         this.proceedingJoinPoint = proceedingJoinPoint;
+        this.integrationPoint = integrationPoint;
     }
 
     @Override
     public Method getMethod() {
-        /*Signature signature = proceedingJoinPoint.getSignature();
-        if ( signature instanceof MethodSignature ) {
-            return ((MethodSignature) signature).getMethod();
-        } else if ( signature instanceof ConstructorSignature ) {
-            Constructor constructor = ((ConstructorSignature) signature).getConstructor();
-
-        }
-
-        return signature.getDeclaringType();
-
-        //*/return ((MethodSignature)proceedingJoinPoint.getSignature()).getMethod();
-    }
-
-    @Override
-    public Class getReturnType() {
-        Signature signature = proceedingJoinPoint.getSignature();
-        if ( signature instanceof MethodSignature ) {
-            return ((MethodSignature)proceedingJoinPoint.getSignature()).getReturnType();
-        }
-        return signature.getDeclaringType();
+        return ((MethodSignature)proceedingJoinPoint.getSignature()).getMethod();
     }
 
     @Override
     public Object proceed() throws Throwable {
-        return proceedingJoinPoint.proceed();
-    }
-
-    @Override
-    public Object proceed(Object[] changedArguments) throws Throwable {
-        return proceedingJoinPoint.proceed( changedArguments );
+        if ( arguments == null ) {
+            return proceedingJoinPoint.proceed();
+        }
+        return proceedingJoinPoint.proceed(arguments);
     }
 
     @Override
     public Object[] getArguments() {
         return proceedingJoinPoint.getArgs();
+    }
+
+    @Override
+    public void setArguments(Object[] arguments) {
+        this.arguments = arguments;
+    }
+
+    @Override
+    public String integrationPoint() {
+        return integrationPoint;
+    }
+
+    @Override
+    public String threadId() {
+        return threadId;
+    }
+
+    @Override
+    public void threadId(String threadId) {
+        this.threadId = threadId;
     }
 }

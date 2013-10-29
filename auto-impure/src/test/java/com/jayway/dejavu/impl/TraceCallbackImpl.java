@@ -27,6 +27,12 @@ public class TraceCallbackImpl implements TraceCallback {
         return trace;
     }
 
+    public void clear() {
+        trace = null;
+        cause = null;
+        threadCauses = null;
+    }
+
     public List<ThreadThrowable> getThreadCauses() {
         return threadCauses;
     }

@@ -2,16 +2,19 @@ package com.jayway.dejavu.core.interfaces;
 
 import java.lang.reflect.Method;
 
-public interface DejaVuInterception {
+public interface Interception {
 
     Method getMethod();
 
-    Class getReturnType();
-
     Object proceed() throws Throwable;
-
-    Object proceed(Object[] changedArguments) throws Throwable;
 
     Object[] getArguments();
 
+    void setArguments( Object[] arguments);
+
+    String integrationPoint();
+
+    String threadId();
+
+    void threadId( String threadId );
 }

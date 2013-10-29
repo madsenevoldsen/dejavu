@@ -1,8 +1,10 @@
 package com.jayway.dejavu.core;
 
-import com.jayway.dejavu.core.interfaces.DejaVuInterception;
-import com.jayway.dejavu.core.interfaces.ImpureHandler;
-import com.jayway.dejavu.core.interfaces.Tracer;
+import com.jayway.dejavu.core.chainer.ChainBuilder;
+import com.jayway.dejavu.core.interfaces.AroundImpure;
+import com.jayway.dejavu.core.interfaces.Interception;
+import com.jayway.dejavu.core.interfaces.InterceptionAdapter;
+import com.jayway.dejavu.core.interfaces.TraceValueHandler;
 
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -14,27 +16,20 @@ class RunningTrace {
     private static ThreadLocal<Boolean> threadLocalInImpure = new ThreadLocal<Boolean>();
 
     private DejaVuEngine policy;
-    private ImpureHandler impureHandler;
     private Set<String> attachedThreads;
     private Set<String> completedThreads;
     private Throwable throwable;
     private List<ThreadThrowable> threadThrowables;
-    private Tracer tracer;
+    private TraceValueHandler valueHandler;
+    private List<AroundImpure> impure;
+    private TraceBuilder builder;
 
-    protected RunningTrace( DejaVuEngine policy, Tracer tracer ) {
+    protected RunningTrace( TraceBuilder builder, DejaVuEngine policy, List<AroundImpure> impure, List<TraceValueHandler> valueHandlers ) {
+        this.builder = builder;
         this.policy = policy;
-        this.tracer = tracer;
-        threadId.set(tracer.getTrace().getId());
-
-        impureHandler = DejaVuEngine.createImpureHandlerChain(new ImpureHandler() {
-            public void before(String integrationPoint) {
-                threadLocalInImpure.set(true);
-            }
-
-            public void after(Object result) {
-                threadLocalInImpure.set(false);
-            }
-        });
+        this.impure = impure;
+        threadId.set(builder.getTraceId());
+        valueHandler = ChainBuilder.compose( TraceValueHandler.class ).add( valueHandlers ).build();
     }
 
     public synchronized void threadAttached( String id ) {
@@ -52,7 +47,7 @@ class RunningTrace {
     public void callbackIfFinished(Throwable t) {
         throwable = t;
         if ( attachedThreadsCompleted() ) {
-            policy.completed(tracer.getTrace(), t, threadThrowables);
+            policy.completed(builder.build(), t, threadThrowables);
         }
         threadId.remove();
         threadLocalInImpure.remove();
@@ -80,16 +75,50 @@ class RunningTrace {
         return attachedThreads == null || attachedThreads.size() == completedThreads.size();
     }
 
-    protected Object aroundImpure(DejaVuInterception interception, String integrationPoint ) throws Throwable {
-        try {
-            impureHandler.before( integrationPoint );
-            Object result = tracer.nextValue(threadId.get(), interception);
-            impureHandler.after( result);
-            return result;
-        } catch (Throwable throwable) {
-            impureHandler.after(throwable);
-            throw throwable;
+    protected Object aroundImpure(Interception interception ) throws Throwable {
+        LinkedList<AroundImpure> handlers = new LinkedList<AroundImpure>( impure );
+        interception.threadId( threadId.get() );
+        handlers.addFirst(new AroundImpure() {
+            public Object proceed(Interception interception) throws Throwable {
+                threadLocalInImpure.set(true);
+                Object result = interception.proceed();
+                threadLocalInImpure.set(false);
+                return result;
+            }
+        });
+        Object result = buildAroundHandler( interception, handlers ).proceed( interception );
+        builder.addValue( threadId.get(), valueHandler.handle( result ) );
+        if ( result instanceof ThrownThrowable ) {
+            throw ((ThrownThrowable) result).getThrowable();
         }
+        return result;
+    }
+
+    private AroundImpure buildAroundHandler( final Interception inner, final LinkedList<AroundImpure> handlers ) {
+        return new AroundImpure() {
+
+            @Override
+            public Object proceed(Interception interception) throws Throwable {
+                if ( handlers.isEmpty() ) {
+                    try {
+                        return inner.proceed();
+                    } catch (Throwable throwable) {
+                        return new ThrownThrowable( throwable);
+                    }
+                }
+
+                try {
+                    return handlers.removeFirst().proceed(new InterceptionAdapter(inner) {
+                        @Override
+                        public Object proceed() throws Throwable {
+                            return buildAroundHandler(inner, handlers).proceed(inner);
+                        }
+                    });
+                } catch (Throwable throwable) {
+                    return new ThrownThrowable(throwable);
+                }
+            }
+        };
     }
 
     protected boolean shouldProceed() {
@@ -101,13 +130,13 @@ class RunningTrace {
     // if runnable is passed as argument to @AttachThread and not
     // run, the trace will not stop
     public Runnable toBeAttached(Runnable runnable){
-        String childThreadId = tracer.getNextChildThreadId(threadId.get());
+        String childThreadId = builder.getNextChildThreadId(threadId.get());
         threadAttached(childThreadId);
         return new AttachedRunnable(runnable, this, childThreadId);
     }
 
     public Callable toBeAttached(Callable callable ) {
-        String childThreadId = tracer.getNextChildThreadId(threadId.get());
+        String childThreadId = builder.getNextChildThreadId(threadId.get());
         threadAttached(childThreadId);
         return new AttachedCallable(callable, this, childThreadId);
     }

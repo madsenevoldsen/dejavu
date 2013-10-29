@@ -15,7 +15,7 @@ public class DejaVuAspect {
 
     @Around("execution(@com.jayway.dejavu.core.annotation.Impure * *(..)) && @annotation(impure)")
     public Object integrationPoint( ProceedingJoinPoint proceed, Impure impure) throws Throwable {
-        return DejaVuEngine.impure(new AspectJInterception(proceed), impure.integrationPoint());
+        return DejaVuEngine.impure(new AspectJInterception(proceed, impure.integrationPoint()));
     }
 
     @Around("execution(@com.jayway.dejavu.core.annotation.AttachThread * *(..))")

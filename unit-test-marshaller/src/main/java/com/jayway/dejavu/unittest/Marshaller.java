@@ -34,21 +34,10 @@ public class Marshaller {
         sb.append("package ").append(packageName).append(";\n\n");
         // imports
         addImport(sb, Marshaller.class, Trace.class, trace.getStartPoint().getDeclaringClass() );
-        TraceBuilder builder = DejaVuEngine.createTraceBuilder();
-        TraceValueHandler[] valueHandlers = builder.getHandlers();
-        if ( valueHandlers != null ) {
-            for (TraceValueHandler valueHandler : valueHandlers) {
-                if ( valueHandler.getClass().isAnonymousClass() ) {
-                    //log.warning("Anonymous TraceValueHandler cannot be re-created. Skipping");
-                } else {
-                    addImport(sb, valueHandler.getClass());
-                }
-            }
-        }
+        // TODO import around- and value-handlers
         addImport(sb, DejaVuEngine.class);
-        addImport(sb, "com.jayway.dejavu.core.TraceBuilder");
-        addImport(sb, "com.jayway.dejavu.recordreplay.RecordReplayer");
-        addImport(sb, "com.jayway.dejavu.unittest.SerialThrownThrowable");
+        addImport(sb, TraceBuilder.class);
+        addImport(sb, SerialThrownThrowable.class);
         addImport(sb, "org.junit.Test");
 
         Set<String> imports = new HashSet<String>();
@@ -91,16 +80,7 @@ public class Marshaller {
         add(sb, "@Test", 1);
         add(sb, "public void " + classSimpleName.toLowerCase() + "() throws Throwable {", 1);
         // TODO add TraceValueHandler instances into TraceBuilder
-        add(sb, "TraceBuilder builder = DejaVuEngine.createTraceBuilder(", 2);
-        if ( threads.isEmpty() ) {
-            add(sb, marshallerArgs +").", 4);
-        } else {
-            if ( marshallerArgs.isEmpty() ) {
-                add(sb, "\"" +trace.getId()+"\").", 4);
-            } else {
-                add(sb, "\"" +trace.getId()+"\"," + marshallerArgs +").", 4);
-            }
-        }
+        add(sb, "TraceBuilder builder = DejaVuEngine.createTraceBuilder(\""+trace.getId()+"\").", 2);
 
         // TODO fix if not only one in method
         // TODO fix proper argument elements (with type)
@@ -202,7 +182,7 @@ public class Marshaller {
             }
         }
         sb.append("\n");
-        add(sb, "RecordReplayer.replay( builder.build() );", 2);
+        add(sb, "new DejaVuEngine().replay( builder.build() );", 2);
         add(sb, "}", 1);
         add(sb, "}", 0);
         return sb.toString();

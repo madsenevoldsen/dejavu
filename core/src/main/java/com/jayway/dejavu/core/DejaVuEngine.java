@@ -2,29 +2,28 @@ package com.jayway.dejavu.core;
 
 import com.jayway.dejavu.core.chainer.ChainBuilder;
 import com.jayway.dejavu.core.interfaces.*;
-import com.jayway.dejavu.core.MemoryTraceBuilder;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
 import java.util.concurrent.Callable;
 
-public abstract class DejaVuEngine {
+public class DejaVuEngine {
 
     private RunningTrace runningTrace;
 
     private static ThreadLocal<DejaVuEngine> dejaVuEngineThreadLocal = new ThreadLocal<DejaVuEngine>();
-    private static List<ImpureHandler> impureHandlers = new ArrayList<ImpureHandler>();
+    private static Set<Class<? extends AroundImpure>> aroundClasses = new LinkedHashSet<Class<? extends AroundImpure>>();
+    private static Set<Class<? extends TraceValueHandler>> valueHandlerClasses = new LinkedHashSet<Class<? extends TraceValueHandler>>();
 
-    public static void clearImpureHandlers() {
-        impureHandlers.clear();
+    public static void setAroundClasses( Class<? extends AroundImpure>... classes ) {
+        aroundClasses.clear();
+        Collections.addAll(aroundClasses, classes);
     }
 
-    public static void addImpureHandler( ImpureHandler handler ) {
-        impureHandlers.add(handler);
-    }
-
-    public static ImpureHandler createImpureHandlerChain( ImpureHandler defaultHandler ) {
-        return ChainBuilder.all(ImpureHandler.class).add(defaultHandler).add( impureHandlers ).build();
+    public static void setValueHandlerClasses( Class<? extends TraceValueHandler>... classes ) {
+        valueHandlerClasses.clear();
+        Collections.addAll(valueHandlerClasses, classes);
     }
 
     protected void setEngineForCurrentThread() {
@@ -45,55 +44,52 @@ public abstract class DejaVuEngine {
         DejaVuEngine.callback = callback;
     }
 
-    private static EngineFactory engineFactory = new EngineFactory() {
-        @Override
-        public DejaVuEngine getEngine() {
-            throw new RuntimeException("EngineFactory not set up! Call DejaVuEngine.setEngineFactory(..)");
-        }
-    };
-
-    public static void setEngineFactory(EngineFactory engineFactory) {
-        DejaVuEngine.engineFactory = engineFactory;
-    }
-
     private static TraceBuilderFactory traceBuilderFactory = new TraceBuilderFactory() {
         @Override
-        public TraceBuilder createTraceBuilder(String traceId, TraceValueHandler... handlers) {
-            return new MemoryTraceBuilder(traceId, handlers);
+        public TraceBuilder createTraceBuilder(String traceId) {
+            return new MemoryTraceBuilder(traceId);
         }
     };
+
+    private static <T> List<T> instantiate( Set<Class<? extends T>> classes ) {
+        List<T> instances = new ArrayList<T>();
+        for (Class<? extends T> aClass : classes) {
+            try {
+                instances.add( aClass.newInstance() );
+            } catch (Exception e) {
+                // log warning
+            }
+        }
+        return instances;
+    }
 
     public static void setTraceBuilderFactory( TraceBuilderFactory traceBuilderFactory) {
         DejaVuEngine.traceBuilderFactory = traceBuilderFactory;
     }
 
-    public static TraceBuilder createTraceBuilder() {
-        return traceBuilderFactory.createTraceBuilder(generateId());
+    public static TraceBuilder createTraceBuilder(String traceId) {
+        return traceBuilderFactory.createTraceBuilder(traceId);
     }
 
-    public static TraceBuilder createTraceBuilder(String traceId, TraceValueHandler... handlers ) {
-        return traceBuilderFactory.createTraceBuilder(traceId, handlers);
-    }
-
-    public static Object traced( DejaVuInterception interception) throws Throwable {
+    public static Object traced( Interception interception) throws Throwable {
         DejaVuEngine engine = getEngineForCurrentThread();
         if ( engine == null ) {
-            engine = engineFactory.getEngine();
+            engine = new DejaVuEngine();
             engine.setEngineForCurrentThread();
         }
         return engine.aroundTraced(interception);
     }
 
-    public static Object impure(DejaVuInterception interception, String integrationPoint) throws Throwable {
+    public static Object impure(Interception interception) throws Throwable {
         DejaVuEngine engine = getEngineForCurrentThread();
         if (engine == null || engine.runningTrace == null) {
             return interception.proceed();
         } else {
-            return engine.aroundImpure(interception, integrationPoint);
+            return engine.aroundImpure(interception);
         }
     }
 
-    public static Object attach(DejaVuInterception interception) throws Throwable {
+    public static Object attach(Interception interception) throws Throwable {
         DejaVuEngine engine = getEngineForCurrentThread();
         if ( engine != null ) {
             engine.attachThread(interception);
@@ -103,46 +99,98 @@ public abstract class DejaVuEngine {
         }
     }
 
-    public abstract Tracer createTracer( DejaVuInterception interception );
+    public <T> T replay( final Trace trace, final TraceValueHandler... handlers ) throws Throwable {
+        final Iterator<TraceElement> iterator = trace.iterator();
+        final List<AroundImpure> impure = new ArrayList<AroundImpure>();
+        final TraceValueHandler valueHandler = ChainBuilder.compose( TraceValueHandler.class).add( handlers ).build();
+        impure.add(new AroundImpure() {
+            TraceElement current;
 
-    public TraceCallback callback() {
-        return callback;
+            public synchronized Object proceed(Interception interception) throws Throwable {
+                while (true) {
+                    if ( current == null ) {
+                        current = iterator.next();
+                    }
+                    if ( interception.threadId().equals(current.getThreadId()) ) {
+                        TraceElement element = current;
+                        current = null;
+                        notifyAll();
+                        Object result = valueHandler.handle(element.getValue());
+                        if ( result instanceof ThrownThrowable ) {
+                            throw ((ThrownThrowable) result).getThrowable();
+                        }
+                        return result;
+                    } else {
+                        try {
+                            // we need to wait for the value to be ready
+                            wait();
+                        } catch (InterruptedException e) {
+                            // ignore. Continue waiting
+                        }
+                    }
+                }
+            }
+        });
+        DejaVuEngine replayEngine = new DejaVuEngine() {
+            @Override
+            protected RunningTrace createRunningTrace(Interception interception) {
+                return new RunningTrace( new ReplayTraceBuilder(trace, handlers), this, impure, null );
+            }
+        };
+        replayEngine.setEngineForCurrentThread();
+        Method method = trace.getStartPoint();
+        Class<?> aClass = method.getDeclaringClass();
+
+        try {
+            Object instance = aClass.newInstance();
+            return (T) method.invoke(instance, trace.getStartArguments());
+        } catch (InvocationTargetException ee ) {
+            throw ee.getTargetException();
+        } finally {
+            removeEngineForCurrentThread();
+        }
     }
 
-    public Object aroundTraced( DejaVuInterception interception ) throws Throwable {
+    public Object aroundTraced( Interception interception ) throws Throwable {
         if ( runningTrace != null) {
             // this must be a traced call calling a second traced method, just proceed
             return interception.proceed();
         }
 
-        RunningTrace trace = new RunningTrace(this, createTracer(interception));
-        runningTrace = trace;
+        runningTrace = createRunningTrace(interception);
         try {
             Object result = interception.proceed();
-            trace.callbackIfFinished();
+            runningTrace.callbackIfFinished();
             return result;
         } catch ( Throwable t) {
-            trace.callbackIfFinished(t);
+            runningTrace.callbackIfFinished(t);
             throw t;
         }
     }
 
-    public Object aroundImpure(DejaVuInterception interception, String integrationPoint) throws Throwable {
+    protected RunningTrace createRunningTrace(Interception interception) {
+        TraceBuilder builder = createTraceBuilder(generateId());
+        builder.startMethod( interception.getMethod() );
+        builder.startArguments( interception.getArguments() );
+        return new RunningTrace(builder, this, instantiate( aroundClasses),
+                instantiate( valueHandlerClasses));
+    }
+
+    public Object aroundImpure(Interception interception) throws Throwable {
         if ( runningTrace.shouldProceed() ) {
             return interception.proceed();
         }
 
-        return runningTrace.aroundImpure(interception, integrationPoint);
+        return runningTrace.aroundImpure(interception);
     }
 
-    public void attachThread( DejaVuInterception interception) throws Throwable {
-        if ( runningTrace == null ) {
-            interception.proceed();
-        } else {
+    public void attachThread( Interception interception) throws Throwable {
+        if (runningTrace != null) {
             Object[] args = interception.getArguments();
             patch(runningTrace, args);
-            interception.proceed(args);
+            interception.setArguments(args);
         }
+        interception.proceed();
     }
 
     public void patchForAttachThread(Object[] args) {
@@ -163,7 +211,7 @@ public abstract class DejaVuEngine {
     }
 
     public void completed(Trace trace, Throwable t, List<ThreadThrowable> threadThrowables) {
-        TraceCallback cb = callback();
+        TraceCallback cb = callback;
         if ( cb != null  ) {
             cb.traced(trace, t, threadThrowables);
         }
